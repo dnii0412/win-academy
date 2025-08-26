@@ -1,6 +1,7 @@
 import type React from "react"
 import { Inter } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
+import AuthSessionProvider from "@/components/session-provider"
 import "./globals.css"
 
 const inter = Inter({
@@ -17,14 +18,16 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} antialiased`} suppressHydrationWarning>
       <body className="font-sans">
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-          {children}
-        </ThemeProvider>
+        <AuthSessionProvider>
+          <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+            {children}
+          </ThemeProvider>
+        </AuthSessionProvider>
       </body>
     </html>
   )
 }
 
 export const metadata = {
-      generator: 'v0.app'
-    };
+  generator: 'v0.app'
+};

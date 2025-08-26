@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
+import { signIn, getSession } from "next-auth/react"
+import { useRouter } from "next/navigation"
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
@@ -14,6 +16,8 @@ export default function LoginPage() {
     password: "",
     rememberMe: false,
   })
+  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
 
   useEffect(() => {
     const savedEmail = localStorage.getItem("rememberedEmail")
@@ -36,25 +40,50 @@ export default function LoginPage() {
     }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setIsLoading(true)
 
-    if (formData.rememberMe) {
-      localStorage.setItem("rememberedEmail", formData.email)
-      localStorage.setItem("rememberMe", "true")
-      // Set longer session duration
-      localStorage.setItem("sessionDuration", "30") // 30 days
-    } else {
-      localStorage.removeItem("rememberedEmail")
-      localStorage.removeItem("rememberMe")
-      localStorage.setItem("sessionDuration", "1") // 1 day
+    try {
+      const result = await signIn("credentials", {
+        email: formData.email,
+        password: formData.password,
+        redirect: false,
+      })
+
+      if (result?.error) {
+        console.error("Login failed:", result.error)
+        // Handle error - you might want to show a toast or error message
+      } else {
+        // Handle remember me
+        if (formData.rememberMe) {
+          localStorage.setItem("rememberedEmail", formData.email)
+          localStorage.setItem("rememberMe", "true")
+        } else {
+          localStorage.removeItem("rememberedEmail")
+          localStorage.removeItem("rememberMe")
+        }
+
+        // Redirect to dashboard or intended page
+        router.push("/dashboard")
+      }
+    } catch (error) {
+      console.error("Login error:", error)
+    } finally {
+      setIsLoading(false)
     }
-
-    console.log("[v0] Login form submitted:", formData)
   }
 
-  const handleGoogleSignIn = () => {
-    console.log("[v0] Google sign in clicked")
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true)
+    try {
+      await signIn("google", {
+        callbackUrl: "/dashboard",
+      })
+    } catch (error) {
+      console.error("Google sign-in error:", error)
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -73,6 +102,7 @@ export default function LoginPage() {
         <CardContent className="space-y-6">
           <Button
             onClick={handleGoogleSignIn}
+            disabled={isLoading}
             className="w-full bg-background border border-border text-foreground hover:bg-accent flex items-center justify-center space-x-2"
             variant="outline"
           >
@@ -155,8 +185,12 @@ export default function LoginPage() {
               </Link>
             </div>
 
-            <Button type="submit" className="w-full bg-[#E10600] hover:bg-[#C70500] text-white">
-              Sign In
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-[#E10600] hover:bg-[#C70500] text-white"
+            >
+              {isLoading ? "Signing In..." : "Sign In"}
             </Button>
           </form>
 
