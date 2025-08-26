@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input"
 export default function CoursesPage() {
   const allCourses = [
     {
+      courseId: "graphic-design-ai",
       title: "Graphic Design + AI",
       description:
         "Master graphic design fundamentals combined with AI tools. Learn Photoshop, Illustrator, and cutting-edge AI design workflows to create stunning visuals.",
@@ -23,6 +24,7 @@ export default function CoursesPage() {
       schedule: "Mon-Wed-Fri 18:30-21:00",
     },
     {
+      courseId: "social-media-marketing",
       title: "Social Media Marketing",
       description:
         "Complete guide to social media marketing, content creation, and analytics. Learn to create campaigns that convert and build your personal brand.",
@@ -35,6 +37,7 @@ export default function CoursesPage() {
       schedule: "Self-paced + Live sessions",
     },
     {
+      courseId: "photoshop-master",
       title: "Photoshop Master",
       description:
         "Become a Photoshop expert with advanced techniques, photo manipulation, digital art creation, and professional retouching skills.",
@@ -47,6 +50,7 @@ export default function CoursesPage() {
       schedule: "Tue-Thu 18:30-21:00, Sat 10:00-17:00",
     },
     {
+      courseId: "ai-image-video-prompt",
       title: "AI Image, Video & Prompt Engineering",
       description:
         "Harness AI tools for content creation. Master prompt engineering, AI image generation, video creation, and automation workflows.",
@@ -59,6 +63,7 @@ export default function CoursesPage() {
       schedule: "Flexible schedule + Weekly live Q&A",
     },
     {
+      courseId: "premiere-pro-video",
       title: "Premiere Pro Video Editing",
       description:
         "Professional video editing with Adobe Premiere Pro. Learn advanced editing techniques, color grading, audio mixing, and motion graphics.",
@@ -71,6 +76,7 @@ export default function CoursesPage() {
       schedule: "Mon-Wed 18:30-21:00 + Online practice",
     },
     {
+      courseId: "digital-content-marketing",
       title: "Digital Content Marketing",
       description:
         "Create compelling digital content strategies, learn copywriting, content planning, and multi-platform marketing approaches.",

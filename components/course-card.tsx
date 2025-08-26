@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { CourseBadge } from "@/components/course-badge"
 import { Calendar, Clock, User } from "lucide-react"
+import Link from "next/link"
 
 interface CourseCardProps {
   title: string
@@ -14,6 +15,7 @@ interface CourseCardProps {
   startDate?: string
   instructor?: string
   schedule?: string
+  courseId?: string
 }
 
 export default function CourseCard({
@@ -27,6 +29,7 @@ export default function CourseCard({
   startDate,
   instructor,
   schedule,
+  courseId,
 }: CourseCardProps) {
   return (
     <Card className="overflow-hidden transition-all duration-300 ease-out hover:shadow-2xl hover:-translate-y-2 hover:scale-[1.02] group">
@@ -83,10 +86,19 @@ export default function CourseCard({
       </CardContent>
       <CardFooter className="p-6 pt-0 flex justify-between items-center">
         <span className="text-2xl font-bold text-[#E10600]">{price}</span>
-        <Button className="bg-[#E10600] hover:bg-[#C70500] text-white relative overflow-hidden group/btn transition-all duration-300 hover:shadow-lg hover:scale-105">
-          <span className="relative z-10">{progress !== undefined ? "Continue" : "Enroll Now"}</span>
-          <div className="absolute inset-0 bg-white/20 scale-0 group-hover/btn:scale-100 transition-transform duration-300 rounded-full" />
-        </Button>
+        {courseId ? (
+          <Link href={`/checkout/${courseId}`}>
+            <Button className="bg-[#E10600] hover:bg-[#C70500] text-white relative overflow-hidden group/btn transition-all duration-300 hover:shadow-lg hover:scale-105">
+              <span className="relative z-10">{progress !== undefined ? "Continue" : "Enroll Now"}</span>
+              <div className="absolute inset-0 bg-white/20 scale-0 group-hover/btn:scale-100 transition-transform duration-300 rounded-full" />
+            </Button>
+          </Link>
+        ) : (
+          <Button className="bg-[#E10600] hover:bg-[#C70500] text-white relative overflow-hidden group/btn transition-all duration-300 hover:shadow-lg hover:scale-105">
+            <span className="relative z-10">{progress !== undefined ? "Continue" : "Enroll Now"}</span>
+            <div className="absolute inset-0 bg-white/20 scale-0 group-hover/btn:scale-100 transition-transform duration-300 rounded-full" />
+          </Button>
+        )}
       </CardFooter>
     </Card>
   )
