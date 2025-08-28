@@ -21,9 +21,6 @@ export default function RegisterPage() {
     confirmPassword: "",
     agreeToTerms: false,
   })
-  const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
-
   const [showPassword, setShowPassword] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isLoading, setIsLoading] = useState(false)
