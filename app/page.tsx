@@ -56,7 +56,7 @@ export default function HomePage() {
       <ScrollProgress />
 
       {/* Hero Section */}
-      <section className="bg-background h-[90vh] flex items-center relative overflow-hidden">
+      <section className="bg-background h-[90vh] flex items-center relative overflow-hidden pt-8">
         <div className="absolute inset-0 bg-gradient-to-br from-red-50/30 to-transparent animate-pulse dark:from-red-950/20" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative w-full">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
@@ -98,7 +98,7 @@ export default function HomePage() {
                 <img
                   src="/images/student-learning.jpeg"
                   alt="Students learning digital skills"
-                  
+
                   className="w-full h-auto max-h-[60vh] object-cover rounded-lg shadow-2xl"
                 />
               </div>

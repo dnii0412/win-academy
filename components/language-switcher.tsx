@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Globe, Check } from "lucide-react"
+import { Globe, ChevronDown, Check } from "lucide-react"
 import { languages, type Language } from "@/lib/languages"
 
 interface LanguageSwitcherProps {
@@ -29,11 +29,11 @@ export default function LanguageSwitcher({
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          size="icon"
-          className={`hover:bg-accent ${className}`}
+          className={`hover:bg-accent flex items-center space-x-2 px-3 ${className}`}
           aria-label="Switch language"
         >
           <Globe className="h-5 w-5" />
+          <ChevronDown className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-40">

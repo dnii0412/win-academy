@@ -6,11 +6,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { 
-  Users, 
-  Search, 
-  Edit, 
-  Eye, 
+import {
+  Users,
+  Search,
+  Edit,
+  Eye,
   Lock,
   Unlock,
   BookOpen,
@@ -112,7 +112,7 @@ export default function AdminUsersPage() {
           createdAt: "2024-01-01"
         }
       ]
-      
+
       setUsers(mockUsers)
       setFilteredUsers(mockUsers)
     } catch (error) {
@@ -139,7 +139,7 @@ export default function AdminUsersPage() {
     let filtered = users
 
     if (searchTerm) {
-      filtered = filtered.filter(user => 
+      filtered = filtered.filter(user =>
         user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (user.phone && user.phone.includes(searchTerm))
@@ -187,13 +187,13 @@ export default function AdminUsersPage() {
     try {
       // In a real app, you'd make an API call here
       const newStatus = currentStatus === "active" ? "inactive" : "active"
-      
-      setUsers(prevUsers => 
-        prevUsers.map(user => 
+
+      setUsers(prevUsers =>
+        prevUsers.map(user =>
           user._id === userId ? { ...user, status: newStatus } : user
         )
       )
-      
+
       console.log(`User ${userId} status changed to ${newStatus}`)
     } catch (error) {
       console.error("Error updating user status:", error)
@@ -311,31 +311,31 @@ export default function AdminUsersPage() {
                 </div>
               </div>
             </CardHeader>
-            
+
             <CardContent className="pt-0">
               <div className="space-y-3 mb-4">
                 <div className="flex items-center gap-2 text-sm">
                   <Mail className="h-4 w-4 text-muted-foreground" />
                   <span className="text-muted-foreground">{user.email}</span>
                 </div>
-                
+
                 {user.phone && (
                   <div className="flex items-center gap-2 text-sm">
                     <span className="text-muted-foreground">📱</span>
                     <span>{user.phone}</span>
                   </div>
                 )}
-                
+
                 <div className="flex items-center gap-2 text-sm">
                   <BookOpen className="h-4 w-4 text-muted-foreground" />
                   <span className="text-muted-foreground">Enrolled in {user.totalCourses} courses</span>
                 </div>
-                
+
                 <div className="flex items-center gap-2 text-sm">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                   <span className="text-muted-foreground">Joined {new Date(user.createdAt).toLocaleDateString()}</span>
                 </div>
-                
+
                 {user.enrolledCourses.length > 0 && (
                   <div className="space-y-2">
                     <span className="text-sm font-medium text-muted-foreground">Enrolled Courses:</span>
@@ -354,7 +354,7 @@ export default function AdminUsersPage() {
                   </div>
                 )}
               </div>
-              
+
               <div className="flex space-x-2">
                 <Link href={`/admin/users/${user._id}`} className="flex-1">
                   <Button variant="outline" className="w-full">
@@ -368,8 +368,8 @@ export default function AdminUsersPage() {
                     Edit
                   </Button>
                 </Link>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="icon"
                   onClick={() => toggleUserStatus(user._id, user.status)}
                   className={user.status === "active" ? "text-red-600 hover:text-red-700" : "text-green-600 hover:text-green-700"}
