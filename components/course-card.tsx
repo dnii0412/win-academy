@@ -47,10 +47,10 @@ export default function CourseCard({
         </div>
       </div>
       <CardContent className="p-6">
-        <h3 className="font-semibold text-lg mb-2 text-[#111111]">{title}</h3>
-        <p className="text-gray-600 text-sm mb-4 line-clamp-3">{description}</p>
+        <h3 className="font-semibold text-lg mb-2 text-foreground">{title}</h3>
+        <p className="text-muted-foreground text-sm mb-4 line-clamp-3">{description}</p>
 
-        <div className="space-y-2 mb-4 text-sm text-gray-600">
+        <div className="space-y-2 mb-4 text-sm text-muted-foreground">
           {duration && (
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4" />
@@ -69,16 +69,16 @@ export default function CourseCard({
               <span>{instructor}</span>
             </div>
           )}
-          {schedule && modality === "onsite" && <div className="text-xs text-gray-500">{schedule}</div>}
+          {schedule && modality === "onsite" && <div className="text-xs text-muted-foreground/70">{schedule}</div>}
         </div>
 
         {progress !== undefined && (
           <div className="mb-4">
-            <div className="flex justify-between text-sm mb-1">
+            <div className="flex justify-between text-sm mb-1 text-muted-foreground">
               <span>Progress</span>
               <span>{progress}%</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="w-full bg-muted rounded-full h-2">
               <div className="bg-[#E10600] h-2 rounded-full transition-all" style={{ width: `${progress}%` }}></div>
             </div>
           </div>

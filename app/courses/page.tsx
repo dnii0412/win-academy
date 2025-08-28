@@ -1,14 +1,13 @@
 "use client"
 
 import { useState } from "react"
-import Navbar from "@/components/navbar"
-import Footer from "@/components/footer"
 import CourseCard from "@/components/course-card"
-import { CourseModalityToggle } from "@/components/course-modality-toggle"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { useLanguage } from "@/contexts/language-context"
 
 export default function CoursesPage() {
+  const { t } = useLanguage()
+
   const allCourses = [
     {
       courseId: "graphic-design-ai",
@@ -102,65 +101,17 @@ export default function CoursesPage() {
     }
   }
 
-  const categories = ["All Courses", "Digital Marketing", "Design", "AI Skills", "Development", "Analytics"]
+
 
   return (
-    <div className="min-h-screen bg-white">
-      <Navbar />
+    <div className="min-h-screen bg-background">
 
-      {/* Hero Section */}
-      <section className="bg-[#F5F5F5] py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-[#111111] mb-4">Бүх сургалтууд / All Courses</h1>
-            <p className="text-xl text-gray-600 mb-8">
-              Онлайн болон танхимын сургалтуудаас сонгоорой / Choose from online and on-site courses
-            </p>
 
-            <CourseModalityToggle onModalityChange={handleModalityChange} defaultModality="all" />
-
-            {/* Search Bar */}
-            <div className="max-w-md mx-auto mb-8">
-              <Input
-                type="search"
-                placeholder="Сургалт хайх... / Search courses..."
-                className="w-full px-4 py-3 text-lg border-gray-300 rounded-lg focus:border-[#E10600] focus:ring-[#E10600]"
-              />
-            </div>
-
-            {/* Filter Chips */}
-            <div className="flex flex-wrap justify-center gap-3">
-              {categories.map((category, index) => (
-                <Button
-                  key={index}
-                  variant={index === 0 ? "default" : "outline"}
-                  className={
-                    index === 0
-                      ? "bg-[#E10600] hover:bg-[#C70500] text-white"
-                      : "border-gray-300 text-gray-700 hover:border-[#E10600] hover:text-[#E10600]"
-                  }
-                >
-                  {category}
-                </Button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Courses Grid */}
-      <section className="py-16">
+      <section className="py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-8 text-center">
-            <p className="text-gray-600">
-              {filteredCourses.length} сургалт олдлоо / {filteredCourses.length} courses found
-              {selectedModality !== "all" && (
-                <span className="ml-2 text-[#E10600] font-medium">
-                  ({selectedModality === "online" ? "Онлайн" : "Танхимын"} сургалтууд)
-                </span>
-              )}
-            </p>
-          </div>
+
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredCourses.map((course, index) => (
@@ -181,7 +132,6 @@ export default function CoursesPage() {
         </div>
       </section>
 
-      <Footer />
     </div>
   )
 }

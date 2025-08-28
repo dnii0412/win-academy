@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
+import { useLanguage } from "@/contexts/language-context"
 
 interface CourseModalityToggleProps {
   onModalityChange: (modality: "online" | "onsite" | "all") => void
@@ -9,6 +10,7 @@ interface CourseModalityToggleProps {
 }
 
 export function CourseModalityToggle({ onModalityChange, defaultModality = "all" }: CourseModalityToggleProps) {
+  const { t } = useLanguage()
   const [activeModality, setActiveModality] = useState(defaultModality)
 
   const handleModalityChange = (modality: "online" | "onsite" | "all") => {
@@ -23,21 +25,21 @@ export function CourseModalityToggle({ onModalityChange, defaultModality = "all"
         onClick={() => handleModalityChange("all")}
         className={activeModality === "all" ? "bg-[#E10600] hover:bg-[#C70500]" : ""}
       >
-        Бүх сургалт / All Courses
+        {t("courses.all")}
       </Button>
       <Button
         variant={activeModality === "online" ? "default" : "outline"}
         onClick={() => handleModalityChange("online")}
         className={activeModality === "online" ? "bg-[#E10600] hover:bg-[#C70500]" : ""}
       >
-        Онлайн / Online
+        {t("courses.online")}
       </Button>
       <Button
         variant={activeModality === "onsite" ? "default" : "outline"}
         onClick={() => handleModalityChange("onsite")}
         className={activeModality === "onsite" ? "bg-[#E10600] hover:bg-[#C70500]" : ""}
       >
-        Танхимын / On-site
+        {t("courses.onsite")}
       </Button>
     </div>
   )

@@ -1,151 +1,180 @@
 import NextAuth from "next-auth"
-import Google from "next-auth/providers/google"
-import Credentials from "next-auth/providers/credentials"
-import { MongoDBAdapter } from "@auth/mongodb-adapter"
-import { MongoClient } from "mongodb"
-import bcrypt from "bcryptjs"
-import { z } from "zod"
+import GoogleProvider from "next-auth/providers/google"
+import CredentialsProvider from "next-auth/providers/credentials"
+import bcryptjs from "bcryptjs"
+import dbConnect from "@/lib/mongoose"
+import User from "@/lib/models/User"
 
-const client = new MongoClient(process.env.MONGODB_URI!)
-
-const loginSchema = z.object({
-    email: z.string().email(),
-    password: z.string().min(6),
-})
-
-export const { handlers, signIn, signOut, auth } = NextAuth({
-    adapter: MongoDBAdapter(client, {
-        databaseName: "newera_auth",
+export const { handlers, auth, signIn, signOut } = NextAuth({
+  providers: [
+    GoogleProvider({
+      clientId: process.env.AUTH_GOOGLE_ID!,
+      clientSecret: process.env.AUTH_GOOGLE_SECRET!,
     }),
-    providers: [
-        Google({
-            clientId: process.env.AUTH_GOOGLE_ID!,
-            clientSecret: process.env.AUTH_GOOGLE_SECRET!,
-            authorization: {
-                params: {
-                    prompt: "consent",
-                    access_type: "offline",
-                    response_type: "code"
-                }
-            }
-        }),
-        Credentials({
-            name: "credentials",
-            credentials: {
-                email: { label: "Email", type: "email" },
-                password: { label: "Password", type: "password" },
-            },
-            async authorize(credentials) {
-                try {
-                    const { email, password } = loginSchema.parse(credentials)
+    CredentialsProvider({
+      name: "credentials",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" }
+      },
+      async authorize(credentials: any) {
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error("Email and password are required")
+        }
 
-                    // Connect to MongoDB
-                    await client.connect()
-                    const db = client.db("newera_auth")
-                    const users = db.collection("users")
+        try {
+          // Ensure MongoDB is connected
+          await dbConnect()
 
-                    // Find user by email
-                    const user = await users.findOne({ email })
+          // Check if User model is available
+          if (!User) {
+            throw new Error("User model not available. Database connection issue.")
+          }
 
-                    if (!user || !user.password) {
-                        return null
-                    }
+          // Find user by email
+          const user = await User.findOne({ email: credentials.email }).exec()
 
-                    // Verify password
-                    const isPasswordValid = await bcrypt.compare(password, user.password)
+          if (!user) {
+            throw new Error("Invalid email or password")
+          }
 
-                    if (!isPasswordValid) {
-                        return null
-                    }
+          // Verify password - ensure password is a string
+          const userPassword = user.password as string
+          if (!userPassword) {
+            throw new Error("Invalid email or password")
+          }
 
-                    return {
-                        id: user._id.toString(),
-                        email: user.email,
-                        name: user.name,
-                        image: user.image,
-                    }
-                } catch (error) {
-                    console.error("Authorization error:", error)
-                    return null
-                }
-            },
-        }),
-    ],
-    pages: {
-        signIn: "/login",
+          const isPasswordValid = await bcryptjs.compare(credentials.password, userPassword)
+
+          if (!isPasswordValid) {
+            throw new Error("Invalid email or password")
+          }
+
+          // Return user object (without password)
+          return {
+            id: user._id.toString(),
+            email: user.email,
+            name: user.displayName || user.fullName || user.email,
+            image: user.avatar || user.image || null,
+          }
+        } catch (error: any) {
+          console.error("Authentication error:", error)
+
+          if (error.name === 'MongooseServerSelectionError') {
+            throw new Error("Database connection failed. Please try again in a moment.")
+          }
+
+          if (error.name === 'MongoServerError' && error.code === 8000) {
+            throw new Error("Database authentication failed. Please contact support.")
+          }
+
+          // Check for User model issues
+          if (error.message?.includes('User') || error.message?.includes('model')) {
+            throw new Error("Database model error. Please check your database connection.")
+          }
+
+          throw new Error(error.message || "Authentication failed")
+        }
+      }
+    })
+  ],
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+    updateAge: 24 * 60 * 60, // 24 hours
+  },
+  jwt: {
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
+  cookies: {
+    sessionToken: {
+      name: `next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 30 * 24 * 60 * 60, // 30 days
+      },
     },
-    session: {
-        strategy: "jwt",
+    callbackUrl: {
+      name: `next-auth.callback-url`,
+      options: {
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
     },
-    callbacks: {
-        async jwt({ token, user, account }) {
-            console.log("JWT callback triggered:", {
-                hasUser: !!user,
-                provider: account?.provider,
-                userEmail: user?.email
+    csrfToken: {
+      name: `next-auth.csrf-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+  },
+  callbacks: {
+    async signIn({ user, account, profile }) {
+      if (account?.provider === "google" && profile) {
+        try {
+          await dbConnect()
+          
+          // Check if user already exists
+          const existingUser = await User.findOne({ email: user.email })
+          
+          if (!existingUser) {
+            // Create new user from Google OAuth
+            const googleProfile = profile as any
+            const nameParts = (googleProfile.name || user.name || "").split(" ")
+            const firstName = nameParts[0] || ""
+            const lastName = nameParts.slice(1).join(" ") || ""
+            
+            const newUser = new User({
+              email: user.email,
+              firstName,
+              lastName,
+              fullName: googleProfile.name || user.name,
+              avatar: googleProfile.picture || user.image,
+              image: googleProfile.picture || user.image,
+              provider: "google",
+              providerId: googleProfile.sub,
+              emailVerified: googleProfile.email_verified || false,
             })
-
-            if (user) {
-                token.id = user.id
-            }
-
-            // Handle Google sign-in
-            if (account?.provider === "google") {
-                try {
-                    console.log("Processing Google sign-in for:", user.email)
-                    await client.connect()
-                    const db = client.db("newera_auth")
-                    const users = db.collection("users")
-
-                    // Check if user exists
-                    const existingUser = await users.findOne({ email: user.email })
-
-                    if (!existingUser) {
-                        console.log("Creating new user for Google sign-in:", user.email)
-                        // Create new user for Google sign-in
-                        const newUser = {
-                            email: user.email,
-                            name: user.name,
-                            image: user.image,
-                            provider: "google",
-                            createdAt: new Date(),
-                            updatedAt: new Date(),
-                        }
-
-                        const result = await users.insertOne(newUser)
-                        token.id = result.insertedId.toString()
-                        console.log("New user created with ID:", token.id)
-                    } else {
-                        token.id = existingUser._id.toString()
-                        console.log("Existing user found with ID:", token.id)
-                    }
-                } catch (error) {
-                    console.error("JWT callback error:", error)
-                }
-            }
-
-            return token
-        },
-        async session({ session, token }) {
-            if (token) {
-                session.user.id = token.id as string
-            }
-            return session
-        },
-        async redirect({ url, baseUrl }) {
-            // Allows relative callback URLs
-            if (url.startsWith("/")) return `${baseUrl}${url}`
-            // Allows callback URLs on the same origin
-            else if (new URL(url).origin === baseUrl) return url
-            return baseUrl
-        },
+            
+            await newUser.save()
+            console.log("New Google OAuth user created:", newUser.email)
+          }
+        } catch (error) {
+          console.error("Error creating Google OAuth user:", error)
+          // Don't block sign in if user creation fails
+        }
+      }
+      
+      return true
     },
-    events: {
-        async signIn({ user, account, profile }) {
-            console.log("User signed in:", { user: user.email, provider: account?.provider })
-        },
-        async signOut() {
-            console.log("User signed out")
-        },
+    async jwt({ token, user, account }) {
+      if (user) {
+        token.id = user.id
+        token.email = user.email
+        token.name = user.name
+        token.image = user.image
+      }
+      return token
     },
+    async session({ session, token }) {
+      if (token) {
+        session.user.id = token.id as string
+        session.user.email = token.email as string
+        session.user.name = token.name as string
+        session.user.image = token.image as string | null
+      }
+      return session
+    }
+  },
+  pages: {
+    signIn: "/login",
+  },
+  debug: process.env.NODE_ENV === "development",
 })

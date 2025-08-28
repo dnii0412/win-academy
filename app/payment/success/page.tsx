@@ -1,13 +1,13 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { CheckCircle, XCircle, Clock, Loader2 } from "lucide-react"
 import type { PaymentStatus } from "@/lib/payment-config"
 
-export default function PaymentSuccessPage() {
+function PaymentSuccessContent() {
     const searchParams = useSearchParams()
     const router = useRouter()
 
@@ -181,7 +181,7 @@ export default function PaymentSuccessPage() {
                                 >
                                     Try Again
                                 </Button>
-                            )}
+                                )}
 
                             <Button
                                 variant="outline"
@@ -201,5 +201,29 @@ export default function PaymentSuccessPage() {
                 </Card>
             </div>
         </div>
+    )
+}
+
+export default function PaymentSuccessPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center py-8">
+                <div className="max-w-md w-full mx-4">
+                    <Card>
+                        <CardHeader className="text-center">
+                            <div className="flex justify-center mb-4">
+                                <Loader2 className="w-16 h-16 text-blue-500 animate-spin" />
+                            </div>
+                            <CardTitle className="text-2xl">Loading...</CardTitle>
+                        </CardHeader>
+                        <CardContent className="text-center">
+                            <p className="text-gray-600">Please wait while we load your payment information.</p>
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
+        }>
+            <PaymentSuccessContent />
+        </Suspense>
     )
 }

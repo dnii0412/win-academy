@@ -7,13 +7,13 @@ export function CourseBadge({ modality, className = "" }: CourseBadgeProps) {
   const getBadgeStyles = () => {
     switch (modality) {
       case "online":
-        return "bg-blue-100 text-blue-800 border-blue-200"
+        return "bg-blue-500/20 text-blue-700 dark:text-blue-300 border-blue-500/30 dark:border-blue-500/40"
       case "onsite":
-        return "bg-green-100 text-green-800 border-green-200"
+        return "bg-green-500/20 text-green-700 dark:text-green-300 border-green-500/30 dark:border-green-500/40"
       case "hybrid":
-        return "bg-purple-100 text-purple-800 border-purple-200"
+        return "bg-purple-500/20 text-purple-700 dark:text-purple-300 border-purple-500/30 dark:border-purple-500/40"
       default:
-        return "bg-gray-100 text-gray-800 border-gray-200"
+        return "bg-muted text-muted-foreground border-border"
     }
   }
 
