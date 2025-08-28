@@ -29,3 +29,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.tsenv.production
 ENV_SETUP.md
+
+next-env.d.ts
