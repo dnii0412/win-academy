@@ -56,11 +56,15 @@ export default function Navbar() {
 
   return (
     <nav
-      className={`bg-background border-b border-border sticky top-0 z-50 transition-all duration-300 ${isScrolled ? "backdrop-blur-md bg-background/90 shadow-md" : ""}`}
+      className={`bg-background border-b border-border sticky top-0 z-50 transition-all duration-300 ${
+        isScrolled ? "backdrop-blur-md bg-background/90 shadow-md" : ""
+      }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div
-          className={`flex items-center justify-between transition-all duration-300 ${isScrolled ? "h-14" : "h-16"}`}
+          className={`flex items-center justify-between transition-all duration-300 ${
+            isScrolled ? "h-14" : "h-16"
+          }`}
         >
           {/* Left - Logo */}
           <div className="flex items-center">
@@ -155,15 +159,21 @@ export default function Navbar() {
       </div>
 
       {/* Mobile Menu Overlay */}
-      <div className={`md:hidden fixed inset-0 z-[999999] transition-opacity duration-300 ${isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+      <div className={`md:hidden fixed inset-0 z-[999999] transition-opacity duration-300 ${
+        isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+      }`}>
         {/* Backdrop */}
         <div
-          className={`absolute inset-0 bg-black/20 backdrop-blur-sm transition-opacity duration-300 ${isMobileMenuOpen ? 'opacity-100' : 'opacity-0'}`}
+          className={`absolute inset-0 bg-black/20 backdrop-blur-sm transition-opacity duration-300 ${
+            isMobileMenuOpen ? 'opacity-100' : 'opacity-0'
+          }`}
           onClick={() => setIsMobileMenuOpen(false)}
         />
 
         {/* Slide-out Menu from Right */}
-        <div className={`absolute right-0 top-0 h-full w-80 max-w-[85vw] bg-background border-l border-border shadow-2xl transform transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+        <div className={`absolute right-0 top-0 h-full w-80 max-w-[85vw] bg-background border-l border-border shadow-2xl transform transition-transform duration-300 ease-in-out ${
+          isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}>
           <div className="flex flex-col h-full">
             {/* Mobile Menu Header */}
             <div className="flex items-center justify-between p-4 border-b border-border">
@@ -246,7 +256,7 @@ export default function Navbar() {
                     <Link href="/login" className="block">
                       <Button
                         variant="outline"
-                        className="w-full border-[#E10600] text-[#E10600] hover:bg-[#E10600] hover:text-white bg-transparent transition-all duration-200"
+                        className="w-full border-[#E10600] text-[#E10600] hover:bg-[#E10600] hover:text-white bg-transparent transition-colors duration-200"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
                         {currentLanguage === "mn" ? "Нэвтрэх" : "Login"}
