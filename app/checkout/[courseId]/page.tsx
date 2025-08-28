@@ -12,43 +12,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, CreditCard, Smartphone } from "lucide-react"
 import type { CheckoutFormData, Course } from "@/types/payment"
 
-// Mock course data - replace with actual data fetching
-const courses: Course[] = [
-    {
-        id: "graphic-design-ai",
-        title: "Graphic Design + AI",
-        description: "Master graphic design fundamentals combined with AI tools.",
-        price: 349000,
-        currency: "MNT",
-        image: "/images/graphic-design-ai.jpeg",
-        duration: "8 weeks",
-        instructor: "Б.Болдбаатар",
-        modality: "hybrid",
-    },
-    {
-        id: "social-media-marketing",
-        title: "Social Media Marketing",
-        description: "Complete guide to social media marketing and content creation.",
-        price: 299000,
-        currency: "MNT",
-        image: "/images/social-media-marketing.jpeg",
-        duration: "6 weeks",
-        instructor: "Д.Оюунчимэг",
-        modality: "online",
-    },
-    {
-        id: "photoshop-master",
-        title: "Photoshop Master",
-        description: "Become a Photoshop expert with advanced techniques.",
-        price: 279000,
-        currency: "MNT",
-        image: "/images/photoshop-master.jpeg",
-        duration: "10 weeks",
-        instructor: "Г.Энхбаяр",
-        modality: "onsite",
-    },
-]
-
 export default function CheckoutPage() {
     const params = useParams()
     const router = useRouter()
@@ -67,12 +30,24 @@ export default function CheckoutPage() {
     })
 
     useEffect(() => {
-        // Find course by ID
-        const foundCourse = courses.find(c => c.id === courseId)
-        if (foundCourse) {
-            setCourse(foundCourse)
-        } else {
-            setError("Course not found")
+        // Fetch course information from API
+        const fetchCourse = async () => {
+            try {
+                const response = await fetch(`/api/courses/${courseId}`)
+                if (response.ok) {
+                    const courseData = await response.json()
+                    setCourse(courseData.course)
+                } else {
+                    setError("Course not found")
+                }
+            } catch (error) {
+                console.error('Error fetching course:', error)
+                setError("Failed to load course information")
+            }
+        }
+
+        if (courseId) {
+            fetchCourse()
         }
     }, [courseId])
 

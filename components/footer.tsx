@@ -19,7 +19,7 @@ export default function Footer() {
                   src="/images/win_logo_deault_red_bg.jpg"
                   alt="WIN Academy Logo"
                   fill
-                  className="object-contain"
+                  className="object-contain rounded-full"
                   priority
                 />
               </div>

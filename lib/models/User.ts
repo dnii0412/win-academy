@@ -77,7 +77,6 @@ const userSchema = new mongoose.Schema({
 })
 
 // Create indexes for better query performance
-userSchema.index({ email: 1 })
 userSchema.index({ createdAt: -1 })
 userSchema.index({ provider: 1 })
 

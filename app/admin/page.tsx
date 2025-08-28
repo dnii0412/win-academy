@@ -1,130 +1,263 @@
-import AdminSidebar from "@/components/admin-sidebar"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { TrendingUp, TrendingDown } from "lucide-react"
+"use client"
+
+import { useSession } from "next-auth/react"
+import { useEffect, useState } from "react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { 
+  Users, 
+  BookOpen, 
+  PlayCircle, 
+  DollarSign, 
+  TrendingUp, 
+  UserCheck,
+  Video,
+  ShoppingCart
+} from "lucide-react"
+import Link from "next/link"
+
+interface DashboardStats {
+  totalUsers: number
+  totalCourses: number
+  totalVideos: number
+  totalRevenue: number
+  enrolledUsers: number
+  pendingPayments: number
+}
 
 export default function AdminDashboard() {
-  const stats = [
-    { title: "Total Revenue", value: "₮45.2M", change: "+18%", trend: "up", icon: "💰" },
-    { title: "Total Enrollments", value: "1,234", change: "+12%", trend: "up", icon: "📚" },
-    { title: "Active Students", value: "987", change: "+8%", trend: "up", icon: "👥" },
-    { title: "Completion Rate", value: "87%", change: "+5%", trend: "up", icon: "📈" },
-  ]
+  const { data: session } = useSession()
+  const [stats, setStats] = useState<DashboardStats>({
+    totalUsers: 0,
+    totalCourses: 0,
+    totalVideos: 0,
+    totalRevenue: 0,
+    enrolledUsers: 0,
+    pendingPayments: 0
+  })
+  const [isLoading, setIsLoading] = useState(true)
 
-  const recentUsers = [
-    { name: "Batbayar S.", email: "batbayar@email.com", course: "Digital Marketing", date: "2024-01-15" },
-    { name: "Oyunaa T.", email: "oyunaa@email.com", course: "UI/UX Design", date: "2024-01-14" },
-    { name: "Munkh-Erdene B.", email: "munkh@email.com", course: "AI Tools", date: "2024-01-13" },
-  ]
+  useEffect(() => {
+    if (session?.user?.role === "admin") {
+      loadDashboardStats()
+    }
+  }, [session])
 
-  const recentActivity = [
-    { action: "New enrollment", user: "Batbayar S.", course: "Digital Marketing", time: "2 hours ago" },
-    { action: "Course completed", user: "Oyunaa T.", course: "UI/UX Design", time: "4 hours ago" },
-    { action: "Payment received", user: "Munkh-Erdene B.", course: "AI Tools", time: "6 hours ago" },
-    { action: "New user registered", user: "Tserendorj M.", course: "-", time: "8 hours ago" },
-  ]
+  const loadDashboardStats = async () => {
+    try {
+      // In a real app, you'd fetch these from your API
+      // For now, using mock data
+      setStats({
+        totalUsers: 156,
+        totalCourses: 12,
+        totalVideos: 89,
+        totalRevenue: 2500000,
+        enrolledUsers: 89,
+        pendingPayments: 5
+      })
+    } catch (error) {
+      console.error("Error loading dashboard stats:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
-  return (
-    <div className="flex min-h-screen bg-[#F5F5F5]">
-      <AdminSidebar />
-
-      <div className="flex-1 p-8">
-        <div className="space-y-8">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground mb-2">Admin Dashboard</h1>
-            <p className="text-muted-foreground">Overview of Win Academy platform</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {stats.map((stat, index) => (
-              <Card key={index} className="hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
-                      <p className="text-2xl font-bold text-foreground">{stat.value}</p>
-                      <div className="flex items-center gap-1">
-                        {stat.trend === "up" ? (
-                          <TrendingUp className="w-4 h-4 text-green-600" />
-                        ) : (
-                          <TrendingDown className="w-4 h-4 text-red-600" />
-                        )}
-                        <p className="text-sm text-green-600">{stat.change}</p>
-                      </div>
-                    </div>
-                    <div className="text-2xl">{stat.icon}</div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Enrollments</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {recentUsers.map((user, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 bg-accent/50 rounded-lg">
-                      <div>
-                        <p className="font-medium text-foreground">{user.name}</p>
-                        <p className="text-sm text-muted-foreground">{user.email}</p>
-                        <p className="text-sm text-[#E10600]">{user.course}</p>
-                      </div>
-                      <div className="text-sm text-muted-foreground">{user.date}</div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Popular Courses</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">Digital Marketing Mastery</span>
-                    <span className="text-[#E10600] font-bold">456 students</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">UI/UX Design Fundamentals</span>
-                    <span className="text-[#E10600] font-bold">342 students</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">AI Tools for Business</span>
-                    <span className="text-[#E10600] font-bold">298 students</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Activity</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {recentActivity.map((activity, index) => (
-                    <div key={index} className="flex items-start gap-3 p-3 bg-accent/50 rounded-lg">
-                      <div className="w-2 h-2 bg-[#E10600] rounded-full mt-2"></div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-foreground">{activity.action}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {activity.user} {activity.course !== "-" && `• ${activity.course}`}
-                        </p>
-                        <p className="text-xs text-muted-foreground">{activity.time}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+  if (!session || session.user.role !== "admin") {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">Access Denied</h1>
+          <p className="text-muted-foreground">You don't have permission to access this page.</p>
         </div>
       </div>
+    )
+  }
+
+  if (isLoading) {
+    return (
+      <div className="animate-pulse space-y-6">
+        <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-48"></div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="h-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold text-foreground">Admin Dashboard</h1>
+        <p className="text-muted-foreground">Welcome back, {session.user.name}. Here's what's happening with your academy.</p>
+      </div>
+
+      {/* Quick Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalUsers.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">+12% from last month</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Courses</CardTitle>
+            <BookOpen className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalCourses}</div>
+            <p className="text-xs text-muted-foreground">+2 new this month</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Videos</CardTitle>
+            <PlayCircle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalVideos}</div>
+            <p className="text-xs text-muted-foreground">+8 new this week</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">₮{stats.totalRevenue.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">+23% from last month</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Enrolled Users</CardTitle>
+            <UserCheck className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.enrolledUsers}</div>
+            <p className="text-xs text-muted-foreground">+5 new enrollments</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pending Payments</CardTitle>
+            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.pendingPayments}</div>
+            <p className="text-xs text-muted-foreground">Requires attention</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BookOpen className="h-5 w-5" />
+              Course Management
+            </CardTitle>
+            <CardDescription>Add new courses and manage existing ones</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Link href="/admin/courses" className="w-full">
+              <Button className="w-full" variant="outline">
+                Manage Courses
+              </Button>
+            </Link>
+            <Link href="/admin/courses/new" className="w-full">
+              <Button className="w-full">
+                Add New Course
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Video className="h-5 w-5" />
+              Video Management
+            </CardTitle>
+            <CardDescription>Upload and organize video content</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Link href="/admin/videos" className="w-full">
+              <Button className="w-full" variant="outline">
+                Manage Videos
+              </Button>
+            </Link>
+            <Link href="/admin/videos/upload" className="w-full">
+              <Button className="w-full">
+                Upload Video
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              User Management
+            </CardTitle>
+            <CardDescription>Manage user access and permissions</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Link href="/admin/users" className="w-full">
+              <Button className="w-full" variant="outline">
+                View All Users
+              </Button>
+            </Link>
+            <Link href="/admin/users/access" className="w-full">
+              <Button className="w-full">
+                Manage Access
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Recent Activity */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Activity</CardTitle>
+          <CardDescription>Latest actions and updates in your academy</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <span className="text-sm">New user registered: John Doe</span>
+              <Badge variant="secondary" className="ml-auto">2 min ago</Badge>
+            </div>
+            <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
+              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              <span className="text-sm">Course "Digital Marketing Basics" updated</span>
+              <Badge variant="secondary" className="ml-auto">15 min ago</Badge>
+            </div>
+            <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
+              <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+              <span className="text-sm">Payment received: ₮150,000</span>
+              <Badge variant="secondary" className="ml-auto">1 hour ago</Badge>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

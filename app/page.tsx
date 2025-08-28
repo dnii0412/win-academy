@@ -1,6 +1,5 @@
 "use client"
 
-import CourseCard from "@/components/course-card"
 import AnimatedCounter from "@/components/animated-counter"
 import ScrollProgress from "@/components/scroll-progress"
 import AnimatedSection from "@/components/animated-section"
@@ -13,29 +12,8 @@ import { useLanguage } from "@/contexts/language-context"
 export default function HomePage() {
   const { t } = useLanguage()
 
-  const featuredCourses = [
-    {
-      title: "Graphic Design + AI",
-      description: "Master graphic design fundamentals and AI-powered design tools to create stunning visuals.",
-      price: "₮349,000",
-      image: "/images/graphic-design-ai.jpeg",
-      modality: "hybrid" as const,
-    },
-    {
-      title: "Social Media Marketing",
-      description: "Learn to create engaging content and grow your brand across all social platforms.",
-      price: "₮299,000",
-      image: "/images/social-media-marketing.jpeg",
-      modality: "online" as const,
-    },
-    {
-      title: "Photoshop Master",
-      description: "Become a Photoshop expert with advanced techniques for photo editing and digital art.",
-      price: "₮399,000",
-      image: "/images/photoshop-master.jpeg",
-      modality: "onsite" as const,
-    },
-  ]
+  // Empty array since we haven't implemented the course creation system yet
+  const featuredCourses: any[] = []
 
   const benefits = [
     {
@@ -120,6 +98,7 @@ export default function HomePage() {
                 <img
                   src="/images/student-learning.jpeg"
                   alt="Students learning digital skills"
+                  
                   className="w-full h-auto max-h-[60vh] object-cover rounded-lg shadow-2xl"
                 />
               </div>
@@ -136,13 +115,36 @@ export default function HomePage() {
             <h2 className="text-4xl font-bold text-foreground mb-4">{t("home.courses.title")}</h2>
             <p className="text-xl text-muted-foreground">{t("home.courses.subtitle")}</p>
           </AnimatedSection>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredCourses.map((course, index) => (
-              <AnimatedSection key={index} animation="fadeUp" className={`delay-${index * 100}`}>
-                <CourseCard {...course} />
-              </AnimatedSection>
-            ))}
-          </div>
+          {featuredCourses.length === 0 ? (
+            <div className="text-center py-16">
+              <div className="w-24 h-24 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-6">
+                <span className="text-4xl">📚</span>
+              </div>
+              <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4">
+                {t("home.courses.comingSoon") || "Courses Coming Soon"}
+              </h3>
+              <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-md mx-auto">
+                {t("home.courses.preparing") || "Our instructors are currently preparing amazing courses. Stay tuned for updates!"}
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {featuredCourses.map((course, index) => (
+                <AnimatedSection key={index} animation="fadeUp" className={`delay-${index * 100}`}>
+                  <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                    <div className="text-center">
+                      <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                        {course.title}
+                      </h3>
+                      <p className="text-gray-500 dark:text-gray-400 text-sm">
+                        {course.description}
+                      </p>
+                    </div>
+                  </div>
+                </AnimatedSection>
+              ))}
+            </div>
+          )}
           <AnimatedSection className="text-center mt-12">
             <Link href="/courses">
               <Button className="bg-[#E10600] hover:bg-[#C70500] text-white text-lg px-8 py-4 transition-all duration-300 hover:shadow-lg hover:scale-105">

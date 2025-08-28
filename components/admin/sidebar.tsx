@@ -23,15 +23,8 @@ import { Button } from "@/components/ui/button"
 const navigation = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { name: "Courses", href: "/admin/courses", icon: BookOpen },
-  { name: "Lessons", href: "/admin/lessons", icon: PlayCircle },
-  { name: "Cohorts", href: "/admin/cohorts", icon: Users },
-  { name: "Instructors", href: "/admin/instructors", icon: GraduationCap },
   { name: "Users", href: "/admin/users", icon: Users },
-  { name: "Orders", href: "/admin/orders", icon: ShoppingCart },
-  { name: "Coupons", href: "/admin/coupons", icon: Ticket },
-  { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
-  { name: "Announcements", href: "/admin/announcements", icon: Megaphone },
-  { name: "Support", href: "/admin/support", icon: HeadphonesIcon },
+  { name: "Orders & Payments", href: "/admin/orders", icon: ShoppingCart },
   { name: "Settings", href: "/admin/settings", icon: Settings },
 ]
 

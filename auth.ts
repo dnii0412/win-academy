@@ -56,6 +56,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             email: user.email,
             name: user.displayName || user.fullName || user.email,
             image: user.avatar || user.image || null,
+            role: user.role || "user",
           }
         } catch (error: any) {
           console.error("Authentication error:", error)
@@ -120,17 +121,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (account?.provider === "google" && profile) {
         try {
           await dbConnect()
-          
+
           // Check if user already exists
           const existingUser = await User.findOne({ email: user.email })
-          
+
           if (!existingUser) {
             // Create new user from Google OAuth
             const googleProfile = profile as any
             const nameParts = (googleProfile.name || user.name || "").split(" ")
             const firstName = nameParts[0] || ""
             const lastName = nameParts.slice(1).join(" ") || ""
-            
+
             const newUser = new User({
               email: user.email,
               firstName,
@@ -142,7 +143,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               providerId: googleProfile.sub,
               emailVerified: googleProfile.email_verified || false,
             })
-            
+
             await newUser.save()
             console.log("New Google OAuth user created:", newUser.email)
           }
@@ -151,7 +152,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           // Don't block sign in if user creation fails
         }
       }
-      
+
       return true
     },
     async jwt({ token, user, account }) {
@@ -160,6 +161,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.email = user.email
         token.name = user.name
         token.image = user.image
+        token.role = user.role
       }
       return token
     },
@@ -169,6 +171,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.email = token.email as string
         session.user.name = token.name as string
         session.user.image = token.image as string | null
+        session.user.role = token.role as string
       }
       return session
     }

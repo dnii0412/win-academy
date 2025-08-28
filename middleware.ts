@@ -1,37 +1,29 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
+import { getToken } from "next-auth/jwt"
 
 export async function middleware(request: NextRequest) {
-  // Get the pathname of the request
-  const pathname = request.nextUrl.pathname
+  const token = await getToken({
+    req: request,
+    secret: process.env.NEXTAUTH_SECRET
+  })
+  const isAdmin = token?.role === "admin"
+  const isAdminRoute = request.nextUrl.pathname.startsWith("/admin")
+  const isDashboardRoute = request.nextUrl.pathname.startsWith("/dashboard")
 
-  // Protect dashboard routes - redirect to login if no session cookie
-  if (pathname.startsWith("/dashboard")) {
-    // Check if user has a session cookie
-    const sessionToken = request.cookies.get('next-auth.session-token')?.value ||
-      request.cookies.get('__Secure-next-auth.session-token')?.value
+  // If trying to access admin routes without admin role
+  if (isAdminRoute && !isAdmin) {
+    return NextResponse.redirect(new URL("/dashboard", request.url))
+  }
 
-    if (!sessionToken) {
-      // Redirect to login page
-      const loginUrl = new URL('/login', request.url)
-      loginUrl.searchParams.set('callbackUrl', pathname)
-      return NextResponse.redirect(loginUrl)
-    }
+  // If trying to access dashboard routes without authentication
+  if (isDashboardRoute && !token) {
+    return NextResponse.redirect(new URL("/login", request.url))
   }
 
   return NextResponse.next()
 }
 
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
-     */
-    "/((?!api|_next/static|_next/image|favicon.ico|public).*)",
-  ],
+  matcher: ["/admin/:path*", "/dashboard/:path*"]
 }

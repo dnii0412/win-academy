@@ -7,7 +7,7 @@ import User from '@/lib/models/User'
 export async function GET(request: NextRequest) {
   try {
     const session = await auth()
-    
+
     if (!session?.user?.email) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -35,9 +35,9 @@ export async function GET(request: NextRequest) {
 
     await dbConnect()
 
-    // Find user and populate their enrolled courses
-    const user = await User.findOne({ email }).populate('enrolledCourses')
-    
+    // Find user to verify they exist
+    const user = await User.findOne({ email })
+
     if (!user) {
       return NextResponse.json(
         { error: 'User not found' },
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // For now, return empty array as we need to implement course enrollment system
+    // Return empty array since we haven't implemented the course enrollment system yet
     // This will be populated when we implement the payment and enrollment system
     return NextResponse.json({
       courses: []

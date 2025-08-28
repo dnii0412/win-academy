@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/auth'
+import { auth } from '@/auth'
 import dbConnect from '@/lib/mongoose'
 import User from '@/lib/models/User'
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    
+    const session = await auth()
+
     if (!session?.user?.email) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -18,7 +17,7 @@ export async function GET(request: NextRequest) {
     await dbConnect()
 
     const user = await User.findOne({ email: session.user.email })
-    
+
     if (!user) {
       return NextResponse.json(
         { error: 'User not found' },
@@ -48,10 +47,10 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('Profile test error:', error)
     return NextResponse.json(
-      { 
+      {
         status: 'error',
         message: 'Profile test failed',
-        error: error.message 
+        error: error.message
       },
       { status: 500 }
     )
