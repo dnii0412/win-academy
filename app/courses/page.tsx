@@ -39,8 +39,8 @@ export default function CoursesPage() {
   const [filteredCourses, setFilteredCourses] = useState<Course[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState("")
-  const [selectedDifficulty, setSelectedDifficulty] = useState("")
+  const [selectedCategory, setSelectedCategory] = useState("all")
+  const [selectedDifficulty, setSelectedDifficulty] = useState("all")
 
   useEffect(() => {
     loadCourses()
@@ -106,12 +106,12 @@ export default function CoursesPage() {
     }
 
     // Filter by category
-    if (selectedCategory) {
+    if (selectedCategory && selectedCategory !== "all") {
       filtered = filtered.filter(course => course.category === selectedCategory)
     }
 
     // Filter by difficulty
-    if (selectedDifficulty) {
+    if (selectedDifficulty && selectedDifficulty !== "all") {
       filtered = filtered.filter(course => course.difficulty === selectedDifficulty)
     }
 
@@ -190,7 +190,7 @@ export default function CoursesPage() {
                 <SelectValue placeholder={currentLanguage === "mn" ? "Бүх ангилал" : "All Categories"} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">{currentLanguage === "mn" ? "Бүх ангилал" : "All Categories"}</SelectItem>
+                <SelectItem value="all">{currentLanguage === "mn" ? "Бүх ангилал" : "All Categories"}</SelectItem>
                 <SelectItem value="design">{currentLanguage === "mn" ? "Дизайн" : "Design"}</SelectItem>
                 <SelectItem value="marketing">{currentLanguage === "mn" ? "Маркетинг" : "Marketing"}</SelectItem>
                 <SelectItem value="programming">{currentLanguage === "mn" ? "Програмчлал" : "Programming"}</SelectItem>
@@ -202,7 +202,7 @@ export default function CoursesPage() {
                 <SelectValue placeholder={currentLanguage === "mn" ? "Бүх түвшин" : "All Levels"} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">{currentLanguage === "mn" ? "Бүх түвшин" : "All Levels"}</SelectItem>
+                <SelectItem value="all">{currentLanguage === "mn" ? "Бүх түвшин" : "All Levels"}</SelectItem>
                 <SelectItem value="beginner">{currentLanguage === "mn" ? "Эхлэгч" : "Beginner"}</SelectItem>
                 <SelectItem value="intermediate">{currentLanguage === "mn" ? "Дунд" : "Intermediate"}</SelectItem>
                 <SelectItem value="advanced">{currentLanguage === "mn" ? "Дээд" : "Advanced"}</SelectItem>
@@ -230,16 +230,28 @@ export default function CoursesPage() {
               }
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/">
-                <Button variant="outline" className="border-[#E10600] text-[#E10600] hover:bg-[#E10600] hover:text-white">
-                  {currentLanguage === "mn" ? "Нүүр хуудас руу буцах" : "Back to Home"}
-                </Button>
-              </Link>
-              <Link href="/login">
-                <Button className="bg-[#E10600] hover:bg-[#C70500] text-white">
-                  {currentLanguage === "mn" ? "Нэвтрэх" : "Login"}
-                </Button>
-              </Link>
+              {session ? (
+                // Logged in users - show Dashboard button only
+                <Link href="/dashboard">
+                  <Button className="bg-[#E10600] hover:bg-[#C70500] text-white">
+                    {currentLanguage === "mn" ? "Хяналтын самбар руу буцах" : "Back to Dashboard"}
+                  </Button>
+                </Link>
+              ) : (
+                // Not logged in users - show Home and Register buttons
+                <>
+                  <Link href="/">
+                    <Button variant="outline" className="border-[#E10600] text-[#E10600] hover:bg-[#E10600] hover:text-white">
+                      {currentLanguage === "mn" ? "Нүүр хуудас руу буцах" : "Back to Home"}
+                    </Button>
+                  </Link>
+                  <Link href="/register">
+                    <Button className="bg-[#E10600] hover:bg-[#C70500] text-white">
+                      {currentLanguage === "mn" ? "Бүртгүүлэх" : "Register"}
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         ) : (

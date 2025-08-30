@@ -49,12 +49,12 @@ export default function AdminDashboard() {
       // In a real app, you'd fetch these from your API
       // For now, using mock data
       setStats({
-        totalUsers: 156,
-        totalCourses: 12,
-        totalVideos: 89,
-        totalRevenue: 2500000,
-        enrolledUsers: 89,
-        pendingPayments: 5
+        totalUsers: 0,
+        totalCourses: 0,
+        totalVideos: 0,
+        totalRevenue: 0,
+        enrolledUsers: 0,
+        pendingPayments: 0
       })
     } catch (error) {
       console.error("Error loading dashboard stats:", error)
