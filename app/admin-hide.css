@@ -1,0 +1,10 @@
+/* Hide navbar and footer on admin pages */
+body.admin-page .navbar,
+body.admin-page .footer {
+  display: none !important;
+}
+
+/* Ensure admin pages take full height */
+.admin-page {
+  min-height: 100vh;
+}
