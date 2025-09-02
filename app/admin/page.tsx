@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge"
 import { 
   Users, 
   BookOpen, 
-  CreditCard, 
   TrendingUp, 
   Plus,
   LogOut,
@@ -22,19 +21,11 @@ import Link from "next/link"
 interface AdminStats {
   totalUsers: number
   totalCourses: number
-  totalOrders: number
-  totalRevenue: number
+  weeklyIncome: number
   recentUsers: Array<{
     id: string
     name: string
     email: string
-    createdAt: string
-  }>
-  recentOrders: Array<{
-    id: string
-    courseTitle: string
-    amount: number
-    status: string
     createdAt: string
   }>
 }
@@ -107,47 +98,10 @@ export default function AdminDashboard() {
 
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Quick Actions */}
-        <div className="mb-8">
-         
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Link href="/admin/courses">
-              <Button className="w-full h-20 flex-col space-y-2 bg-blue-600 hover:bg-blue-700">
-                <Plus className="h-6 w-6" />
-                <span className="text-sm">
-                  {currentLanguage === "mn" ? "Сургалт нэмэх" : "Add Course"}
-                </span>
-              </Button>
-            </Link>
-            <Link href="/admin/users">
-              <Button className="w-full h-20 flex-col space-y-2 bg-green-600 hover:bg-green-700">
-                <UserPlus className="h-6 w-6" />
-                <span className="text-sm">
-                  {currentLanguage === "mn" ? "Хэрэглэгч нэмэх" : "Add User"}
-                </span>
-              </Button>
-            </Link>
-            <Link href="/admin/orders">
-              <Button className="w-full h-20 flex-col space-y-2 bg-purple-600 hover:bg-purple-700">
-                <FileText className="h-6 w-6" />
-                <span className="text-sm">
-                  {currentLanguage === "mn" ? "Захиалга харах" : "View Orders"}
-                </span>
-              </Button>
-            </Link>
-            <Link href="/admin/settings">
-              <Button className="w-full h-20 flex-col space-y-2 bg-gray-600 hover:bg-gray-700">
-                <Settings className="h-6 w-6" />
-                <span className="text-sm">
-                  {currentLanguage === "mn" ? "Тохиргоо" : "Settings"}
-                </span>
-              </Button>
-            </Link>
-          </div>
-        </div>
+
 
         {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
@@ -182,42 +136,27 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                {currentLanguage === "mn" ? "Нийт захиалга" : "Total Orders"}
-              </CardTitle>
-              <CreditCard className="h-4 w-4 text-purple-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                {stats?.totalOrders || 0}
-              </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                {currentLanguage === "mn" ? "Хийгдсэн захиалгууд" : "Completed orders"}
-              </p>
-            </CardContent>
-          </Card>
+
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                {currentLanguage === "mn" ? "Нийт орлого" : "Total Revenue"}
+                {currentLanguage === "mn" ? "Долоо хоногийн орлого" : "Weekly Income"}
               </CardTitle>
               <TrendingUp className="h-4 w-4 text-orange-600" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                ${stats?.totalRevenue || 0}
+                ${stats?.weeklyIncome || 0}
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                {currentLanguage === "mn" ? "Нийт орлого" : "Total revenue"}
+                {currentLanguage === "mn" ? "Долоо хоногийн орлого" : "Weekly income"}
               </p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Recent Activity */}
+        {/* Recent Users and Quick Actions */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Recent Users */}
           <Card>
@@ -247,38 +186,47 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
 
-          {/* Recent Orders */}
+          {/* Quick Actions */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">
-                {currentLanguage === "mn" ? "Сүүлийн захиалгууд" : "Recent Orders"}
+                {currentLanguage === "mn" ? "Хурдан үйлдлүүд" : "Quick Actions"}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {stats?.recentOrders?.slice(0, 5).map((order) => (
-                  <div key={order.id} className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-gray-900 dark:text-white">{order.courseTitle}</p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">${order.amount}</p>
-                    </div>
-                    <div className="text-right">
-                      <Badge 
-                        variant={order.status === "completed" ? "default" : "secondary"}
-                        className="text-xs mb-1"
-                      >
-                        {order.status}
-                      </Badge>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {new Date(order.createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                )) || (
-                  <p className="text-gray-500 dark:text-gray-400 text-center py-4">
-                    {currentLanguage === "mn" ? "Захиалга байхгүй" : "No orders yet"}
-                  </p>
-                )}
+              <div className="grid grid-cols-1 gap-3">
+                <Link href="/admin/courses">
+                  <Button className="w-full h-20 flex-row space-x-3 bg-blue-600 hover:bg-blue-700">
+                    <Plus className="h-5 w-5" />
+                    <span className="text-sm">
+                      {currentLanguage === "mn" ? "Сургалт нэмэх" : "Add Course"}
+                    </span>
+                  </Button>
+                </Link>
+                <Link href="/admin/users">
+                  <Button className="w-full h-20 flex-row space-x-3 bg-green-600 hover:bg-green-700">
+                    <UserPlus className="h-5 w-5" />
+                    <span className="text-sm">
+                      {currentLanguage === "mn" ? "Хэрэглэгч нэмэх" : "Add User"}
+                    </span>
+                  </Button>
+                </Link>
+                <Link href="/admin/orders">
+                  <Button className="w-full h-20 flex-row space-x-3 bg-purple-600 hover:bg-purple-700">
+                    <FileText className="h-5 w-5" />
+                    <span className="text-sm">
+                      {currentLanguage === "mn" ? "Захиалга харах" : "View Orders"}
+                    </span>
+                  </Button>
+                </Link>
+                <Link href="/admin/settings">
+                  <Button className="w-full h-20 flex-row space-x-3 bg-gray-600 hover:bg-gray-700">
+                    <Settings className="h-5 w-5" />
+                    <span className="text-sm">
+                      {currentLanguage === "mn" ? "Тохиргоо" : "Settings"}
+                    </span>
+                  </Button>
+                </Link>
               </div>
             </CardContent>
           </Card>

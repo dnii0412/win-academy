@@ -116,10 +116,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           <div className="flex justify-between items-center h-16">
             {/* Left Side - Mongolian Title and Navigation */}
             <div className="flex items-center space-x-8">
-              {/* Mongolian Title */}
+              {/* Admin Title */}
               <div className="flex-shrink-0">
                 <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                  Админ удирдлага
+                  {currentLanguage === "mn" ? "Админ удирдлага" : "Admin Management"}
                 </h1>
               </div>
               
@@ -133,7 +133,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                              : "text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400"
                          }`}
                        >
-                         Dashboard
+                         {currentLanguage === "mn" ? "Удирдлага" : "Dashboard"}
                        </a>
                        <a 
                          href="/admin/courses" 
@@ -143,7 +143,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                              : "text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400"
                          }`}
                        >
-                         Courses
+                         {currentLanguage === "mn" ? "Сургалтууд" : "Courses"}
                        </a>
 
                        <a 
@@ -154,7 +154,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                              : "text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400"
                          }`}
                        >
-                         Users
+                         {currentLanguage === "mn" ? "Хэрэглэгчид" : "Users"}
                        </a>
                        <a 
                          href="/admin/orders" 
@@ -164,8 +164,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                              : "text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400"
                          }`}
                        >
-                         Orders
+                         {currentLanguage === "mn" ? "Захиалгууд" : "Orders"}
                        </a>
+
                      </nav>
             </div>
             
@@ -178,7 +179,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 }}
                 className="px-4 py-2 text-sm font-medium text-red-600 bg-white border border-red-600 hover:bg-red-50 rounded-md transition-colors"
               >
-                Гарах
+                {currentLanguage === "mn" ? "Гарах" : "Logout"}
               </button>
             </div>
           </div>

@@ -25,7 +25,7 @@ interface EnrolledCourse {
 
 export default function DashboardPage() {
   const { data: session, status } = useSession()
-  const { currentLanguage } = useLanguage()
+  const { currentLanguage, t } = useLanguage()
   const [enrolledCourses, setEnrolledCourses] = useState<EnrolledCourse[]>([])
   const [isLoadingCourses, setIsLoadingCourses] = useState(true)
 
@@ -84,19 +84,16 @@ export default function DashboardPage() {
       <div className="p-8">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-[#111111] dark:text-white mb-4">
-            {currentLanguage === "mn" ? "Нэвтрэх шаардлагатай" : "Authentication Required"}
+            {t("auth.login.authenticationRequired")}
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mb-6">
-            {currentLanguage === "mn"
-              ? "Хяналтын самбар руу хандахын тулд нэвтэрсэн байх шаардлагатай."
-              : "You need to be authenticated to access the dashboard."
-            }
+            {t("auth.login.authenticationRequiredDescription")}
           </p>
           <a
             href="/login"
             className="inline-block bg-[#E10600] hover:bg-[#C70500] text-white px-6 py-3 rounded-lg font-medium transition-colors"
           >
-            {currentLanguage === "mn" ? "Нэвтрэх хэсэг рүү очих" : "Go to Login"}
+            {t("auth.login.goToLogin")}
           </a>
         </div>
       </div>
@@ -226,20 +223,14 @@ export default function DashboardPage() {
                 <BookOpen className="h-12 w-12 text-gray-400" />
               </div>
               <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4">
-                {currentLanguage === "mn"
-                  ? "Та одоогоор сургалт худалдаж аваагүй байна"
-                  : "You haven't enrolled in any courses yet"
-                }
+                {t("home.courses.noEnrollment")}
               </h3>
               <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md mx-auto">
-                {currentLanguage === "mn"
-                  ? "Танд одоогоор худалдаж авсан сургалт байхгүй байна. Манай сургалтуудас худалдаж авахыг хүсэвэл энд дарна уу."
-                  : "Interested in our courses? Visit the courses page to see all available courses and start your learning journey."
-                }
+                {t("home.courses.noEnrollmentDescription")}
               </p>
               <Link href="/courses">
                 <span className="inline-block bg-[#E10600] hover:bg-[#C70500] text-white px-6 py-3 rounded-lg font-medium transition-colors cursor-pointer">
-                  {currentLanguage === "mn" ? "Сургалтуудыг харах" : "Browse Courses"}
+                  {t("home.courses.browseCourses")}
                 </span>
               </Link>
             </div>
@@ -260,7 +251,7 @@ export default function DashboardPage() {
                       </div>
                     )}
                     <Badge className="absolute top-3 right-3 bg-green-500 hover:bg-green-600">
-                      {currentLanguage === "mn" ? "Худалдан авсан" : "Enrolled"}
+                      {t("home.courses.enrolled")}
                     </Badge>
                   </div>
 
@@ -285,7 +276,7 @@ export default function DashboardPage() {
                         <Link href={`/learn/${course._id}`} className="flex-1">
                           <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
                             <Play className="h-4 w-4 mr-2" />
-                            {currentLanguage === "mn" ? "Үргэлжлүүлэх" : "Continue Learning"}
+                            {t("home.courses.continueLearning")}
                           </Button>
                         </Link>
                       </div>

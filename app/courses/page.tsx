@@ -10,29 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Play, BookOpen, Clock, User, ShoppingCart, Search, Filter, Plus } from "lucide-react"
 import Link from "next/link"
-
-interface Course {
-  _id: string
-  title: string
-  titleMn?: string
-  description: string
-  descriptionMn?: string
-  price: number
-  category: string
-  categoryMn?: string
-  level: string
-  levelMn?: string
-  duration: number
-  instructor: string
-  instructorMn?: string
-  thumbnailUrl?: string
-  featured: boolean
-  totalLessons: number
-  enrolledUsers: number
-  createdAt: string
-  status: string
-  isEnrolled?: boolean
-}
+import { Course } from "@/types/course"
 
 export default function CoursesPage() {
   const { data: session, status } = useSession()

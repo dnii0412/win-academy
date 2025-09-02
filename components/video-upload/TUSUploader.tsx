@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useCallback } from "react"
+import { useState, useRef, useCallback, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -8,7 +8,9 @@ import { Progress } from "@/components/ui/progress"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Upload, Video, X, CheckCircle, AlertCircle } from "lucide-react"
 import { useLanguage } from "@/contexts/language-context"
-import { BUNNY_STREAM_CONFIG } from "@/lib/bunny-stream"
+
+import { BUNNY_STREAM_CONFIG, getBunnyVideoUrl } from "@/lib/bunny-stream"
+
 
 interface TUSUploaderProps {
   onUploadComplete: (videoId: string, videoUrl: string) => void
@@ -45,7 +47,7 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
         return
       }
       
-      if (file.size > 2 * 1024 * 1024 * 1024) { // 2GB limit
+      if (file.size > 10 * 1024 * 1024 * 1024) { // 2GB limit
         setErrorMessage(currentLanguage === "mn" ? "Файлын хэмжээ 2GB-аас бага байх ёстой" : "File size must be less than 2GB")
         return
       }
@@ -61,11 +63,24 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
 
   const createVideoEntry = async (title: string, description: string) => {
     try {
+      // Get admin token for authentication
+      const adminToken = localStorage.getItem("adminToken")
+      if (!adminToken) {
+        throw new Error('No admin token found. Please log in again.')
+      }
+
+      console.log('Creating video entry with config:', {
+        libraryId: BUNNY_STREAM_CONFIG.libraryId,
+        apiKey: BUNNY_STREAM_CONFIG.apiKey.substring(0, 8) + '...',
+        baseUrl: BUNNY_STREAM_CONFIG.baseUrl
+      })
+
       const response = await fetch(`${BUNNY_STREAM_CONFIG.baseUrl}/library/${BUNNY_STREAM_CONFIG.libraryId}/videos`, {
         method: 'POST',
         headers: {
           'AccessKey': BUNNY_STREAM_CONFIG.apiKey,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${adminToken}`
         },
         body: JSON.stringify({
           title,
@@ -75,9 +90,12 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
 
       if (response.ok) {
         const data = await response.json()
+        console.log('Video entry created:', data)
         return data.guid
       } else {
-        throw new Error('Failed to create video entry')
+        const errorText = await response.text()
+        console.error('Failed to create video entry:', response.status, errorText)
+        throw new Error(`Failed to create video entry: ${response.status} ${errorText}`)
       }
     } catch (error) {
       console.error('Error creating video entry:', error)
@@ -100,55 +118,87 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
       // Create video entry first
       const videoId = await createVideoEntry(videoTitle, videoDescription)
       
-      // Initialize TUS upload
-      const tus = (window as any).tus
-      if (!tus) {
-        throw new Error('TUS library not loaded')
+      // Use TUS upload through our API with proper JSON format
+      const uploadData = {
+        fileSize: file.size,
+        filename: file.name,
+        contentType: file.type,
+        title: videoTitle,
+        description: videoDescription
       }
-
-      const upload = new tus.Upload(file, {
-        endpoint: BUNNY_STREAM_CONFIG.uploadUrl,
-        retryDelays: [0, 1000, 3000, 5000],
-        metadata: {
-          filename: file.name,
-          filetype: file.type,
-          videoid: videoId
-        },
-        headers: {
-          'AccessKey': BUNNY_STREAM_CONFIG.apiKey,
-          'LibraryId': BUNNY_STREAM_CONFIG.libraryId
-        },
-        onError: (error: any) => {
-          console.error('Upload error:', error)
-          setUploadStatus('error')
-          setErrorMessage(error.message || 'Upload failed')
-          setIsUploading(false)
-        },
-        onProgress: (bytesUploaded: number, bytesTotal: number) => {
-          const percentage = Math.round((bytesUploaded / bytesTotal) * 100)
+      
+      const xhr = new XMLHttpRequest()
+      
+      xhr.upload.addEventListener('progress', (event) => {
+        if (event.lengthComputable) {
+          const percentage = Math.round((event.loaded / event.total) * 100)
           setUploadProgress({
-            bytesUploaded,
-            bytesTotal,
+            bytesUploaded: event.loaded,
+            bytesTotal: event.total,
             percentage
           })
-        },
-        onSuccess: () => {
-          setUploadStatus('success')
-          setIsUploading(false)
-          
-          // Get the video URL
-          const videoUrl = getBunnyStreamUrl(videoId)
-          onUploadComplete(videoId, videoUrl)
-          
-          // Close after a short delay
-          setTimeout(() => {
-            onClose()
-          }, 2000)
         }
       })
+      
+      xhr.addEventListener('load', () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const response = JSON.parse(xhr.responseText)
+            if (response.success && response.videoId) {
+              setUploadStatus('success')
+              setIsUploading(false)
+              
+              // Get the video URL (direct video file, not embed)
+              const videoUrl = getBunnyVideoUrl(response.videoId)
+              onUploadComplete(response.videoId, videoUrl)
+              
+              // Close after a short delay
+              setTimeout(() => {
+                onClose()
+              }, 2000)
+            } else {
+              setUploadStatus('error')
+              setErrorMessage(response.error || 'Upload failed')
+              setIsUploading(false)
+            }
+          } catch (e) {
+            setUploadStatus('error')
+            setErrorMessage('Invalid response from server')
+            setIsUploading(false)
+          }
+        } else {
+          setUploadStatus('error')
+          setErrorMessage(`Upload failed: ${xhr.status} ${xhr.statusText}`)
+          setIsUploading(false)
+        }
+      })
+      
+      xhr.addEventListener('error', () => {
+        setUploadStatus('error')
+        setErrorMessage('Upload failed due to network error')
+        setIsUploading(false)
+      })
+      
+      xhr.addEventListener('abort', () => {
+        setUploadStatus('idle')
+        setIsUploading(false)
+      })
+      
+      // Get admin token for authentication
+      const adminToken = localStorage.getItem("adminToken")
+      if (!adminToken) {
+        setUploadStatus('error')
+        setErrorMessage('No admin token found. Please log in again.')
+        setIsUploading(false)
+        return
+      }
 
-      uploadRef.current = upload
-      upload.start()
+      xhr.open('POST', '/api/admin/upload/tus')
+      xhr.setRequestHeader('Authorization', `Bearer ${adminToken}`)
+      xhr.setRequestHeader('Content-Type', 'application/json')
+      xhr.send(JSON.stringify(uploadData))
+      
+      uploadRef.current = xhr
     } catch (error: any) {
       console.error('Upload error:', error)
       setUploadStatus('error')
@@ -165,9 +215,7 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
     }
   }
 
-  const getBunnyStreamUrl = (videoId: string) => {
-    return `${BUNNY_STREAM_CONFIG.streamUrl}/${BUNNY_STREAM_CONFIG.libraryId}/${videoId}`
-  }
+
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes'
@@ -175,6 +223,40 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
     const sizes = ['Bytes', 'KB', 'MB', 'GB']
     const i = Math.floor(Math.log(bytes) / Math.log(k))
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+  }
+
+  const testBunnyAPI = async () => {
+    try {
+      setErrorMessage('')
+      
+      // Get admin token for authentication
+      const adminToken = localStorage.getItem("adminToken")
+      if (!adminToken) {
+        alert(currentLanguage === "mn" ? "Админ токен олдсонгүй. Дахин нэвтэрнэ үү." : "No admin token found. Please log in again.")
+        return
+      }
+
+      const response = await fetch(`${BUNNY_STREAM_CONFIG.baseUrl}/library/${BUNNY_STREAM_CONFIG.libraryId}/videos`, {
+        headers: {
+          'AccessKey': BUNNY_STREAM_CONFIG.apiKey,
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${adminToken}`
+        }
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        console.log('Bunny API test successful:', data)
+        alert(currentLanguage === "mn" ? "Bunny API холболт амжилттай!" : "Bunny API connection successful!")
+      } else {
+        const errorText = await response.text()
+        console.error('Bunny API test failed:', response.status, errorText)
+        alert(currentLanguage === "mn" ? `Bunny API алдаа: ${response.status}` : `Bunny API error: ${response.status}`)
+      }
+    } catch (error) {
+      console.error('Bunny API test error:', error)
+      alert(currentLanguage === "mn" ? "Bunny API холболтод алдаа гарлаа" : "Bunny API connection error")
+    }
   }
 
   return (
@@ -303,27 +385,32 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
             )}
 
             {/* Action Buttons */}
-            <div className="flex justify-end space-x-3">
-              <Button type="button" variant="outline" onClick={onClose}>
-                {currentLanguage === "mn" ? "Цуцлах" : "Cancel"}
+            <div className="flex justify-between items-center">
+              <Button type="button" variant="outline" onClick={testBunnyAPI}>
+                {currentLanguage === "mn" ? "API Тест" : "Test API"}
               </Button>
-              <Button
-                onClick={startUpload}
-                disabled={isUploading || !fileInputRef.current?.files?.[0] || !videoTitle.trim()}
-                className="min-w-[120px]"
-              >
-                {isUploading ? (
-                  <>
-                    <Upload className="h-4 w-4 mr-2 animate-spin" />
-                    {currentLanguage === "mn" ? "Байршуулж байна..." : "Uploading..."}
-                  </>
-                ) : (
-                  <>
-                    <Upload className="h-4 w-4 mr-2" />
-                    {currentLanguage === "mn" ? "Байршуулах" : "Upload"}
-                  </>
-                )}
-              </Button>
+              <div className="flex space-x-3">
+                <Button type="button" variant="outline" onClick={onClose}>
+                  {currentLanguage === "mn" ? "Цуцлах" : "Cancel"}
+                </Button>
+                <Button
+                  onClick={startUpload}
+                  disabled={isUploading || !fileInputRef.current?.files?.[0] || !videoTitle.trim()}
+                  className="min-w-[120px]"
+                >
+                  {isUploading ? (
+                    <>
+                      <Upload className="h-4 w-4 mr-2 animate-spin" />
+                      {currentLanguage === "mn" ? "Байршуулж байна..." : "Uploading..."}
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="h-4 w-4 mr-2" />
+                      {currentLanguage === "mn" ? "Байршуулах" : "Upload"}
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
         </div>

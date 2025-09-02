@@ -30,9 +30,14 @@ export const translations = {
         viewCourses: "View All Courses",
       },
       courses: {
-        title: "Featured Courses",
-        subtitle: "Start your journey with our most popular programs",
+        title: "Available Courses",
+        subtitle: "Start your learning journey with our professional courses",
         viewAll: "View All Courses",
+        noEnrollment: "You haven't enrolled in any courses yet",
+        noEnrollmentDescription: "Interested in our courses? Visit the courses page to see all available courses and start your learning journey.",
+        browseCourses: "Browse Courses",
+        enrolled: "Enrolled",
+        continueLearning: "Continue Learning",
       },
       benefits: {
         title: "Why Win Academy?",
@@ -114,6 +119,9 @@ export const translations = {
         noAccount: "Don't have an account?",
         signUp: "Sign up",
         or: "Or continue with email",
+        authenticationRequired: "Authentication Required",
+        authenticationRequiredDescription: "You need to be authenticated to access the dashboard.",
+        goToLogin: "Go to Login",
       },
       register: {
         title: "Create Account",
@@ -168,6 +176,16 @@ export const translations = {
         description: "Your payment was cancelled. You can try again or choose a different payment method.",
       },
     },
+    // Admin
+    admin: {
+      title: "Admin Management",
+      dashboard: "Dashboard",
+      courses: "Courses",
+      users: "Users",
+      orders: "Orders",
+      analytics: "Analytics",
+      logout: "Logout",
+    },
     // Common
     common: {
       loading: "Loading...",
@@ -207,9 +225,14 @@ export const translations = {
         viewCourses: "Бүх сургалтыг харах",
       },
       courses: {
-        title: "Онцлох сургалтууд",
-        subtitle: "Хамгийн алдартай хөтөлбөрүүдээрээ аялалаа эхлээрэй",
+        title: "Боломжит сургалтууд",
+        subtitle: "Манай мэргэжлийн сургалтуудаар сургалтын аялаа эхлээрэй",
         viewAll: "Бүх сургалтыг харах",
+        noEnrollment: "Та одоогоор сургалт худалдаж аваагүй байна",
+        noEnrollmentDescription: "Танд одоогоор худалдаж авсан сургалт байхгүй байна. Манай сургалтуудас худалдаж авахыг хүсэвэл энд дарна уу.",
+        browseCourses: "Сургалтуудыг харах",
+        enrolled: "Худалдан авсан",
+        continueLearning: "Үргэлжлүүлэх",
       },
       benefits: {
         title: "Яагаад WIN Academy?",
@@ -291,6 +314,9 @@ export const translations = {
         noAccount: "Бүртгэл байхгүй юу?",
         signUp: "Бүртгүүлэх",
         or: "Эсвэл и-мэйлээр үргэлжлүүлэх",
+        authenticationRequired: "Нэвтрэх шаардлагатай",
+        authenticationRequiredDescription: "Хяналтын самбар руу хандахын тулд нэвтэрсэн байх шаардлагатай.",
+        goToLogin: "Нэвтрэх хэсэг рүү очих",
       },
       register: {
         title: "Бүртгэл үүсгэх",
@@ -344,6 +370,16 @@ export const translations = {
         title: "Төлбөр цуцлагдсан",
         description: "Таны төлбөр цуцлагдсан. Дахин оролдоно уу эсвэл өөр төлбөр төлөх арга сонгоно уу.",
       },
+    },
+    // Admin
+    admin: {
+      title: "Админ удирдлага",
+      dashboard: "Удирдлага",
+      courses: "Сургалтууд",
+      users: "Хэрэглэгчид",
+      orders: "Захиалгууд",
+      analytics: "Аналитик",
+      logout: "Гарах",
     },
     // Common
     common: {

@@ -28,33 +28,7 @@ import StatusChip from "@/components/admin/StatusChip"
 import SubcourseForm from "../components/SubcourseForm"
 import CourseForm from "../components/CourseForm"
 import LessonForm from "../components/LessonForm"
-
-
-interface Course {
-  _id: string
-  title: string
-  titleMn: string
-  description: string
-  descriptionMn: string
-  coverUrl?: string
-  price: number
-  status: 'draft' | 'live'
-  category: string
-  categoryMn: string
-  level: string
-  levelMn: string
-  enrolledUsers: number
-  totalLessons: number
-  duration: number
-  instructor: string
-  instructorMn: string
-  tags: string[]
-  tagsMn: string[]
-  featured: boolean
-  certificate: boolean
-  createdAt: string
-  updatedAt: string
-}
+import { Course, Lesson } from "@/types/course"
 
 interface Subcourse {
   _id: string
@@ -67,21 +41,6 @@ interface Subcourse {
   totalLessons: number
   duration: number
   thumbnailUrl?: string
-}
-
-interface Lesson {
-  _id: string
-  subcourseId: string
-  title: string
-  titleMn: string
-  type: 'video' | 'article' | 'quiz'
-  status: 'draft' | 'live'
-  order: number
-  durationSec: number
-  video?: {
-    status: 'processing' | 'ready' | 'error'
-    videoId: string
-  }
 }
 
 export default function CourseTreePage() {

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import jwt from "jsonwebtoken"
 import dbConnect from "@/lib/mongoose"
 import User from "@/lib/models/User"
+import Course from "@/lib/models/Course"
+import Order from "@/lib/models/Order"
 
 export async function GET(request: NextRequest) {
   try {
@@ -36,9 +38,23 @@ export async function GET(request: NextRequest) {
 
     // Get total counts
     const totalUsers = await User.countDocuments()
-    const totalCourses = await User.countDocuments({ role: "instructor" }) // Placeholder - replace with actual Course model
-    const totalOrders = 0 // Placeholder - replace with actual Order model
-    const totalRevenue = 0 // Placeholder - replace with actual Order model
+    const totalCourses = await Course.countDocuments()
+    
+    // Calculate weekly income (last 7 days)
+    const oneWeekAgo = new Date()
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7)
+    
+    const weeklyRevenueData = await Order.aggregate([
+      { 
+        $match: { 
+          status: "completed",
+          createdAt: { $gte: oneWeekAgo }
+        } 
+      },
+      { $group: { _id: null, total: { $sum: "$amount" } } }
+    ])
+    
+    const weeklyIncome = weeklyRevenueData.length > 0 ? weeklyRevenueData[0].total : 0
 
     // Get recent users (last 5)
     const recentUsers = await User.find({})
@@ -47,27 +63,18 @@ export async function GET(request: NextRequest) {
       .select("name email createdAt")
       .lean()
 
-    // Get recent orders (placeholder - replace with actual Order model)
-    const recentOrders: Array<{
-      id: string
-      courseTitle: string
-      amount: number
-      status: string
-      createdAt: string
-    }> = []
+
 
     return NextResponse.json({
       totalUsers,
       totalCourses,
-      totalOrders,
-      totalRevenue,
+      weeklyIncome,
       recentUsers: recentUsers.map((user: any) => ({
         id: user._id.toString(),
         name: user.name || "Unknown",
         email: user.email,
         createdAt: user.createdAt?.toISOString() || new Date().toISOString()
-      })),
-      recentOrders
+      }))
     })
 
   } catch (error) {

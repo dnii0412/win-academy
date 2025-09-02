@@ -8,7 +8,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { X, Play, Upload, CheckCircle, AlertCircle } from "lucide-react"
 import { useLanguage } from "@/contexts/language-context"
-import { createBunnyVideo, testBunnyAccess } from "@/lib/bunny-stream"
+import { createBunnyVideo, testBunnyAccess, BUNNY_STREAM_CONFIG } from "@/lib/bunny-stream"
+import TUSUploader from "@/components/video-upload/TUSUploader"
+
 
 interface LessonFormProps {
   isOpen: boolean
@@ -26,6 +28,9 @@ export default function LessonForm({ isOpen, onClose, onSubmit, lesson, mode, co
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle')
   const [uploadError, setUploadError] = useState<string>('')
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [showTusUploader, setShowTusUploader] = useState(false)
+  const [useTusForAllFiles, setUseTusForAllFiles] = useState(false)
+
 
   
   const [formData, setFormData] = useState({
@@ -134,7 +139,7 @@ export default function LessonForm({ isOpen, onClose, onSubmit, lesson, mode, co
 
       // Step 2: Use regular upload for better Bunny compatibility
       console.log('Using regular upload for Bunny compatibility')
-      return await performRegularUpload(videoId, selectedFile)
+      return await performUnifiedUpload(videoId, selectedFile)
 
     } catch (error: any) {
       setUploadStatus('error')
@@ -143,7 +148,7 @@ export default function LessonForm({ isOpen, onClose, onSubmit, lesson, mode, co
     }
   }
 
-  const performRegularUpload = async (
+  const performUnifiedUpload = async (
     videoId: string, 
     file: File, 
     resolve?: (value: { success: boolean; videoId?: string; error?: string }) => void,
@@ -155,9 +160,134 @@ export default function LessonForm({ isOpen, onClose, onSubmit, lesson, mode, co
         throw new Error("No admin token found")
       }
 
-      // For files > 4MB, use chunked upload (TUS or fallback)
-      if (file.size > 4 * 1024 * 1024) {
-        return await performChunkedUpload(videoId, file, adminToken, resolve, reject)
+      // Determine upload method based on file size and user preference
+      const shouldUseTus = useTusForAllFiles || file.size > 50 * 1024 * 1024
+      
+      if (shouldUseTus) {
+        console.log('Using TUS upload for file:', file.name, 'Size:', Math.round(file.size / 1024 / 1024), 'MB')
+        return await performTusUpload(videoId, file, resolve, reject)
+      } else {
+        console.log('Using direct upload for file:', file.name, 'Size:', Math.round(file.size / 1024 / 1024), 'MB')
+        return await performDirectUpload(videoId, file, resolve, reject)
+      }
+    } catch (error: any) {
+      setUploadStatus('error')
+      setUploadError(error.message || 'Upload failed')
+      const result = { success: false, error: error.message }
+      if (reject) reject(result)
+      return result
+    }
+  }
+
+  const performTusUpload = async (
+    videoId: string, 
+    file: File, 
+    resolve?: (value: { success: boolean; videoId?: string; error?: string }) => void,
+    reject?: (reason: any) => void
+  ): Promise<{ success: boolean; videoId?: string; error?: string }> => {
+    try {
+      const adminToken = localStorage.getItem("adminToken")
+      if (!adminToken) {
+        throw new Error("No admin token found")
+      }
+
+      // Create video entry in Bunny.net first
+      const createVideoResponse = await fetch(`${BUNNY_STREAM_CONFIG.baseUrl}/library/${BUNNY_STREAM_CONFIG.libraryId}/videos`, {
+        method: 'POST',
+        headers: {
+          'AccessKey': BUNNY_STREAM_CONFIG.apiKey,
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${adminToken}`
+        },
+        body: JSON.stringify({
+          title: formData.title || 'Uploaded Video',
+          description: formData.description || `Uploaded via TUS: ${file.name}`
+        })
+      })
+
+      let bunnyVideoId = videoId
+      if (createVideoResponse.ok) {
+        const videoEntry = await createVideoResponse.json()
+        bunnyVideoId = videoEntry.guid
+        console.log("Video entry created in Bunny.net:", bunnyVideoId)
+      }
+
+      // Use TUS upload through our API
+      const uploadData = {
+        fileSize: file.size,
+        filename: file.name,
+        contentType: file.type,
+        title: formData.title || 'Uploaded Video',
+        description: formData.description || `Uploaded via TUS: ${file.name}`
+      }
+      
+      const xhr = new XMLHttpRequest()
+      
+      xhr.upload.addEventListener('progress', (event) => {
+        if (event.lengthComputable) {
+          const percentage = Math.round((event.loaded / event.total) * 100)
+          setUploadProgress(percentage)
+        }
+      })
+      
+      xhr.open('POST', '/api/admin/upload/tus')
+      xhr.setRequestHeader('Authorization', `Bearer ${adminToken}`)
+      xhr.setRequestHeader('Content-Type', 'application/json')
+      xhr.send(JSON.stringify(uploadData))
+      
+      // Return a promise that will be resolved by the xhr event handlers
+      return new Promise((resolve, reject) => {
+        xhr.addEventListener('load', () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              const response = JSON.parse(xhr.responseText)
+              if (response.success && response.videoId) {
+                setUploadStatus('success')
+                setUploadProgress(100)
+                resolve({ success: true, videoId: response.videoId })
+              } else {
+                setUploadStatus('error')
+                setUploadError(response.error || 'TUS upload failed')
+                reject({ success: false, error: response.error })
+              }
+            } catch (e) {
+              setUploadStatus('error')
+              setUploadError('Invalid response from TUS server')
+              reject({ success: false, error: 'Invalid response' })
+            }
+          } else {
+            setUploadStatus('error')
+            setUploadError(`TUS upload failed: ${xhr.status} ${xhr.statusText}`)
+            reject({ success: false, error: `TUS upload failed: ${xhr.status}` })
+          }
+        })
+        
+        xhr.addEventListener('error', () => {
+          setUploadStatus('error')
+          setUploadError('TUS upload failed due to network error')
+          reject({ success: false, error: 'Network error' })
+        })
+      })
+      
+    } catch (error: any) {
+      setUploadStatus('error')
+      setUploadError(error.message || 'TUS upload failed')
+      const result = { success: false, error: error.message }
+      if (reject) reject(result)
+      return result
+    }
+  }
+
+  const performDirectUpload = async (
+    videoId: string, 
+    file: File, 
+    resolve?: (value: { success: boolean; videoId?: string; error?: string }) => void,
+    reject?: (reason: any) => void
+  ): Promise<{ success: boolean; videoId?: string; error?: string }> => {
+    try {
+      const adminToken = localStorage.getItem("adminToken")
+      if (!adminToken) {
+        throw new Error("No admin token found")
       }
 
       // Regular upload for small files
@@ -186,101 +316,20 @@ export default function LessonForm({ isOpen, onClose, onSubmit, lesson, mode, co
         return result
       } else {
         const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.error || 'Regular upload failed')
+        throw new Error(errorData.error || 'Direct upload failed')
       }
     } catch (error: any) {
       setUploadStatus('error')
-      setUploadError(error.message || 'Upload failed')
+      setUploadError(error.message || 'Direct upload failed')
       const result = { success: false, error: error.message }
       if (reject) reject(result)
       return result
     }
   }
 
-  const performChunkedUpload = async (
-    videoId: string,
-    file: File,
-    adminToken: string,
-    resolve?: (value: { success: boolean; videoId?: string; error?: string }) => void,
-    reject?: (reason: any) => void
-  ): Promise<{ success: boolean; videoId?: string; error?: string }> => {
-    try {
-      // Skip TUS for now and go directly to chunked upload
-      // TUS seems to have compatibility issues with Bunny Stream
-      console.log('Using chunked upload for large file')
-      return await performChunkedUploadFallback(videoId, file, adminToken, resolve, reject)
 
-    } catch (error: any) {
-      setUploadStatus('error')
-      setUploadError(error.message || 'Chunked upload failed')
-      const result = { success: false, error: error.message }
-      if (reject) reject(result)
-      return result
-    }
-  }
 
-  const performChunkedUploadFallback = async (
-    videoId: string,
-    file: File,
-    adminToken: string,
-    resolve?: (value: { success: boolean; videoId?: string; error?: string }) => void,
-    reject?: (reason: any) => void
-  ): Promise<{ success: boolean; videoId?: string; error?: string }> => {
-    try {
-      const CHUNK_SIZE = 4 * 1024 * 1024 // 4MB chunks (under Vercel limit)
-      const totalChunks = Math.ceil(file.size / CHUNK_SIZE)
-      
-      console.log(`Starting chunked upload fallback: ${totalChunks} chunks of ${CHUNK_SIZE} bytes each`)
 
-      for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
-        const start = chunkIndex * CHUNK_SIZE
-        const end = Math.min(start + CHUNK_SIZE, file.size)
-        const chunk = file.slice(start, end)
-        
-        // Create chunk blob
-        const chunkBlob = new Blob([chunk], { type: file.type })
-        
-        // Upload chunk
-        const chunkFormData = new FormData()
-        chunkFormData.append('chunk', chunkBlob, file.name)
-        chunkFormData.append('chunkIndex', chunkIndex.toString())
-        chunkFormData.append('totalChunks', totalChunks.toString())
-        chunkFormData.append('fileName', file.name)
-
-        const response = await fetch(`/api/admin/upload-video-chunked/${videoId}`, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${adminToken}`,
-          },
-          body: chunkFormData
-        })
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}))
-          throw new Error(`Failed to upload chunk ${chunkIndex + 1}: ${errorData.error || 'Unknown error'}`)
-        }
-
-        // Update progress
-        const progress = ((chunkIndex + 1) / totalChunks) * 100
-        setUploadProgress(progress)
-        
-        console.log(`Chunk ${chunkIndex + 1}/${totalChunks} uploaded successfully`)
-      }
-
-      setUploadStatus('success')
-      setUploadProgress(100)
-      const result = { success: true, videoId }
-      if (resolve) resolve(result)
-      return result
-
-    } catch (error: any) {
-      setUploadStatus('error')
-      setUploadError(error.message || 'Chunked upload failed')
-      const result = { success: false, error: error.message }
-      if (reject) reject(result)
-      return result
-    }
-  }
 
 
 
@@ -478,6 +527,23 @@ export default function LessonForm({ isOpen, onClose, onSubmit, lesson, mode, co
                   <p className="text-xs text-gray-500 mt-1">
                     Supported formats: MP4, MOV, AVI, WebM (No size limit - will be chunked automatically)
                   </p>
+                  
+                  {/* Upload Method Toggle */}
+                  <div className="mt-3 flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="useTusForAll"
+                      checked={useTusForAllFiles}
+                      onChange={(e) => setUseTusForAllFiles(e.target.checked)}
+                      className="rounded border-gray-300"
+                    />
+                    <Label htmlFor="useTusForAll" className="text-sm">
+                      Use TUS uploader for all files (recommended for large files)
+                    </Label>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    TUS uploader provides reliable uploads for large files with resumable capability
+                  </p>
                 </div>
               </div>
 
@@ -485,7 +551,11 @@ export default function LessonForm({ isOpen, onClose, onSubmit, lesson, mode, co
               {uploadStatus === 'uploading' && (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
-                    <span>Uploading to Bunny...</span>
+                    <span>
+                      Uploading to Bunny... 
+                      {useTusForAllFiles || (selectedFile && selectedFile.size > 50 * 1024 * 1024) ? 
+                        ' (TUS Uploader)' : ' (Direct Upload)'}
+                    </span>
                     <span>{Math.round(uploadProgress)}%</span>
                   </div>
                   <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
@@ -506,9 +576,38 @@ export default function LessonForm({ isOpen, onClose, onSubmit, lesson, mode, co
               )}
 
               {uploadStatus === 'error' && (
-                <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
-                  <AlertCircle className="w-4 h-4" />
-                  <span className="text-sm">{uploadError}</span>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
+                    <AlertCircle className="w-4 h-4" />
+                    <span className="text-sm">{uploadError}</span>
+                  </div>
+                  {uploadError.includes('TUS uploader') && (
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setShowTusUploader(true)
+                        }}
+                        className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                      >
+                        <Upload className="w-4 h-4 mr-2" />
+                        Use TUS Uploader
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setUploadStatus('idle')
+                          setUploadError('')
+                        }}
+                      >
+                        Try Again
+                      </Button>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -543,6 +642,29 @@ export default function LessonForm({ isOpen, onClose, onSubmit, lesson, mode, co
           </form>
         </div>
       </div>
+      
+      {/* TUS Uploader Modal */}
+      {showTusUploader && (
+        <TUSUploader
+          onUploadComplete={(videoId, videoUrl) => {
+            console.log('TUS upload completed:', { videoId, videoUrl })
+            setFormData(prev => ({
+              ...prev,
+              video: {
+                ...prev.video,
+                videoId: videoId,
+                videoUrl: videoUrl
+              }
+            }))
+            setUploadStatus('success')
+            setUploadError('')
+            setShowTusUploader(false)
+          }}
+          onClose={() => {
+            setShowTusUploader(false)
+          }}
+        />
+      )}
     </div>
   )
 }

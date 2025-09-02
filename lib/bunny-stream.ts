@@ -49,7 +49,13 @@ export const TUS_CONFIG = {
 }
 
 export const getBunnyStreamUrl = (videoId: string) => {
-  return `${BUNNY_STREAM_CONFIG.streamUrl}/${BUNNY_STREAM_CONFIG.libraryId}/${videoId}`
+  // Use the correct Bunny.net Stream embed URL format
+  return `https://iframe.mediadelivery.net/embed/${BUNNY_STREAM_CONFIG.libraryId}/${videoId}`
+}
+
+export const getBunnyVideoUrl = (videoId: string) => {
+  // Get the direct video file URL (not embed)
+  return `https://iframe.mediadelivery.net/${BUNNY_STREAM_CONFIG.libraryId}/${videoId}/play_720p.mp4`
 }
 
 export const getBunnyThumbnailUrl = (videoId: string) => {

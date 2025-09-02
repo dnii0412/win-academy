@@ -9,27 +9,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import Link from "next/link"
 import { useLanguage } from "@/contexts/language-context"
 import { useEffect, useState } from "react"
-
-interface Course {
-  _id: string
-  title: string
-  titleMn?: string
-  description: string
-  descriptionMn?: string
-  price: number
-  category: string
-  categoryMn?: string
-  level: string
-  levelMn?: string
-  duration: number
-  instructor: string
-  instructorMn?: string
-  thumbnailUrl?: string
-  featured: boolean
-  totalLessons: number
-  enrolledUsers: number
-  createdAt: string
-}
+import { Course } from "@/types/course"
 
 export default function HomePage() {
   const { t } = useLanguage()
@@ -153,8 +133,8 @@ export default function HomePage() {
         <div className="absolute top-0 left-0 w-full h-12 bg-background transform -skew-y-1 origin-top-left"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimatedSection className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-foreground mb-4">Available Courses</h2>
-            <p className="text-xl text-muted-foreground">Start your learning journey with our professional courses</p>
+            <h2 className="text-4xl font-bold text-foreground mb-4">{t("home.courses.title")}</h2>
+            <p className="text-xl text-muted-foreground">{t("home.courses.subtitle")}</p>
           </AnimatedSection>
           {isLoadingCourses ? (
             <div className="text-center py-16">

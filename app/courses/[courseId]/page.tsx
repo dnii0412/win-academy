@@ -3,98 +3,33 @@
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { 
   Clock, 
-  User, 
-  BookOpen, 
   Play, 
   ShoppingCart, 
   Star, 
   Users, 
-  FileText,
-  Download,
-  Calendar,
-  Award,
-  ChevronRight,
-  CheckCircle
-  
+  ChevronRight
 } from "lucide-react"
 import { useLanguage } from "@/contexts/language-context"
 import Link from "next/link"
+import { Course } from "@/types/course"
 
-interface Material {
-  name: string
-  nameMn: string
-  type: 'pdf' | 'image' | 'assignment' | 'other'
-  url: string
-  size: number
-}
-
-interface Assignment {
-  title: string
-  titleMn: string
-  description: string
-  descriptionMn: string
-  dueDate?: string
-  points: number
-}
-
-interface Topic {
-  _id?: string
-  title: string
-  titleMn: string
-  description: string
-  descriptionMn: string
-  order: number
-  videoUrl: string
-  videoDuration: number
-  thumbnailUrl: string
-  materials: Material[]
-  assignments: Assignment[]
-}
-
-interface Module {
-  _id?: string
-  title: string
-  titleMn: string
-  description: string
-  descriptionMn: string
-  order: number
-  topics: Topic[]
-}
-
-interface Course {
+interface Subcourse {
   _id: string
   title: string
-  titleMn?: string
+  titleMn: string
   description: string
-  descriptionMn?: string
-  shortDescription: string
-  shortDescriptionMn?: string
-  price: number
-  originalPrice?: number
+  descriptionMn: string
+  order: number
   status: string
-  category: string
-  categoryMn?: string
-  level: string
-  levelMn?: string
-  duration: number
-  modules: Module[]
-  totalLessons: number
-  enrolledUsers: number
-  instructor: string
-  instructorMn?: string
-  tags: string[]
-  tagsMn: string[]
-  featured: boolean
-  certificate: boolean
-  language: string
   thumbnailUrl?: string
-  createdAt: string
+  totalLessons: number
+  duration: number
 }
+
+
 
 export default function CourseOverviewPage() {
   const params = useParams()
@@ -103,6 +38,7 @@ export default function CourseOverviewPage() {
   const courseId = params.courseId as string
 
   const [course, setCourse] = useState<Course | null>(null)
+  const [subcourses, setSubcourses] = useState<Subcourse[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -112,13 +48,21 @@ export default function CourseOverviewPage() {
 
   const fetchCourse = async () => {
     try {
-      // Use the dedicated overview API to get complete course data with all subcourses
-      const response = await fetch(`/api/courses/${courseId}/overview`)
-      if (response.ok) {
-        const data = await response.json()
-        setCourse(data.course)
+      // Fetch course data
+      const courseResponse = await fetch(`/api/courses/${courseId}`)
+      if (courseResponse.ok) {
+        const courseData = await courseResponse.json()
+        setCourse(courseData.course)
       } else {
         setError("Course not found")
+        return
+      }
+
+      // Fetch subcourses for this course
+      const subcoursesResponse = await fetch(`/api/courses/${courseId}/subcourses`)
+      if (subcoursesResponse.ok) {
+        const subcoursesData = await subcoursesResponse.json()
+        setSubcourses(subcoursesData.subcourses)
       }
     } catch (error) {
       console.error('Error fetching course:', error)
@@ -139,11 +83,7 @@ export default function CourseOverviewPage() {
     return remainingMinutes > 0 ? `${hours}ч ${remainingMinutes}мин` : `${hours}ч`
   }
 
-  const formatVideoDuration = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60)
-    const remainingSeconds = seconds % 60
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
-  }
+
 
   const getLevelColor = (level: string) => {
     switch (level.toLowerCase()) {
@@ -258,64 +198,43 @@ export default function CourseOverviewPage() {
                 {currentLanguage === "mn" ? "Хичээлийн агуулга" : "Course Content"}
               </h2>
               
-              {course.modules && course.modules.length > 0 ? (
+              {subcourses && subcourses.length > 0 ? (
                 <div className="space-y-4">
-                  {course.modules
+                  {subcourses
                     .sort((a, b) => a.order - b.order)
-                    .map((module, moduleIndex) => (
-                      <div key={module._id || moduleIndex} className="border border-gray-200 rounded-lg p-4">
+                    .map((subcourse, subcourseIndex) => (
+                      <div key={subcourse._id} className="border border-gray-200 rounded-lg p-4">
                         <div className="flex items-center space-x-3 mb-3">
                           <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center text-sm font-semibold text-red-600">
-                            {moduleIndex + 1}
+                            {subcourseIndex + 1}
                           </div>
                           <h3 className="font-semibold text-gray-900">
-                            {currentLanguage === "mn" ? module.titleMn || module.title : module.title}
+                            {currentLanguage === "mn" ? subcourse.titleMn || subcourse.title : subcourse.title}
                           </h3>
                         </div>
-                        {module.description && (
+                        {subcourse.description && (
                           <p className="text-gray-600 text-sm mb-3">
-                            {currentLanguage === "mn" ? module.descriptionMn || module.description : module.description}
+                            {currentLanguage === "mn" ? subcourse.descriptionMn || subcourse.description : subcourse.description}
                           </p>
                         )}
                         
-                        {module.topics && module.topics.length > 0 ? (
-                          <div className="space-y-2">
-                            {module.topics
-                              .sort((a, b) => a.order - b.order)
-                              .map((topic, topicIndex) => (
-                                <div key={topic._id || topicIndex} className="flex items-center space-x-3 p-2 bg-gray-50 rounded">
-                                  <div className="w-5 h-5 bg-gray-300 rounded-full flex items-center justify-center text-xs font-semibold text-gray-700">
-                                    {topicIndex + 1}
-                                  </div>
-                                  <div className="flex-1">
-                                    <h4 className="font-medium text-sm text-gray-900">
-                                      {currentLanguage === "mn" ? topic.titleMn || topic.title : topic.title}
-                                    </h4>
-                                    {topic.description && (
-                                      <p className="text-xs text-gray-600 mt-1">
-                                        {currentLanguage === "mn" ? topic.descriptionMn || topic.description : topic.description}
-                                      </p>
-                                    )}
-                                  </div>
-                                  <div className="flex items-center space-x-2 text-xs text-gray-500">
-                                    {topic.videoDuration > 0 && (
-                                      <span>{formatVideoDuration(topic.videoDuration)}</span>
-                                    )}
-                                    <Play className="w-3 h-3" />
-                                  </div>
-                                </div>
-                              ))}
+                        <div className="flex items-center justify-between text-sm text-gray-500">
+                          <div className="flex items-center space-x-4">
+                            <span className="flex items-center space-x-1">
+                              <Play className="w-4 h-4" />
+                              <span>{subcourse.totalLessons} {currentLanguage === "mn" ? "хичээл" : "lessons"}</span>
+                            </span>
+                            {subcourse.duration > 0 && (
+                              <span className="flex items-center space-x-1">
+                                <Clock className="w-4 h-4" />
+                                <span>{formatDuration(subcourse.duration)}</span>
+                              </span>
+                            )}
                           </div>
-                        ) : (
-                          <div className="text-center py-8 text-gray-500">
-                            <p className="text-sm">
-                              {currentLanguage === "mn" 
-                                ? "Энэ дэд хэсэгт одоогоор хичээл байхгүй байна" 
-                                : "No lessons available in this subcourse yet"
-                              }
-                            </p>
-                          </div>
-                        )}
+                          <Badge variant="outline" className="text-xs">
+                            {subcourse.status === 'live' ? (currentLanguage === "mn" ? "Идэвхтэй" : "Active") : (currentLanguage === "mn" ? "Ноорог" : "Draft")}
+                          </Badge>
+                        </div>
                       </div>
                     ))}
                 </div>
