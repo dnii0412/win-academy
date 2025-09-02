@@ -18,6 +18,7 @@ function PaymentSuccessContent() {
     const orderId = searchParams.get("orderId")
     const paymentId = searchParams.get("paymentId")
     const provider = searchParams.get("provider")
+    const courseId = searchParams.get("courseId")
 
     useEffect(() => {
         const checkPaymentStatus = async () => {
@@ -166,12 +167,23 @@ function PaymentSuccessContent() {
 
                         <div className="space-y-3">
                             {paymentStatus?.status === "completed" && (
-                                <Button
-                                    onClick={() => router.push("/dashboard")}
-                                    className="w-full bg-[#E10600] hover:bg-[#C70500]"
-                                >
-                                    Go to Dashboard
-                                </Button>
+                                <>
+                                    {courseId && (
+                                        <Button
+                                            onClick={() => router.push(`/learn/${courseId}`)}
+                                            className="w-full bg-[#E10600] hover:bg-[#C70500]"
+                                        >
+                                            Start Learning Now
+                                        </Button>
+                                    )}
+                                    <Button
+                                        onClick={() => router.push("/dashboard")}
+                                        variant={courseId ? "outline" : "default"}
+                                        className={courseId ? "w-full" : "w-full bg-[#E10600] hover:bg-[#C70500]"}
+                                    >
+                                        Go to Dashboard
+                                    </Button>
+                                </>
                             )}
 
                             {(paymentStatus?.status === "failed" || paymentStatus?.status === "cancelled") && (

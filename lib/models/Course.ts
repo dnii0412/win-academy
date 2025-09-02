@@ -147,10 +147,14 @@ const courseSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  thumbnailPublicId: {
+    type: String,
+    trim: true
+  },
   price: {
     type: Number,
     required: true,
-    min: 0
+    min: 50
   },
   originalPrice: {
     type: Number,

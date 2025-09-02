@@ -4,6 +4,15 @@ interface CloudinaryResponse {
   width: number
   height: number
   format: string
+  bytes: number
+  resource_type: string
+}
+
+interface CloudinaryUploadOptions {
+  folder?: string
+  transformation?: string
+  quality?: string
+  format?: string
 }
 
 class CloudinaryService {
@@ -15,15 +24,29 @@ class CloudinaryService {
     this.uploadPreset = process.env.CLOUDINARY_UPLOAD_PRESET!
     
     if (!this.cloudName || !this.uploadPreset) {
-      throw new Error('Cloudinary configuration missing')
+      throw new Error('Cloudinary configuration missing. Please check NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME and CLOUDINARY_UPLOAD_PRESET environment variables.')
     }
   }
 
-  async uploadImage(file: File): Promise<CloudinaryResponse> {
+  async uploadImage(file: File, options: CloudinaryUploadOptions = {}): Promise<CloudinaryResponse> {
     const formData = new FormData()
     formData.append('file', file)
     formData.append('upload_preset', this.uploadPreset)
     formData.append('cloud_name', this.cloudName)
+
+    // Add optional parameters
+    if (options.folder) {
+      formData.append('folder', options.folder)
+    }
+    if (options.transformation) {
+      formData.append('transformation', options.transformation)
+    }
+    if (options.quality) {
+      formData.append('quality', options.quality)
+    }
+    if (options.format) {
+      formData.append('format', options.format)
+    }
 
     try {
       const response = await fetch(
@@ -35,7 +58,8 @@ class CloudinaryService {
       )
 
       if (!response.ok) {
-        throw new Error('Failed to upload image to Cloudinary')
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error?.message || 'Failed to upload image to Cloudinary')
       }
 
       const data = await response.json()
@@ -45,10 +69,12 @@ class CloudinaryService {
         width: data.width,
         height: data.height,
         format: data.format,
+        bytes: data.bytes,
+        resource_type: data.resource_type,
       }
     } catch (error) {
       console.error('Cloudinary upload error:', error)
-      throw new Error('Image upload failed')
+      throw new Error(error instanceof Error ? error.message : 'Image upload failed')
     }
   }
 

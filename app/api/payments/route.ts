@@ -14,6 +14,21 @@ export async function POST(request: NextRequest) {
             )
         }
 
+        // Check if payment configuration is available
+        if (provider === 'qpay' && !paymentConfig.qpay.merchantCode) {
+            return NextResponse.json(
+                { error: 'QPay payment configuration missing. Please contact support.' },
+                { status: 500 }
+            )
+        }
+
+        if (provider === 'byl' && (!paymentConfig.byl.accessToken || !paymentConfig.byl.projectId)) {
+            return NextResponse.json(
+                { error: 'BYL payment configuration missing. Please contact support.' },
+                { status: 500 }
+            )
+        }
+
         let paymentResponse: PaymentResponse
 
         if (provider === 'byl') {

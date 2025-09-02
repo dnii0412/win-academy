@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
+import { useLanguage } from "@/contexts/language-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -9,12 +11,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2, CreditCard, Smartphone } from "lucide-react"
-import type { CheckoutFormData, Course } from "@/types/payment"
+import { Loader2, CreditCard, Smartphone, BookOpen } from "lucide-react"
+import type { CheckoutFormData } from "@/types/payment"
+import type { Course } from "@/types/course"
 
 export default function CheckoutPage() {
     const params = useParams()
     const router = useRouter()
+    const { data: session, status } = useSession()
+    const { t } = useLanguage()
     const courseId = params.courseId as string
 
     const [course, setCourse] = useState<Course | null>(null)
@@ -30,7 +35,16 @@ export default function CheckoutPage() {
     })
 
     useEffect(() => {
-        // Fetch course information from API
+        // Check authentication first
+        if (status === "loading") return // Still loading
+
+        if (status === "unauthenticated") {
+            // Redirect to login with return URL
+            router.push(`/login?callbackUrl=${encodeURIComponent(`/checkout/${courseId}`)}`)
+            return
+        }
+
+        // If authenticated, fetch course and populate user info
         const fetchCourse = async () => {
             try {
                 const response = await fetch(`/api/courses/${courseId}`)
@@ -46,10 +60,24 @@ export default function CheckoutPage() {
             }
         }
 
-        if (courseId) {
+        if (courseId && session?.user) {
             fetchCourse()
+
+            // Auto-populate form with user information
+            if (session.user) {
+                setFormData(prev => ({
+                    ...prev,
+                    email: session.user.email || "",
+                    firstName: session.user.name?.split(' ')[0] || "",
+                    lastName: session.user.name?.split(' ').slice(1).join(' ') || "",
+                }))
+                console.log('User info populated:', {
+                    email: session.user.email,
+                    name: session.user.name
+                })
+            }
         }
-    }, [courseId])
+    }, [courseId, session, status, router])
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target
@@ -87,15 +115,49 @@ export default function CheckoutPage() {
         try {
             const orderId = `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
+            // First create the order in our database
+            const orderResponse = await fetch("/api/orders", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    courseId: course._id,
+                    courseTitle: course.title,
+                    courseTitleMn: course.titleMn,
+                    amount: course.price,
+                    currency: "MNT",
+                    paymentMethod: formData.paymentMethod,
+                    customerEmail: formData.email,
+                    customerPhone: formData.phone,
+                    customerName: `${formData.firstName} ${formData.lastName}`,
+                    orderId
+                }),
+            })
+
+            if (!orderResponse.ok) {
+                const orderError = await orderResponse.json()
+                console.error('Order creation error:', orderError)
+
+                // Handle specific error cases
+                if (orderResponse.status === 409 && orderError.existingUser) {
+                    throw new Error(t('checkout.emailAlreadyRegistered'))
+                }
+
+                throw new Error(orderError.message || orderError.error || "Failed to create order")
+            }
+
+            const orderData = await orderResponse.json()
+
             const paymentRequest = {
                 provider: formData.paymentMethod,
                 amount: course.price,
-                currency: course.currency,
+                currency: "MNT",
                 description: `Enrollment for ${course.title}`,
                 orderId,
                 customerEmail: formData.email,
                 customerPhone: formData.phone,
-                returnUrl: `${window.location.origin}/payment/success?orderId=${orderId}`,
+                returnUrl: `${window.location.origin}/payment/success?orderId=${orderId}&courseId=${course._id}`,
                 callbackUrl: `${window.location.origin}/api/payments/callback`,
             }
 
@@ -110,7 +172,8 @@ export default function CheckoutPage() {
             const result = await response.json()
 
             if (!response.ok || !result.success) {
-                throw new Error(result.error || "Payment creation failed")
+                console.error('Payment API error:', result)
+                throw new Error(result.error || `Payment creation failed (${response.status})`)
             }
 
             // Redirect to payment URL
@@ -120,18 +183,35 @@ export default function CheckoutPage() {
                 throw new Error("No payment URL received")
             }
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Payment failed")
+            console.error('Checkout error:', err)
+            const errorMessage = err instanceof Error ? err.message : "Payment failed"
+            setError(`Payment Error: ${errorMessage}`)
         } finally {
             setIsLoading(false)
         }
     }
 
+    // Show loading while checking authentication
+    if (status === "loading") {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                    <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
+                    <h1 className="text-xl font-medium text-gray-900">
+                        Checking authentication...
+                    </h1>
+                </div>
+            </div>
+        )
+    }
+
+    // Show loading while fetching course or if there's an error
     if (!course) {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
                     <h1 className="text-2xl font-bold text-gray-900 mb-4">
-                        {error || "Loading..."}
+                        {error || "Loading course..."}
                     </h1>
                     {error && (
                         <Button onClick={() => router.push("/courses")}>
@@ -154,18 +234,24 @@ export default function CheckoutPage() {
                         </CardHeader>
                         <CardContent>
                             <div className="flex items-start space-x-4">
-                                <img
-                                    src={course.image}
-                                    alt={course.title}
-                                    className="w-20 h-20 object-cover rounded-lg"
-                                />
+                                {course.thumbnailUrl ? (
+                                    <img
+                                        src={course.thumbnailUrl}
+                                        alt={course.title}
+                                        className="w-20 h-20 object-cover rounded-lg"
+                                    />
+                                ) : (
+                                    <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center rounded-lg">
+                                        <BookOpen className="h-6 w-6 text-white opacity-80" />
+                                    </div>
+                                )}
                                 <div className="flex-1">
                                     <h3 className="font-semibold text-lg">{course.title}</h3>
                                     <p className="text-gray-600 text-sm mt-1">{course.description}</p>
                                     <div className="mt-2 space-y-1 text-sm text-gray-500">
                                         <p>Duration: {course.duration}</p>
                                         <p>Instructor: {course.instructor}</p>
-                                        <p>Modality: {course.modality}</p>
+                                        <p>Level: {course.level}</p>
                                     </div>
                                 </div>
                             </div>

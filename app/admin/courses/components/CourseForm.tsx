@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import { X, Plus, Upload } from "lucide-react"
 import { useLanguage } from "@/contexts/language-context"
 import { useEffect } from "react"
+import ImageUpload from "@/components/ImageUpload"
 
 interface CourseFormProps {
   isOpen: boolean
@@ -33,7 +34,8 @@ export default function CourseForm({ isOpen, onClose, onSubmit, course, mode }: 
     status: course?.status || "draft",
     tags: course?.tags || [],
     tagsMn: course?.tagsMn || [],
-    thumbnailUrl: course?.thumbnailUrl || ""
+    thumbnailUrl: course?.thumbnailUrl || "",
+    thumbnailPublicId: course?.thumbnailPublicId || ""
   })
 
   const [newTag, setNewTag] = useState("")
@@ -68,24 +70,24 @@ export default function CourseForm({ isOpen, onClose, onSubmit, course, mode }: 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     // Client-side validation
     if (!formData.title.trim() || !formData.titleMn.trim() || !formData.description.trim() || !formData.descriptionMn.trim()) {
       alert(currentLanguage === "mn" ? "Бүх талбарыг бөглөнө үү!" : "Please fill in all required fields!")
       return
     }
-    
-    if (!formData.price || Number(formData.price) <= 0) {
-      alert(currentLanguage === "mn" ? "Зөв үнэ оруулна уу!" : "Please enter a valid price!")
+
+    if (!formData.price || Number(formData.price) < 50) {
+      alert(currentLanguage === "mn" ? "Үнэ дор хаяж ₮50 байх ёстой! (Тест бүтээгдэхүүн)" : "Price must be at least ₮50 MNT (Test Product)!")
       return
     }
-    
+
     // Transform data before submitting
     const transformedData = {
       ...formData,
       price: Number(formData.price) || 0
     }
-    
+
     onSubmit(transformedData)
   }
 
@@ -102,7 +104,8 @@ export default function CourseForm({ isOpen, onClose, onSubmit, course, mode }: 
         status: course.status || "draft",
         tags: course.tags || [],
         tagsMn: course.tagsMn || [],
-        thumbnailUrl: course.thumbnailUrl || ""
+        thumbnailUrl: course.thumbnailUrl || "",
+        thumbnailPublicId: course.thumbnailPublicId || ""
       })
     }
   }, [course])
@@ -115,7 +118,7 @@ export default function CourseForm({ isOpen, onClose, onSubmit, course, mode }: 
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-              {mode === "create" 
+              {mode === "create"
                 ? (currentLanguage === "mn" ? "Сургалт үүсгэх" : "Create Course")
                 : (currentLanguage === "mn" ? "Сургалт засах" : "Edit Course")
               }
@@ -128,11 +131,11 @@ export default function CourseForm({ isOpen, onClose, onSubmit, course, mode }: 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Basic Information */}
             <Card>
-                              <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    {currentLanguage === "mn" ? "Үндсэн мэдээлэл" : "Basic Information"}
-                  </CardTitle>
-                </CardHeader>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  {currentLanguage === "mn" ? "Үндсэн мэдээлэл" : "Basic Information"}
+                </CardTitle>
+              </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
@@ -184,43 +187,63 @@ export default function CourseForm({ isOpen, onClose, onSubmit, course, mode }: 
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="price">Price</Label>
+                    <Label htmlFor="price" className="flex items-center gap-2">
+                      Price
+                      <span className="text-xs text-gray-500 font-normal">
+                        (₮ MNT - QPay Integration)
+                      </span>
+                    </Label>
                     <Input
                       id="price"
                       type="number"
-                      value={formData.price || 0}
+                      value={formData.price || ""}
                       onChange={(e) => handleInputChange("price", e.target.value)}
-                      placeholder="0.00"
-                      min="0"
-                      step="0.01"
+                      placeholder="Enter price in MNT (minimum ₮50)"
+                      min="50"
+                      step="50"
                       required
                     />
+                    <div className="text-xs text-gray-600 mt-1">
+                      <p>💡 This price will be used for QPay payments when users enroll in the course</p>
+                      <p className="text-blue-600">🧪 Test Product: Minimum ₮50 MNT for easy testing</p>
+                      {formData.price && Number(formData.price) >= 50 && (
+                        <p className="mt-1 text-green-600 font-medium">
+                          Preview: ₮{Number(formData.price).toLocaleString()} MNT
+                        </p>
+                      )}
+                      {formData.price && Number(formData.price) > 0 && Number(formData.price) < 50 && (
+                        <p className="mt-1 text-red-600 font-medium">
+                          ⚠️ Too low: Minimum ₮50 required
+                        </p>
+                      )}
+                    </div>
                   </div>
-                  
+
                 </div>
 
                 {/* Thumbnail Upload */}
                 <div>
-                  <Label htmlFor="thumbnail">Course Thumbnail</Label>
-                  <div className="mt-2">
-                    <Input
-                      id="thumbnail"
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0]
-                        if (file) {
-                          // For now, just store the file name
-                          // You can implement actual file upload logic here
-                          handleInputChange("thumbnailUrl", file.name)
-                        }
-                      }}
-                      className="cursor-pointer"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Upload a thumbnail image for the course (JPG, PNG, GIF)
-                    </p>
-                  </div>
+                  <Label className="text-base font-medium mb-3 block">
+                    {currentLanguage === "mn" ? "Сургалтын зураг" : "Course Thumbnail"}
+                  </Label>
+                  <ImageUpload
+                    onUploadSuccess={(url, publicId) => {
+                      handleInputChange("thumbnailUrl", url)
+                      handleInputChange("thumbnailPublicId", publicId)
+                    }}
+                    onUploadError={(error) => {
+                      console.error("Upload error:", error)
+                    }}
+                    onDelete={(publicId) => {
+                      handleInputChange("thumbnailUrl", "")
+                      handleInputChange("thumbnailPublicId", "")
+                    }}
+                    currentImageUrl={formData.thumbnailUrl}
+                    currentPublicId={formData.thumbnailPublicId}
+                    folder="course-thumbnails"
+                    maxSizeInMB={5}
+                    className="w-full"
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -283,7 +306,7 @@ export default function CourseForm({ isOpen, onClose, onSubmit, course, mode }: 
                 {currentLanguage === "mn" ? "Цуцлах" : "Cancel"}
               </Button>
               <Button type="submit">
-                {mode === "create" 
+                {mode === "create"
                   ? (currentLanguage === "mn" ? "Үүсгэх" : "Create Course")
                   : (currentLanguage === "mn" ? "Хадгалах" : "Save Changes")
                 }

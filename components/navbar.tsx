@@ -64,7 +64,9 @@ export default function Navbar() {
 
   return (
     <nav
-      className={`bg-background border-b border-border sticky top-0 z-50 transition-all duration-300 ${isScrolled ? "backdrop-blur-md bg-background/90 shadow-md" : ""
+      className={`border-b border-border sticky top-0 z-50 transition-all duration-300 ${isScrolled
+          ? "bg-background/80 backdrop-blur-md shadow-lg border-border/50"
+          : "bg-background"
         }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -242,7 +244,7 @@ export default function Navbar() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-full">
-                                                                         <DropdownMenuItem asChild>
+                        <DropdownMenuItem asChild>
                           <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
                             <Settings className="mr-2 h-4 w-4" />
                             {currentLanguage === "mn" ? "Хяналтын самбар" : "Dashboard"}

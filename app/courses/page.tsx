@@ -267,7 +267,7 @@ export default function CoursesPage() {
                     {currentLanguage === "mn" ? course.titleMn || course.title : course.title}
                   </CardTitle>
                   <CardDescription className="line-clamp-2">
-                    {currentLanguage === "mn" 
+                    {currentLanguage === "mn"
                       ? (course.descriptionMn || course.description || '').substring(0, 120) + '...'
                       : (course.description || '').substring(0, 120) + '...'
                     }
@@ -320,12 +320,21 @@ export default function CoursesPage() {
                               {currentLanguage === "mn" ? "дэлгэрэнгүй" : "View Course"}
                             </Button>
                           </Link>
-                          <Link href={`/checkout/${course._id}`} className="flex-1">
-                            <Button className="w-full bg-[#E10600] hover:bg-[#C70500] text-white">
-                              <ShoppingCart className="h-4 w-4 mr-2" />
-                              {currentLanguage === "mn" ? "Худалдаж авах" : "Buy Course"}
-                            </Button>
-                          </Link>
+                          {session?.user ? (
+                            <Link href={`/checkout/${course._id}`} className="flex-1">
+                              <Button className="w-full bg-[#E10600] hover:bg-[#C70500] text-white">
+                                <ShoppingCart className="h-4 w-4 mr-2" />
+                                {currentLanguage === "mn" ? "Худалдаж авах" : "Buy Course"}
+                              </Button>
+                            </Link>
+                          ) : (
+                            <Link href={`/login?callbackUrl=${encodeURIComponent(`/checkout/${course._id}`)}`} className="flex-1">
+                              <Button className="w-full bg-[#E10600] hover:bg-[#C70500] text-white">
+                                <ShoppingCart className="h-4 w-4 mr-2" />
+                                {currentLanguage === "mn" ? "Нэвтэрч худалдаж авах" : "Login to Buy"}
+                              </Button>
+                            </Link>
+                          )}
                         </>
                       )}
                     </div>

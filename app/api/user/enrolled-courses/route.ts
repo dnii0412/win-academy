@@ -45,10 +45,30 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Return empty array since we haven't implemented the course enrollment system yet
-    // This will be populated when we implement the payment and enrollment system
+    // Get user's enrolled courses
+    const CourseEnrollment = (await import('@/lib/models/CourseEnrollment')).default
+    const Course = (await import('@/lib/models/Course')).default
+
+    const enrollments = await CourseEnrollment.find({
+      userId: user._id,
+      status: 'active'
+    }).populate('courseId')
+
+    const courses = enrollments.map(enrollment => ({
+      _id: enrollment.courseId._id,
+      title: enrollment.courseId.title,
+      titleMn: enrollment.courseId.titleMn,
+      description: enrollment.courseId.description,
+      descriptionMn: enrollment.courseId.descriptionMn,
+      thumbnailUrl: enrollment.courseId.thumbnailUrl,
+      price: enrollment.courseId.price,
+      enrolledAt: enrollment.enrolledAt,
+      progress: enrollment.progress,
+      lastAccessedAt: enrollment.lastAccessedAt
+    }))
+
     return NextResponse.json({
-      courses: []
+      courses
     })
 
   } catch (error: any) {

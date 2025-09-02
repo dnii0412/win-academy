@@ -7,10 +7,10 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { 
-  Plus, 
-  Edit, 
-  Trash2, 
+import {
+  Plus,
+  Edit,
+  Trash2,
   Search,
   BookOpen,
   Users,
@@ -126,7 +126,7 @@ export default function AdminCoursesPage() {
 
       if (response.ok) {
         const data = await response.json()
-        setCourses(prev => prev.map(course => 
+        setCourses(prev => prev.map(course =>
           course._id === editingCourse?._id ? data.course : course
         ))
         setEditingCourse(null)
@@ -219,50 +219,59 @@ export default function AdminCoursesPage() {
         </div>
 
         {/* Courses Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredCourses.map((course) => (
-            <Card key={course._id} className="overflow-hidden hover:shadow-lg transition-shadow relative h-80">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg line-clamp-2">
-                      {currentLanguage === "mn" ? course.titleMn || course.title : course.title}
-                    </CardTitle>
-                    <CardDescription className="line-clamp-2 mt-2">
-                      {currentLanguage === "mn" ? course.descriptionMn || course.description : course.description}
-                    </CardDescription>
+            <Card key={course._id} className="overflow-hidden hover:shadow-lg transition-shadow">
+              {/* Thumbnail */}
+              <div className="relative">
+                {course.thumbnailUrl ? (
+                  <img
+                    src={course.thumbnailUrl}
+                    alt={currentLanguage === "mn" ? course.titleMn || course.title : course.title}
+                    className="w-full h-48 object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-48 bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center">
+                    <BookOpen className="h-16 w-16 text-white opacity-80" />
                   </div>
-                  <Badge 
-                    variant={course.status === "active" ? "default" : "secondary"}
-                    className="ml-2 flex-shrink-0"
-                  >
-                    {course.status}
-                  </Badge>
-                </div>
-              </CardHeader>
-
-              {/* Fixed Position Text Content */}
-              <div className="px-6 space-y-3 absolute top-40 left-0 right-0">
-                <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                  <Users className="h-4 w-4 mr-2 flex-shrink-0" />
-                  <span>{course.enrolledUsers} {currentLanguage === "mn" ? "хэрэглэгч" : "students"}</span>
-                </div>
-                <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                  <DollarSign className="h-4 w-4 mr-2 flex-shrink-0" />
-                  <span>${course.price}</span>
-                </div>
-                <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                  <Calendar className="h-4 w-4 mr-2 flex-shrink-0" />
-                  <span>{new Date(course.createdAt).toLocaleDateString()}</span>
-                </div>
+                )}
+                <Badge
+                  variant={course.status === "active" ? "default" : "secondary"}
+                  className="absolute top-3 right-3"
+                >
+                  {course.status}
+                </Badge>
               </div>
 
-              {/* Fixed Position Buttons */}
-              <div className="absolute bottom-6 left-5">
-                <div className="flex space-x-2">
-                  <Link href={`/admin/courses/${course._id}`}>
-                    <Button variant="outline" size="sm" className="flex-1">
-                      <BookOpen className="h-4 w-4 mr-2" />
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg line-clamp-2">
+                  {currentLanguage === "mn" ? course.titleMn || course.title : course.title}
+                </CardTitle>
+                <CardDescription className="line-clamp-2">
+                  {currentLanguage === "mn" ? course.descriptionMn || course.description : course.description}
+                </CardDescription>
+              </CardHeader>
+
+              <CardContent className="pt-0">
+                <div className="space-y-3 mb-4">
+                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                    <Users className="h-4 w-4 mr-2 flex-shrink-0" />
+                    <span>{course.enrolledUsers} {currentLanguage === "mn" ? "хэрэглэгч" : "students"}</span>
+                  </div>
+                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                    <DollarSign className="h-4 w-4 mr-2 flex-shrink-0" />
+                    <span>₮{course.price.toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                    <Calendar className="h-4 w-4 mr-2 flex-shrink-0" />
+                    <span>{new Date(course.createdAt).toLocaleDateString()}</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <Link href={`/admin/courses/${course._id}`} className="flex-1 min-w-0">
+                    <Button variant="outline" size="sm" className="w-full">
+                      <BookOpen className="h-4 w-4 mr-1" />
                       {currentLanguage === "mn" ? "Удирдах" : "Manage"}
                     </Button>
                   </Link>
@@ -270,21 +279,22 @@ export default function AdminCoursesPage() {
                     variant="outline"
                     size="sm"
                     onClick={() => setEditingCourse(course)}
+                    className="flex-1 min-w-0"
                   >
-                    <Edit className="h-4 w-4 mr-2" />
+                    <Edit className="h-4 w-4 mr-1" />
                     {currentLanguage === "mn" ? "Засах" : "Edit"}
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
-                    className="text-red-600 border-red-600 hover:bg-red-50"
+                    className="text-red-600 border-red-600 hover:bg-red-50 flex-1 min-w-0"
                     onClick={() => handleDeleteCourse(course._id)}
                   >
-                    <Trash2 className="h-4 w-4 mr-2" />
+                    <Trash2 className="h-4 w-4 mr-1" />
                     {currentLanguage === "mn" ? "Устгах" : "Delete"}
                   </Button>
                 </div>
-              </div>
+              </CardContent>
             </Card>
           ))}
         </div>
@@ -296,13 +306,13 @@ export default function AdminCoursesPage() {
               {currentLanguage === "mn" ? "Сургалт олдсонгүй" : "No courses found"}
             </h3>
             <p className="text-gray-500 dark:text-gray-400 mb-6">
-              {searchTerm 
-                ? (currentLanguage === "mn" 
-                    ? "Хайлтын үр дүнд тохирох сургалт байхгүй байна" 
-                    : "No courses match your search criteria")
-                : (currentLanguage === "mn" 
-                    ? "Өгөгдлийн сан дээр сургалт байхгүй байна. Эхний сургалтаа үүсгэж эхлээрэй!"
-                    : "No courses in the database yet. Start by creating your first course!")
+              {searchTerm
+                ? (currentLanguage === "mn"
+                  ? "Хайлтын үр дүнд тохирох сургалт байхгүй байна"
+                  : "No courses match your search criteria")
+                : (currentLanguage === "mn"
+                  ? "Өгөгдлийн сан дээр сургалт байхгүй байна. Эхний сургалтаа үүсгэж эхлээрэй!"
+                  : "No courses in the database yet. Start by creating your first course!")
               }
             </p>
             {!searchTerm && (

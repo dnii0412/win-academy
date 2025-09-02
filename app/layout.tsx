@@ -36,15 +36,11 @@ export default function RootLayout({
           <LanguageProvider>
             <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
               <div className="min-h-screen flex flex-col">
-                <div className="navbar">
-                  <Navbar />
-                </div>
-                <main className="flex-1 pt-4">
+                <Navbar />
+                <main className="flex-1">
                   {children}
                 </main>
-                <div className="footer">
-                  <Footer />
-                </div>
+                <Footer />
               </div>
             </ThemeProvider>
           </LanguageProvider>

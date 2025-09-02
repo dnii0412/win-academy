@@ -103,22 +103,70 @@ async function handleQPayCallback(data: any) {
             payment_id,
         })
 
-        // Here you would typically:
-        // 1. Verify the callback signature/authenticity
-        // 2. Update your database with payment status
-        // 3. Send confirmation emails
-        // 4. Grant access to purchased courses
-        // 5. Log the transaction
+        // Import required models
+        const dbConnect = require('@/lib/mongoose').default
+        const Order = require('@/lib/models/Order').default
+        const CourseEnrollment = require('@/lib/models/CourseEnrollment').default
+        
+        await dbConnect()
 
-        // Example of what you might do:
+        // Find the order by invoice code (orderId)
+        const order = await Order.findOne({ 
+            $or: [
+                { qpayInvoiceCode: invoice_code },
+                { 'metadata.orderId': invoice_code }
+            ]
+        })
+
+        if (!order) {
+            console.error('Order not found for invoice code:', invoice_code)
+            return NextResponse.json({ success: false, error: 'Order not found' })
+        }
+
         if (payment_status === 'paid' || payment_status === 'completed') {
-            // Update user enrollment
-            // Send confirmation email
-            // Log successful payment
-            console.log(`QPay payment ${payment_id} completed for invoice ${invoice_code}`)
+            // Update order status
+            order.status = 'completed'
+            order.transactionId = payment_id
+            order.qpayInvoiceId = invoice_id
+            order.qpayInvoiceCode = invoice_code
+            order.metadata = {
+                ...order.metadata,
+                paidDate: paid_date,
+                paymentId: payment_id
+            }
+            await order.save()
+
+            // Create course enrollment
+            try {
+                const existingEnrollment = await CourseEnrollment.findOne({
+                    userId: order.userId,
+                    courseId: order.courseId
+                })
+
+                if (!existingEnrollment) {
+                    const enrollment = new CourseEnrollment({
+                        userId: order.userId,
+                        courseId: order.courseId,
+                        status: 'active',
+                        accessGrantedBy: order.userId, // Self-enrollment through payment
+                        notes: `Enrolled via QPay payment. Order ID: ${order._id}`
+                    })
+                    await enrollment.save()
+                    console.log(`Course enrollment created for user ${order.userId}, course ${order.courseId}`)
+                }
+            } catch (enrollmentError) {
+                console.error('Error creating enrollment:', enrollmentError)
+            }
+
+            console.log(`QPay payment ${payment_id} completed for invoice ${invoice_code}. User enrolled in course.`)
         } else if (payment_status === 'failed' || payment_status === 'declined') {
-            // Log failed payment
-            // Optionally notify user
+            // Update order status to failed
+            order.status = 'failed'
+            order.transactionId = payment_id
+            order.qpayInvoiceId = invoice_id
+            order.qpayInvoiceCode = invoice_code
+            await order.save()
+            
             console.log(`QPay payment ${payment_id} failed for invoice ${invoice_code}`)
         }
 

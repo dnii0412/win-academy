@@ -2,13 +2,15 @@
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { VideoPlayer } from "@/components/course-player/video-player"
 import { CurriculumSidebar } from "@/components/course-player/curriculum-sidebar"
 import { NotesPanel } from "@/components/course-player/notes-panel"
 import { DiscussionPanel } from "@/components/course-player/discussion-panel"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { CheckCircle, FileText, MessageSquare, Download, AlertCircle } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { CheckCircle, FileText, MessageSquare, Download, AlertCircle, Lock } from "lucide-react"
 import { useLanguage } from "@/contexts/language-context"
 import { Course as BaseCourse, Lesson as BaseLesson } from "@/types/course"
 
@@ -50,13 +52,15 @@ interface Course extends Omit<BaseCourse, 'modules'> {
 export default function CoursePlayerPage() {
   const params = useParams()
   const router = useRouter()
+  const { data: session } = useSession()
   const { courseSlug: courseId, lessonId } = params
   const { currentLanguage } = useLanguage()
-  
+
   const [course, setCourse] = useState<Course | null>(null)
   const [currentLesson, setCurrentLesson] = useState<Lesson | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [hasAccess, setHasAccess] = useState<boolean | null>(null)
   const [rightPanelOpen, setRightPanelOpen] = useState(true)
   const [activeTab, setActiveTab] = useState("notes")
   const [progress, setProgress] = useState(0)
@@ -71,9 +75,9 @@ export default function CoursePlayerPage() {
     try {
       setIsLoading(true)
       setError(null)
-      
+
       const response = await fetch(`/api/courses/${courseId}/lessons/${lessonId}`)
-      
+
       if (!response.ok) {
         if (response.status === 404) {
           setError(currentLanguage === "mn" ? "Хичээл олдсонгүй" : "Lesson not found")
@@ -82,11 +86,11 @@ export default function CoursePlayerPage() {
         }
         return
       }
-      
+
       const data = await response.json()
       setCourse(data.course)
       setCurrentLesson(data.lesson)
-      
+
     } catch (err) {
       console.error('Error fetching lesson data:', err)
       setError(currentLanguage === "mn" ? "Хичээл татахад алдаа гарлаа" : "Error loading lesson")
@@ -186,8 +190,8 @@ export default function CoursePlayerPage() {
                   {currentLanguage === "mn" ? "Видео боломжгүй" : "Video Not Available"}
                 </h3>
                 <p className="text-gray-400">
-                  {currentLanguage === "mn" 
-                    ? "Энэ хичээлийн видео одоогоор бэлэн биш байна" 
+                  {currentLanguage === "mn"
+                    ? "Энэ хичээлийн видео одоогоор бэлэн биш байна"
                     : "Video for this lesson is not yet available"
                   }
                 </p>
@@ -213,7 +217,7 @@ export default function CoursePlayerPage() {
               </p>
               {currentLesson.duration > 0 && (
                 <p className="text-sm text-gray-500 mt-1">
-                  {Math.floor(currentLesson.duration / 60)}:{String(currentLesson.duration % 60).padStart(2, '0')} 
+                  {Math.floor(currentLesson.duration / 60)}:{String(currentLesson.duration % 60).padStart(2, '0')}
                   {currentLanguage === "mn" ? " минут" : " minutes"}
                 </p>
               )}
@@ -224,7 +228,7 @@ export default function CoursePlayerPage() {
                 {currentLanguage === "mn" ? "Дуусгасан" : "Mark Complete"}
               </Button>
               <Button variant="outline" onClick={() => setRightPanelOpen(!rightPanelOpen)}>
-                {rightPanelOpen 
+                {rightPanelOpen
                   ? (currentLanguage === "mn" ? "Хавтас нуух" : "Hide Panel")
                   : (currentLanguage === "mn" ? "Хавтас харуулах" : "Show Panel")
                 }

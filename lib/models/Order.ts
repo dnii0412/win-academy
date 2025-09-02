@@ -42,7 +42,7 @@ const orderSchema = new mongoose.Schema({
   },
   currency: {
     type: String,
-    default: 'USD',
+    default: 'MNT',
     enum: ['USD', 'MNT', 'EUR']
   },
   paymentMethod: {
@@ -55,6 +55,24 @@ const orderSchema = new mongoose.Schema({
     trim: true
   },
   transactionId: {
+    type: String,
+    trim: true
+  },
+  
+  // QPay specific fields
+  qpayInvoiceId: {
+    type: String,
+    trim: true
+  },
+  qpayInvoiceCode: {
+    type: String,
+    trim: true
+  },
+  qpayShortLink: {
+    type: String,
+    trim: true
+  },
+  qpayQrCode: {
     type: String,
     trim: true
   },

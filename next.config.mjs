@@ -1,3 +1,9 @@
+import { fileURLToPath } from 'url'
+import { dirname } from 'path'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   eslint: {
@@ -9,20 +15,16 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  // Configure external packages that should not be bundled
+  serverExternalPackages: ['tus-js-client'],
   // Configure for large file uploads
   experimental: {
-    serverComponentsExternalPackages: ['tus-js-client'],
     serverActions: {
       bodySizeLimit: '200mb',
     },
   },
-  // Increase body size limit for API routes
-  api: {
-    bodyParser: {
-      sizeLimit: '200mb',
-    },
-    responseLimit: false,
-  },
+  // Set output file tracing root to silence lockfile warning
+  outputFileTracingRoot: __dirname,
 }
 
 export default nextConfig

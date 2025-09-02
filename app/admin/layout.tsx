@@ -24,6 +24,14 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     return () => clearTimeout(timer)
   }, [pathname])
 
+  // Handle redirect when authentication fails
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated && pathname !== "/admin/login") {
+      console.log("Admin layout - redirecting to login")
+      router.push("/admin/login")
+    }
+  }, [isLoading, isAuthenticated, pathname, router])
+
   // Add admin-page class to body when component mounts
   useEffect(() => {
     document.body.classList.add('admin-page')
@@ -44,9 +52,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     })
     
     if (!adminToken) {
-      console.log("Admin layout - no token, redirecting to login")
+      console.log("Admin layout - no token, setting unauthenticated")
+      setIsAuthenticated(false)
       setIsLoading(false)
-      router.push("/admin/login")
       return
     }
 
@@ -63,22 +71,19 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         },
       }).then(response => {
         if (!response.ok) {
-          console.log("Admin layout - token invalid, redirecting to login")
+          console.log("Admin layout - token invalid, setting unauthenticated")
           localStorage.removeItem("adminToken")
           setIsAuthenticated(false)
-          router.push("/admin/login")
         }
       }).catch(error => {
         console.error("Token verification failed:", error)
         localStorage.removeItem("adminToken")
         setIsAuthenticated(false)
-        router.push("/admin/login")
       })
     } catch (error) {
       console.error("Auth check failed:", error)
       localStorage.removeItem("adminToken")
       setIsAuthenticated(false)
-      router.push("/admin/login")
     }
   }
 
@@ -101,10 +106,18 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     return <>{children}</>
   }
 
-  // If not authenticated, redirect to login
+  // If not authenticated, show loading or return null (redirect handled in useEffect)
   if (!isAuthenticated) {
-    router.push("/admin/login")
-    return null
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-red-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">
+            {currentLanguage === "mn" ? "Шилжүүлж байна..." : "Redirecting..."}
+          </p>
+        </div>
+      </div>
+    )
   }
 
   // Show admin layout for authenticated users

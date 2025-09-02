@@ -9,8 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
 import Logo from "@/components/logo"
 import { signIn, getSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Eye, EyeOff } from "lucide-react"
+import { useLanguage } from "@/contexts/language-context"
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
@@ -22,6 +23,9 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const { t } = useLanguage()
+  const callbackUrl = searchParams.get('callbackUrl') || '/dashboard'
 
   useEffect(() => {
     const savedEmail = localStorage.getItem("rememberedEmail")
@@ -42,7 +46,7 @@ export default function LoginPage() {
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }))
-    
+
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: "" }))
@@ -53,13 +57,13 @@ export default function LoginPage() {
     const newErrors: Record<string, string> = {}
 
     if (!formData.email.trim()) {
-      newErrors.email = "Email is required"
+      newErrors.email = t('auth.login.emailRequired') || "Email is required"
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email address"
+      newErrors.email = t('auth.login.emailInvalid') || "Please enter a valid email address"
     }
 
     if (!formData.password) {
-      newErrors.password = "Password is required"
+      newErrors.password = t('auth.login.passwordRequired') || "Password is required"
     }
 
     setErrors(newErrors)
@@ -68,7 +72,7 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!validateForm()) {
       return
     }
@@ -83,7 +87,7 @@ export default function LoginPage() {
       })
 
       if (result?.error) {
-        setErrors({ general: "Invalid email or password. Please try again." })
+        setErrors({ general: t('auth.login.invalidCredentials') || "Invalid email or password. Please try again." })
       } else {
         // Handle remember me
         if (formData.rememberMe) {
@@ -94,12 +98,12 @@ export default function LoginPage() {
           localStorage.removeItem("rememberMe")
         }
 
-        // Redirect to dashboard or intended page
-        router.push("/dashboard")
+        // Redirect to callback URL or dashboard
+        router.push(callbackUrl)
       }
     } catch (error) {
       console.error("Login error:", error)
-      setErrors({ general: "An unexpected error occurred. Please try again." })
+      setErrors({ general: t('auth.login.unexpectedError') || "An unexpected error occurred. Please try again." })
     } finally {
       setIsLoading(false)
     }
@@ -109,7 +113,7 @@ export default function LoginPage() {
     setIsLoading(true)
     try {
       await signIn("google", {
-        callbackUrl: "/dashboard",
+        callbackUrl: callbackUrl,
       })
     } catch (error) {
       console.error("Google sign-in error:", error)
@@ -124,21 +128,21 @@ export default function LoginPage() {
           <div className="flex justify-center mb-4">
             <Logo size="lg" showText={false} />
           </div>
-          <CardTitle className="text-2xl font-bold text-foreground">Welcome Back</CardTitle>
-          <p className="text-muted-foreground">Sign in to continue your learning journey</p>
+          <CardTitle className="text-2xl font-bold text-foreground">{t('auth.login.title')}</CardTitle>
+          <p className="text-muted-foreground">{t('auth.login.subtitle')}</p>
         </CardHeader>
         <CardContent className="space-y-6">
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-foreground mb-1">
-                Email
+                {t('auth.login.email')}
               </label>
               <Input
                 id="email"
                 name="email"
                 type="email"
-                placeholder="Enter your email"
+                placeholder={t('auth.login.emailPlaceholder') || "Enter your email"}
                 className="w-full bg-background border-border text-foreground placeholder:text-muted-foreground"
                 value={formData.email}
                 onChange={handleInputChange}
@@ -149,14 +153,14 @@ export default function LoginPage() {
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-foreground mb-1">
-                Password
+                {t('auth.login.password')}
               </label>
               <div className="relative">
                 <Input
                   id="password"
                   name="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
+                  placeholder={t('auth.login.passwordPlaceholder') || "Enter your password"}
                   className="w-full bg-background border-border text-foreground placeholder:text-muted-foreground pr-10"
                   value={formData.password}
                   onChange={handleInputChange}
@@ -182,10 +186,10 @@ export default function LoginPage() {
                   checked={formData.rememberMe}
                   onChange={handleInputChange}
                 />
-                <span className="ml-2 text-sm text-muted-foreground">Remember me</span>
+                <span className="ml-2 text-sm text-muted-foreground">{t('auth.login.rememberMe')}</span>
               </label>
               <Link href="/forgot-password" className="text-sm text-[#E10600] hover:underline">
-                Forgot password?
+                {t('auth.login.forgotPassword')}
               </Link>
             </div>
 
@@ -196,7 +200,7 @@ export default function LoginPage() {
               disabled={isLoading}
               className="w-full bg-[#E10600] hover:bg-[#C70500] text-white"
             >
-              {isLoading ? "Signing In..." : "Sign In"}
+              {isLoading ? t('common.loading') : t('auth.login.signIn')}
             </Button>
           </form>
 
@@ -205,7 +209,7 @@ export default function LoginPage() {
               <div className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-card text-muted-foreground">or</span>
+              <span className="px-2 bg-card text-muted-foreground">{t('auth.login.or')}</span>
             </div>
           </div>
 
@@ -233,13 +237,13 @@ export default function LoginPage() {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               />
             </svg>
-            <span>Continue with Google</span>
+            <span>{t('auth.login.googleSignIn')}</span>
           </Button>
 
           <p className="text-center text-sm text-muted-foreground">
-            Don't have an account?{" "}
+            {t('auth.login.noAccount')}{" "}
             <Link href="/register" className="text-[#E10600] hover:underline font-medium">
-              Sign up
+              {t('auth.login.signUp')}
             </Link>
           </p>
         </CardContent>

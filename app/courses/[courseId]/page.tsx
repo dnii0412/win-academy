@@ -2,14 +2,15 @@
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { 
-  Clock, 
-  Play, 
-  ShoppingCart, 
-  Star, 
-  Users, 
+import {
+  Clock,
+  Play,
+  ShoppingCart,
+  Star,
+  Users,
   ChevronRight
 } from "lucide-react"
 import { useLanguage } from "@/contexts/language-context"
@@ -34,6 +35,7 @@ interface Subcourse {
 export default function CourseOverviewPage() {
   const params = useParams()
   const router = useRouter()
+  const { data: session } = useSession()
   const { currentLanguage } = useLanguage()
   const courseId = params.courseId as string
 
@@ -139,6 +141,29 @@ export default function CourseOverviewPage() {
         </nav>
       </div>
 
+      {/* Hero Image Section */}
+      {course.thumbnailUrl && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
+          <div className="relative h-64 md:h-80 lg:h-96 rounded-xl overflow-hidden">
+            <img
+              src={course.thumbnailUrl}
+              alt={currentLanguage === "mn" ? course.titleMn || course.title : course.title}
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+              <div className="text-center text-white">
+                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
+                  {currentLanguage === "mn" ? course.titleMn || course.title : course.title}
+                </h1>
+                <p className="text-lg md:text-xl opacity-90">
+                  {currentLanguage === "mn" ? course.shortDescriptionMn || course.shortDescription : course.shortDescription}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Top Section - Course Overview */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
         <div className="space-y-4">
@@ -148,18 +173,18 @@ export default function CourseOverviewPage() {
             <div className="bg-blue-500 text-white px-3 py-1 rounded-lg text-sm font-medium">
               {currentLanguage === "mn" ? "Хичээл" : "Course"}
             </div>
-            
+
             {/* Course ID/Number */}
             <div className="text-4xl font-bold text-gray-900">
               {course._id.slice(-3)}
             </div>
           </div>
-          
+
           {/* Course Title */}
           <h1 className="text-2xl font-normal text-gray-900">
             {currentLanguage === "mn" ? course.titleMn || course.title : course.title}
           </h1>
-          
+
           {/* Course Metrics */}
           <div className="flex items-center space-x-6 text-sm text-gray-600">
             <div className="flex items-center space-x-2">
@@ -197,7 +222,7 @@ export default function CourseOverviewPage() {
               <h2 className="text-2xl font-bold text-gray-900">
                 {currentLanguage === "mn" ? "Хичээлийн агуулга" : "Course Content"}
               </h2>
-              
+
               {subcourses && subcourses.length > 0 ? (
                 <div className="space-y-4">
                   {subcourses
@@ -217,7 +242,7 @@ export default function CourseOverviewPage() {
                             {currentLanguage === "mn" ? subcourse.descriptionMn || subcourse.description : subcourse.description}
                           </p>
                         )}
-                        
+
                         <div className="flex items-center justify-between text-sm text-gray-500">
                           <div className="flex items-center space-x-4">
                             <span className="flex items-center space-x-1">
@@ -244,8 +269,8 @@ export default function CourseOverviewPage() {
                     <Play className="h-12 w-12 text-gray-400" />
                   </div>
                   <h3 className="text-xl font-semibold text-gray-700 mb-4">
-                    {currentLanguage === "mn" 
-                      ? "Хичээлийн агуулга удахгүй нэмэгдэх болно" 
+                    {currentLanguage === "mn"
+                      ? "Хичээлийн агуулга удахгүй нэмэгдэх болно"
                       : "Course content will be added soon"
                     }
                   </h3>
@@ -295,23 +320,32 @@ export default function CourseOverviewPage() {
                 </span>
               </div>
               <p className="text-sm text-red-600">
-                {currentLanguage === "mn" 
-                  ? "Энэ хичээлийг үзэхийн тулд худалдаж авна уу" 
+                {currentLanguage === "mn"
+                  ? "Энэ хичээлийг үзэхийн тулд худалдаж авна уу"
                   : "Please purchase this course to view it"
                 }
               </p>
             </div>
 
             {/* Purchase Button */}
-            <Link href={`/checkout/${course._id}`} className="block">
-              <Button className="w-full bg-red-600 hover:bg-red-700 text-white text-lg py-4">
-                <ShoppingCart className="w-5 h-5 mr-2" />
-                {currentLanguage === "mn" 
-                  ? `₮${course.price.toLocaleString()}-өөр худалдаж авах` 
-                  : `Purchase for ${formatPrice(course.price)}`
-                }
-              </Button>
-            </Link>
+            {session?.user ? (
+              <Link href={`/checkout/${course._id}`} className="block">
+                <Button className="w-full bg-red-600 hover:bg-red-700 text-white text-lg py-4">
+                  <ShoppingCart className="w-5 h-5 mr-2" />
+                  {formatPrice(course.price)} {currentLanguage === "mn" ? "- Худалдаж авах" : "- Buy Now"}
+                </Button>
+              </Link>
+            ) : (
+              <Link href={`/login?callbackUrl=${encodeURIComponent(`/checkout/${course._id}`)}`} className="block">
+                <Button className="w-full bg-red-600 hover:bg-red-700 text-white text-lg py-4">
+                  <ShoppingCart className="w-5 h-5 mr-2" />
+                  {currentLanguage === "mn"
+                    ? `Нэвтэрч ${formatPrice(course.price)}-өөр худалдаж авах`
+                    : `Login to Purchase for ${formatPrice(course.price)}`
+                  }
+                </Button>
+              </Link>
+            )}
 
             {/* Course Status */}
             {course.status === 'draft' && (
