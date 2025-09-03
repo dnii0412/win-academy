@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2, Lock, Play, BookOpen, Clock } from "lucide-react"
+import { Loader2, Lock, Play, BookOpen, Clock, CheckCircle, ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from "lucide-react"
 import { useLanguage } from "@/contexts/language-context"
 
 interface Course {
@@ -28,8 +28,33 @@ interface Course {
       titleMn: string
       order: number
       videoUrl?: string
+      videoDuration?: number
     }>
   }>
+}
+
+interface Lesson {
+  _id: string
+  title: string
+  titleMn: string
+  type: string
+  duration: number
+  videoUrl?: string
+  videoStatus?: string
+  description?: string
+  descriptionMn?: string
+  order: number
+}
+
+interface Subcourse {
+  _id: string
+  title: string
+  titleMn: string
+  description?: string
+  descriptionMn?: string
+  order: number
+  status: string
+  lessons: Lesson[]
 }
 
 export default function CourseAccessPage() {
@@ -42,11 +67,21 @@ export default function CourseAccessPage() {
   const [hasAccess, setHasAccess] = useState<boolean | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [subcourses, setSubcourses] = useState<Subcourse[]>([])
+  const [allLessons, setAllLessons] = useState<Lesson[]>([])
+  const [currentLessonIndex, setCurrentLessonIndex] = useState(0)
+  const [isLearning, setIsLearning] = useState(false)
+  const [expandedSubcourses, setExpandedSubcourses] = useState<Set<string>>(new Set())
   
   const courseId = params.courseId as string
 
   useEffect(() => {
     const checkAccess = async () => {
+      // If session is still loading, don't do anything yet
+      if (session === undefined) {
+        return
+      }
+      
       if (!session?.user?.email) {
         setError("Please log in to access this course")
         setIsLoading(false)
@@ -73,7 +108,34 @@ export default function CourseAccessPage() {
         const courseData = await courseResponse.json()
         setCourse(courseData.course)
 
+        // If user has access, automatically load subcourses and lessons
+        if (hasEnrollment) {
+          try {
+            const subcoursesResponse = await fetch(`/api/courses/${courseId}/subcourses`)
+            if (subcoursesResponse.ok) {
+              const subcoursesData = await subcoursesResponse.json()
+              const fetchedSubcourses = subcoursesData.subcourses || []
+              if (fetchedSubcourses.length > 0) {
+                setSubcourses(fetchedSubcourses)
+                
+                // Flatten all lessons from all subcourses
+                const allLessonsFromSubcourses = fetchedSubcourses.flatMap((subcourse: Subcourse) => subcourse.lessons)
+                setAllLessons(allLessonsFromSubcourses)
+                
+                if (allLessonsFromSubcourses.length > 0) {
+                  setCurrentLessonIndex(0)
+                  setIsLearning(true)
+                }
+              }
+            }
+          } catch (subcourseError) {
+            console.error('Error loading subcourses:', subcourseError)
+            // Don't fail the whole page if subcourses fail to load
+          }
+        }
+
       } catch (err) {
+        console.error('Error in checkAccess:', err)
         setError(err instanceof Error ? err.message : "An error occurred")
       } finally {
         setIsLoading(false)
@@ -83,18 +145,56 @@ export default function CourseAccessPage() {
     checkAccess()
   }, [courseId, session])
 
-  const startCourse = () => {
-    if (!course || !course.modules.length) return
+  const startCourse = async () => {
+    if (!course) return
     
-    // Find first topic with video
-    const firstModule = course.modules.find(m => m.topics.length > 0)
-    if (firstModule) {
-      const firstTopic = firstModule.topics[0]
-      router.push(`/learn/${courseId}/${firstTopic._id}`)
+    try {
+      // Fetch subcourses for this course
+      const response = await fetch(`/api/courses/${courseId}/subcourses`)
+      if (response.ok) {
+        const data = await response.json()
+        const fetchedSubcourses = data.subcourses || []
+        
+        if (fetchedSubcourses.length > 0) {
+          setSubcourses(fetchedSubcourses)
+          
+          // Flatten all lessons from all subcourses
+          const allLessonsFromSubcourses = fetchedSubcourses.flatMap((subcourse: Subcourse) => subcourse.lessons)
+          setAllLessons(allLessonsFromSubcourses)
+          
+          if (allLessonsFromSubcourses.length > 0) {
+            setCurrentLessonIndex(0)
+            setIsLearning(true)
+          } else {
+            alert(currentLanguage === "mn" ? "Энэ сургалтад одоогоор хичээл байхгүй байна" : "No lessons available in this course yet")
+          }
+        } else {
+          alert(currentLanguage === "mn" ? "Энэ сургалтад одоогоор дэд сургалт байхгүй байна" : "No subcourses available in this course yet")
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching subcourses:', error)
+      alert(currentLanguage === "mn" ? "Дэд сургалт ачаалахад алдаа гарлаа" : "Error loading subcourses")
     }
   }
 
-  if (isLoading) {
+
+
+
+
+  const toggleSubcourse = (subcourseId: string) => {
+    setExpandedSubcourses(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(subcourseId)) {
+        newSet.delete(subcourseId)
+      } else {
+        newSet.add(subcourseId)
+      }
+      return newSet
+    })
+  }
+
+  if (isLoading || session === undefined) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -195,88 +295,172 @@ export default function CourseAccessPage() {
     )
   }
 
-  // User has access - show course overview and start button
-  return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4">
-        <Card>
-          <CardHeader>
-            <div className="flex items-start gap-4">
-              {course?.thumbnailUrl && (
-                <img 
-                  src={course.thumbnailUrl} 
-                  alt={course.title}
-                  className="w-32 h-24 object-cover rounded-lg"
-                />
-              )}
-              <div className="flex-1">
-                <CardTitle className="text-2xl mb-2">
+  // Show lesson content if in learning mode
+  if (isLearning && allLessons.length > 0) {
+    const currentLesson = allLessons[currentLessonIndex]
+    
+    return (
+      <div className="min-h-screen bg-gray-50">
+        {/* Header */}
+        <div className="bg-white border-b border-gray-200 px-4 py-4">
+          <div className="max-w-6xl mx-auto flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button 
+                variant="ghost" 
+                onClick={() => router.push("/dashboard")}
+                className="flex items-center gap-2"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                {currentLanguage === "mn" ? "Буцах" : "Back"}
+              </Button>
+              <div>
+                <h1 className="text-xl font-semibold">
                   {currentLanguage === "mn" ? course?.titleMn : course?.title}
-                </CardTitle>
-                <p className="text-gray-600">
-                  {currentLanguage === "mn" ? course?.descriptionMn : course?.description}
-                </p>
+                </h1>
               </div>
             </div>
-          </CardHeader>
-          
-          <CardContent>
-            <div className="mb-6">
-              <Alert className="border-green-200 bg-green-50">
-                <CheckCircle className="w-4 h-4 text-green-600" />
-                <AlertDescription className="text-green-800">
-                  {currentLanguage === "mn" 
-                    ? "Тантай энэ сургалтад хандах эрх байна. Суралцаж эхлээрэй!" 
-                    : "You have access to this course. Start learning!"
-                  }
-                </AlertDescription>
-              </Alert>
-            </div>
+            
 
-            {course && course.modules.length > 0 && (
-              <div className="mb-6">
-                <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                  <BookOpen className="w-5 h-5" />
-                  {currentLanguage === "mn" ? "Сургалтын агуулга" : "Course Content"}
-                </h3>
-                <div className="space-y-3">
-                  {course.modules.map((module, index) => (
-                    <div key={module._id} className="border rounded-lg p-4">
-                      <h4 className="font-medium mb-2">
-                        {index + 1}. {currentLanguage === "mn" ? module.titleMn : module.title}
-                      </h4>
-                      <div className="text-sm text-gray-600 flex items-center gap-4">
-                        <span className="flex items-center gap-1">
-                          <Play className="w-4 h-4" />
-                          {module.topics.length} {currentLanguage === "mn" ? "хичээл" : "lessons"}
-                        </span>
+          </div>
+        </div>
+
+        {/* Lesson Content */}
+        <div className="max-w-6xl mx-auto px-4 py-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Video/Content Area */}
+            <div className="lg:col-span-2">
+              <Card>
+                <CardContent className="p-0">
+                  {currentLesson.videoUrl && currentLesson.videoStatus === 'ready' ? (
+                    <div className="aspect-video">
+                      <iframe
+                        src={currentLesson.videoUrl}
+                        className="w-full h-full rounded-lg"
+                        allowFullScreen
+                        title={currentLanguage === "mn" ? currentLesson.titleMn : currentLesson.title}
+                      />
+                    </div>
+                  ) : (
+                    <div className="aspect-video bg-gray-100 flex items-center justify-center rounded-lg">
+                      <div className="text-center">
+                        <Play className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+                        <p className="text-gray-500">
+                          {currentLanguage === "mn" ? "Видео бэлэн биш байна" : "Video not available"}
+                        </p>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="flex gap-4">
-              <Button 
-                onClick={startCourse}
-                className="bg-[#E10600] hover:bg-[#C70500] flex items-center gap-2"
-                size="lg"
-              >
-                <Play className="w-5 h-5" />
-                {currentLanguage === "mn" ? "Суралцаж эхлэх" : "Start Learning"}
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => router.push("/dashboard")}
-                size="lg"
-              >
-                {currentLanguage === "mn" ? "Удирдлага руу буцах" : "Back to Dashboard"}
-              </Button>
+                  )}
+                </CardContent>
+              </Card>
+              
+              {/* Lesson Description */}
+              {(currentLesson.description || currentLesson.descriptionMn) && (
+                <Card className="mt-4">
+                  <CardHeader>
+                    <CardTitle className="text-lg">
+                      {currentLanguage === "mn" ? "Хичээлийн тайлбар" : "Lesson Description"}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-700">
+                      {currentLanguage === "mn" ? currentLesson.descriptionMn : currentLesson.description}
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
             </div>
-          </CardContent>
-        </Card>
+
+            {/* Subcourses and Lessons List */}
+            <div className="lg:col-span-1">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <BookOpen className="w-5 h-5" />
+                    {currentLanguage === "mn" ? "Дэд сургалтууд" : "Subcourses"}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {subcourses.map((subcourse) => {
+                      const isExpanded = expandedSubcourses.has(subcourse._id)
+                      return (
+                        <div key={subcourse._id} className="border rounded-lg">
+                          {/* Subcourse Header - Clickable to expand/collapse */}
+                          <div
+                            onClick={() => toggleSubcourse(subcourse._id)}
+                            className="p-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between"
+                          >
+                            <div className="flex items-center gap-2">
+                              {isExpanded ? (
+                                <ChevronDown className="w-4 h-4 text-gray-500" />
+                              ) : (
+                                <ChevronRight className="w-4 h-4 text-gray-500" />
+                              )}
+                              <h4 className="font-semibold text-sm text-gray-700">
+                                {currentLanguage === "mn" ? subcourse.titleMn : subcourse.title}
+                              </h4>
+                            </div>
+                            <span className="text-xs text-gray-500">
+                              {subcourse.lessons.length} {currentLanguage === "mn" ? "хичээл" : "lessons"}
+                            </span>
+                          </div>
+                          
+                          {/* Lessons - Only show when expanded */}
+                          {isExpanded && (
+                            <div className="px-3 pb-3 space-y-1">
+                              {subcourse.lessons.map((lesson, lessonIndex) => {
+                                const globalIndex = allLessons.findIndex(l => l._id === lesson._id)
+                                return (
+                                  <div
+                                    key={lesson._id}
+                                    onClick={() => setCurrentLessonIndex(globalIndex)}
+                                    className={`p-2 rounded cursor-pointer transition-colors ${
+                                      globalIndex === currentLessonIndex
+                                        ? 'bg-[#E10600] text-white'
+                                        : 'bg-gray-50 hover:bg-gray-100'
+                                    }`}
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
+                                        globalIndex === currentLessonIndex
+                                          ? 'bg-white text-[#E10600]'
+                                          : 'bg-gray-200 text-gray-600'
+                                      }`}>
+                                        {globalIndex + 1}
+                                      </div>
+                                      <div className="flex-1 min-w-0">
+                                        <p className={`text-sm font-medium truncate ${
+                                          globalIndex === currentLessonIndex ? 'text-white' : 'text-gray-900'
+                                        }`}>
+                                          {currentLanguage === "mn" ? lesson.titleMn : lesson.title}
+                                        </p>
+                                        <p className={`text-xs ${
+                                          globalIndex === currentLessonIndex ? 'text-gray-200' : 'text-gray-500'
+                                        }`}>
+                                          {lesson.duration > 0 ? `${Math.floor(lesson.duration / 60)}:${(lesson.duration % 60).toString().padStart(2, '0')}` : 'N/A'}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-  )
+    )
+  }
+
+      // User has access - show simple course overview (only if not in learning mode)
+ 
+  // This should never be reached since we handle learning mode above
+  return null
 }

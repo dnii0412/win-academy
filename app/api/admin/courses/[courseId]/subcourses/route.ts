@@ -98,7 +98,7 @@ export async function POST(
       description: body.description || "",
       descriptionMn: body.descriptionMn || "",
       slug,
-      status: body.status || 'draft',
+      status: body.status || 'published',
       thumbnailUrl: body.thumbnailUrl,
       order: nextOrder
     })

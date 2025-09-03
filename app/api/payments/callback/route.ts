@@ -147,7 +147,7 @@ async function handleQPayCallback(data: any) {
                     const enrollment = new CourseEnrollment({
                         userId: order.userId,
                         courseId: order.courseId,
-                        status: 'active',
+                        status: 'completed',
                         accessGrantedBy: order.userId, // Self-enrollment through payment
                         notes: `Enrolled via QPay payment. Order ID: ${order._id}`
                     })

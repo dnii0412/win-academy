@@ -37,7 +37,7 @@ interface Course {
   enrolledUsers: number
   createdAt: string
   updatedAt?: string
-  status: "active" | "inactive" | "draft" | "archived"
+  status: "inactive" | "archived" | "draft" | "published"
   category?: string
   categoryMn?: string
   level?: "beginner" | "intermediate" | "advanced"
@@ -233,7 +233,7 @@ export default function AdminCoursesPage() {
                   className="w-full h-48"
                 />
                 <Badge
-                  variant={course.status === "active" ? "default" : "secondary"}
+                  variant={course.status === "inactive" ? "default" : "secondary"}
                   className="absolute top-3 right-3 z-10"
                 >
                   {course.status}

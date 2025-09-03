@@ -62,6 +62,8 @@ export async function POST(
 
     const { userId } = await params
     const body = await request.json()
+    
+    console.log('Course access request body:', body)
 
     // Validate required fields
     if (!body.courseId) {
@@ -97,7 +99,7 @@ export async function POST(
     const enrollment = new CourseEnrollment({
       userId,
       courseId: body.courseId,
-      status: body.status || 'active',
+      status: body.status || 'completed',
       expiresAt: body.expiresAt || null,
       accessGrantedBy: decoded.userId || decoded.sub,
       notes: body.notes || ''

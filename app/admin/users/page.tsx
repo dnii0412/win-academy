@@ -31,7 +31,7 @@ interface AdminUser {
   role: "user" | "admin" | "instructor"
   createdAt: string
   lastLogin?: string
-  status: "active" | "inactive"
+  status: "completed" | "suspended"
   phoneNumber?: string
 }
 
@@ -211,7 +211,7 @@ export default function AdminUsersPage() {
   }
 
   const getStatusBadgeVariant = (status: string) => {
-    return status === "active" ? "default" : "secondary"
+    return status === "completed" ? "default" : "secondary"
   }
 
   if (isLoading) {

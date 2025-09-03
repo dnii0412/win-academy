@@ -25,7 +25,7 @@ interface Subcourse {
   titleMn: string
   description: string
   descriptionMn: string
-  status: 'draft' | 'live'
+  status: string
   order: number
   totalLessons: number
   duration: number
@@ -34,13 +34,18 @@ interface Subcourse {
 
 interface Lesson {
   _id: string
+  id: string
   subcourseId: string
   title: string
   titleMn: string
-  type: 'video' | 'article' | 'quiz'
-  status: 'draft' | 'live'
+  slug: string
+  type: 'video' | 'article' | 'quiz' | 'text' | 'assignment'
+  status: string
   order: number
+  duration: number
   durationSec: number
+  videoUrl: string | null
+  videoStatus: string
   video?: {
     status: 'processing' | 'ready' | 'error'
     videoId: string
@@ -59,8 +64,8 @@ interface SubcourseAccordionProps {
   onEditLesson: (lesson: Lesson) => void
   onDuplicateLesson: (lesson: Lesson) => void
   onDeleteLesson: (lesson: Lesson) => void
-  onToggleLessonStatus: (lessonId: string, status: 'draft' | 'live') => Promise<void>
-  onToggleSubcourseStatus: (subcourseId: string, status: 'draft' | 'live') => Promise<void>
+  onToggleLessonStatus: (lessonId: string, status: 'published') => Promise<void>
+  onToggleSubcourseStatus: (subcourseId: string, status: 'published') => Promise<void>
   expandedSubcourses: string[]
   onToggleExpanded: (subcourseId: string) => void
   selectedItems: string[]

@@ -190,7 +190,7 @@ export default function AdminVideoCourseForm({ onCourseCreated }: AdminVideoCour
         videoId,
         thumbnailUrl,
         thumbnailPublicId: formData.thumbnailPublicId,
-        status: 'draft' // Courses start as drafts until approved
+        status: 'inactive' // Courses start as inactive until approved
       }
 
       const createCourseResponse = await fetch('/api/admin/courses', {

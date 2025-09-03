@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import dbConnect from '@/lib/mongoose'
 import Subcourse from '@/lib/models/Subcourse'
+import Lesson from '@/lib/models/Lesson'
 import Course from '@/lib/models/Course'
 
-// GET /api/courses/[courseId]/subcourses - Get subcourses for a course (public endpoint)
+// GET /api/courses/[courseId]/subcourses - Get all subcourses with their lessons for a course
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ courseId: string }> }
@@ -30,18 +31,47 @@ export async function GET(
       )
     }
 
-    // Get subcourses for this course, including all statuses for debugging
+    // Get all subcourses for this course
     const subcourses = await Subcourse.find({ 
       courseId
-    }).sort({ order: 1, createdAt: -1 })
+    }).sort({ order: 1 })
 
-    // Log for debugging
-    console.log(`Found ${subcourses.length} subcourses for course ${courseId}:`, 
-      subcourses.map(s => ({ id: s._id, title: s.title, status: s.status, order: s.order }))
-    )
+    // Get all lessons for this course
+    const lessons = await Lesson.find({ 
+      courseId
+    }).sort({ order: 1 })
+
+    // Group lessons by subcourse
+    const subcoursesWithLessons = subcourses.map(subcourse => ({
+      _id: subcourse._id,
+      title: subcourse.title,
+      titleMn: subcourse.titleMn,
+      description: subcourse.description,
+      descriptionMn: subcourse.descriptionMn,
+      order: subcourse.order,
+      status: subcourse.status,
+      lessons: lessons.filter(lesson => 
+        lesson.subcourseId && lesson.subcourseId.toString() === subcourse._id.toString()
+      ).map(lesson => ({
+        _id: lesson._id,
+        title: lesson.title,
+        titleMn: lesson.titleMn,
+        slug: lesson.slug,
+        type: lesson.type,
+        duration: lesson.durationSec,
+        videoUrl: lesson.video && lesson.video.videoId && lesson.video.status === 'ready' 
+          ? `https://iframe.mediadelivery.net/488255/${lesson.video.videoId}`
+          : null,
+        videoStatus: lesson.video?.status || 'not_available',
+        status: lesson.status,
+        order: lesson.order,
+        description: lesson.description,
+        descriptionMn: lesson.descriptionMn
+      }))
+    }))
 
     return NextResponse.json({
-      subcourses: subcourses
+      subcourses: subcoursesWithLessons
     })
 
   } catch (error: any) {

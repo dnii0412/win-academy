@@ -26,7 +26,7 @@ export default function UserForm({ isOpen, onClose, onSubmit, user, mode }: User
     phoneNumber: user?.phoneNumber || "",
     password: "",
     role: user?.role || "user",
-    status: user?.status || "active"
+    status: user?.status || "completed"
   })
 
   // Update form data when user prop changes (for editing)
@@ -39,7 +39,7 @@ export default function UserForm({ isOpen, onClose, onSubmit, user, mode }: User
         phoneNumber: user.phoneNumber || "",
         password: "", // Don't populate password for security
         role: user.role || "user",
-        status: user.status || "active"
+        status: user.status || "completed"
       })
     }
   }, [user])

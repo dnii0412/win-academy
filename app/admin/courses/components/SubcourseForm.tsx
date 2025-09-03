@@ -57,7 +57,7 @@ export default function SubcourseForm({ isOpen, onClose, onSubmit, subcourse, mo
     // Add default status
     const subcourseData = {
       ...formData,
-      status: "draft" // Default status
+      status: "published" // Default status
     }
     
     onSubmit(subcourseData)

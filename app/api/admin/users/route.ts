@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
         role: user.role || "user",
         createdAt: user.createdAt?.toISOString() || new Date().toISOString(),
         lastLogin: user.lastLogin?.toISOString(),
-        status: user.status || "active",
+        status: user.status || "completed",
         phoneNumber: user.phoneNumber || ""
       }))
     })
@@ -149,7 +149,7 @@ export async function POST(request: NextRequest) {
       password: await bcrypt.hash(password, 10), // Hash the password
       role,
       phoneNumber: phoneNumber || "",
-      status: status || "active",
+      status: status || "completed",
       createdAt: new Date()
     })
 

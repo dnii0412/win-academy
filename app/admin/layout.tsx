@@ -44,15 +44,16 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
   const checkAuth = async () => {
     const adminToken = localStorage.getItem("adminToken")
-    console.log("Admin layout - checking auth:", { 
+    console.log("🔐 Admin layout - checking auth:", { 
       pathname, 
       hasToken: !!adminToken, 
       tokenLength: adminToken?.length,
-      tokenStart: adminToken?.substring(0, 20) + "..." 
+      tokenStart: adminToken?.substring(0, 20) + "...",
+      tokenEnd: "..." + adminToken?.substring(adminToken.length - 10)
     })
     
     if (!adminToken) {
-      console.log("Admin layout - no token, setting unauthenticated")
+      console.log("❌ Admin layout - no token, setting unauthenticated")
       setIsAuthenticated(false)
       setIsLoading(false)
       return
@@ -64,24 +65,28 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
     try {
       // Verify token in background (don't block UI)
-      console.log("Admin layout - verifying token in background...")
-      fetch("/api/admin/verify", {
+      console.log("🔍 Admin layout - verifying token in background...")
+      const response = await fetch("/api/admin/verify", {
         headers: {
           Authorization: `Bearer ${adminToken}`,
         },
-      }).then(response => {
-        if (!response.ok) {
-          console.log("Admin layout - token invalid, setting unauthenticated")
-          localStorage.removeItem("adminToken")
-          setIsAuthenticated(false)
-        }
-      }).catch(error => {
-        console.error("Token verification failed:", error)
+      })
+      
+      console.log("🔍 Token verification response:", {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok
+      })
+      
+      if (!response.ok) {
+        console.log("❌ Admin layout - token invalid, setting unauthenticated")
         localStorage.removeItem("adminToken")
         setIsAuthenticated(false)
-      })
+      } else {
+        console.log("✅ Admin layout - token is valid")
+      }
     } catch (error) {
-      console.error("Auth check failed:", error)
+      console.error("❌ Token verification failed:", error)
       localStorage.removeItem("adminToken")
       setIsAuthenticated(false)
     }

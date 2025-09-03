@@ -7,9 +7,9 @@ export async function GET(request: NextRequest) {
   try {
     await dbConnect()
 
-    // Fetch active and draft courses from the database
+    // Fetch all courses except archived ones
     const courses = await Course.find({ 
-      status: { $in: ['active', 'draft'] }
+      status: { $ne: 'archived' }
     }).select({
       _id: 1,
       title: 1,

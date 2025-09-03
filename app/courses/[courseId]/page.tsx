@@ -11,17 +11,17 @@ import Link from 'next/link'
 import CourseImage from '@/components/course-image'
 
 interface CoursePageProps {
-  params: { courseId: string }
+  params: Promise<{ courseId: string }>
 }
 
 export default async function CoursePage({ params }: CoursePageProps) {
   const session = await auth()
-  const { courseId } = params
+  const { courseId } = await params
 
   await dbConnect()
 
   // Fetch course details
-  const course = await Course.findById(courseId).lean()
+  const course = await Course.findById(courseId).lean() as any
   if (!course) {
     notFound()
   }

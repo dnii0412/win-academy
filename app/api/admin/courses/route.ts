@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
       shortDescription: shortDescription || description.substring(0, 150),
       shortDescriptionMn: shortDescriptionMn || descriptionMn.substring(0, 150),
       price: parseFloat(price),
-      status: status || "draft",
+      status: status || "inactive",
       category,
       categoryMn,
       level: level || "beginner",

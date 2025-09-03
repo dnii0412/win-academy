@@ -102,8 +102,8 @@ const lessonSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['draft', 'live'],
-    default: 'draft'
+    enum: ['published'],
+    default: 'published'
   },
   order: {
     type: Number,

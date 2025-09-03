@@ -35,7 +35,7 @@ interface Course {
 interface CourseEnrollment {
   _id: string
   courseId: Course
-  status: 'active' | 'completed' | 'suspended' | 'expired'
+  status: 'completed' | 'suspended' | 'expired'
   enrolledAt: string
   expiresAt?: string
   progress: number
@@ -63,13 +63,13 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
   
   const [grantForm, setGrantForm] = useState({
     courseId: "",
-    status: "active",
+    status: "completed",
     expiresAt: "",
     notes: ""
   })
 
   const [editForm, setEditForm] = useState({
-    status: "active",
+    status: "completed",
     expiresAt: "",
     notes: ""
   })
@@ -115,6 +115,8 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
   const handleGrantAccess = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    console.log('Grant form data:', grantForm)
+    
     try {
       const adminToken = localStorage.getItem("adminToken")
       const response = await fetch(`/api/admin/users/${userId}/course-access`, {
@@ -130,7 +132,7 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
         const data = await response.json()
         setEnrollments(prev => [data.enrollment, ...prev])
         setShowGrantForm(false)
-        setGrantForm({ courseId: "", status: "active", expiresAt: "", notes: "" })
+        setGrantForm({ courseId: "", status: "completed", expiresAt: "", notes: "" })
         alert(currentLanguage === "mn" ? "Курс хандалт амжилттай олгогдлоо!" : "Course access granted successfully!")
       } else {
         const errorData = await response.json()
@@ -167,7 +169,7 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
           enrollment._id === editingEnrollment._id ? data.enrollment : enrollment
         ))
         setEditingEnrollment(null)
-        setEditForm({ status: "active", expiresAt: "", notes: "" })
+        setEditForm({ status: "completed", expiresAt: "", notes: "" })
         alert(currentLanguage === "mn" ? "Курс хандалт амжилттай шинэчлэгдлээ!" : "Course access updated successfully!")
       } else {
         const errorData = await response.json()
@@ -208,10 +210,8 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'active':
-        return <Badge variant="default" className="bg-green-100 text-green-800">Active</Badge>
       case 'completed':
-        return <Badge variant="secondary" className="bg-blue-100 text-blue-800">Completed</Badge>
+        return <Badge variant="default" className="bg-green-100 text-green-800">Completed</Badge>
       case 'suspended':
         return <Badge variant="destructive">Suspended</Badge>
       case 'expired':
@@ -404,7 +404,7 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
                       <SelectItem value="suspended">Suspended</SelectItem>
                     </SelectContent>
                   </Select>
@@ -460,7 +460,7 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
                       <SelectItem value="completed">Completed</SelectItem>
                       <SelectItem value="suspended">Suspended</SelectItem>
                       <SelectItem value="expired">Expired</SelectItem>

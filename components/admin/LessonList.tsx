@@ -25,7 +25,7 @@ interface Lesson {
   title: string
   titleMn: string
   type: 'video' | 'article' | 'quiz'
-  status: 'draft' | 'live'
+  status: 'published'
   order: number
   durationSec: number
   video?: {
@@ -41,7 +41,7 @@ interface LessonListProps {
   onDuplicate: (lesson: Lesson) => void
   onDelete: (lesson: Lesson) => void
   onReorder: (lessonIds: string[]) => void
-  onToggleStatus: (lessonId: string, status: 'draft' | 'live') => Promise<void>
+  onToggleStatus: (lessonId: string, status: 'published') => Promise<void>
   selectedItems: string[]
   onSelectItem: (itemId: string, type: 'subcourse' | 'lesson') => void
   isDragging: boolean
@@ -104,10 +104,7 @@ export default function LessonList({
     console.log(`Updating lesson ${lessonId} title to: ${newTitle}`)
   }
 
-  const handleStatusToggle = async (lesson: Lesson) => {
-    const newStatus = lesson.status === 'draft' ? 'live' : 'draft'
-    await onToggleStatus(lesson._id, newStatus)
-  }
+  // Status toggle removed - all lessons are now published by default
 
   if (lessons.length === 0) {
     return (
@@ -205,20 +202,7 @@ export default function LessonList({
             </div>
 
             <div className="flex items-center gap-1">
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => handleStatusToggle(lesson)}
-                className={cn(
-                  "h-8 w-8 p-0",
-                  lesson.status === 'live' 
-                    ? "text-green-600 hover:text-green-700 hover:bg-green-50" 
-                    : "text-gray-600 hover:text-gray-700 hover:bg-gray-50"
-                )}
-                title={lesson.status === 'draft' ? 'Publish lesson' : 'Unpublish lesson'}
-              >
-                {lesson.status === 'live' ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-              </Button>
+
 
               <Button
                 size="sm"

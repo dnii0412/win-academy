@@ -98,24 +98,53 @@ export async function POST(request: NextRequest) {
     
     // Verify admin authentication from Authorization header
     const authHeader = request.headers.get('authorization')
+    console.log('🔐 TUS Upload - Auth header received:', {
+      hasHeader: !!authHeader,
+      headerValue: authHeader ? `${authHeader.substring(0, 20)}...` : 'MISSING',
+      startsWithBearer: authHeader?.startsWith('Bearer ')
+    })
+    
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       console.log('❌ No admin token found in Authorization header')
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ 
+        Success: false,
+        Message: "Authentication has been denied for this request.",
+        StatusCode: 401 
+      }, { status: 401 })
     }
 
     const token = authHeader.replace('Bearer ', '')
+    console.log('🔐 TUS Upload - Token extracted:', {
+      tokenLength: token.length,
+      tokenStart: token.substring(0, 20) + '...',
+      tokenEnd: '...' + token.substring(token.length - 10)
+    })
+    
     let decoded: any
     
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET || "your-secret-key")
+      console.log('✅ TUS Upload - Token verified successfully:', {
+        userId: decoded.userId,
+        email: decoded.email,
+        role: decoded.role
+      })
     } catch (jwtError) {
       console.log('❌ Invalid JWT token:', jwtError)
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 })
+      return NextResponse.json({ 
+        Success: false,
+        Message: "Authentication has been denied for this request.",
+        StatusCode: 401 
+      }, { status: 401 })
     }
 
     if (!decoded || decoded.role !== "admin") {
-      console.log('❌ Invalid admin token or user role')
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+      console.log('❌ Invalid admin token or user role:', { role: decoded?.role })
+      return NextResponse.json({ 
+        Success: false,
+        Message: "Authentication has been denied for this request.",
+        StatusCode: 403 
+      }, { status: 403 })
     }
 
     console.log('✅ Admin authentication successful')
@@ -270,7 +299,7 @@ export async function POST(request: NextRequest) {
     const uploadUrl = `${request.nextUrl.origin}/api/admin/upload/tus/${uploadId}`
 
     // Store upload information for chunk handling
-    tusStorage.create({
+    const createdUpload = tusStorage.create({
       id: uploadId,
       videoId: videoId,
       filename: filename,
@@ -279,6 +308,8 @@ export async function POST(request: NextRequest) {
     })
 
     console.log('✅ TUS Upload initialized:', { uploadId, uploadUrl, videoId })
+    console.log('📊 TUS storage after creation:', tusStorage.getStats())
+    console.log('📋 Created upload details:', createdUpload)
 
     // Return TUS-compatible response with proper headers
     const response = NextResponse.json({

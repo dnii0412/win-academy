@@ -42,7 +42,7 @@ export async function PUT(
         titleMn: body.titleMn,
         description: body.description || "",
         descriptionMn: body.descriptionMn || "",
-        status: body.status || 'draft',
+        status: body.status || 'published',
         thumbnailUrl: body.thumbnailUrl
       },
       { new: true, runValidators: true }

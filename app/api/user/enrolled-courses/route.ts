@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
 
     const enrollments = await CourseEnrollment.find({
       userId: user._id,
-      status: 'active'
+      status: 'completed'
     }).populate('courseId')
 
     const courses = enrollments.map(enrollment => ({

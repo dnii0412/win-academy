@@ -9,6 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Upload, Video, X, CheckCircle, AlertCircle } from "lucide-react"
 import { useLanguage } from "@/contexts/language-context"
 
+
+
 import { BUNNY_STREAM_CONFIG, getBunnyVideoUrl } from "@/lib/bunny-stream"
 
 
@@ -144,21 +146,14 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
         if (xhr.status >= 200 && xhr.status < 300) {
           try {
             const response = JSON.parse(xhr.responseText)
-            if (response.success && response.videoId) {
-              setUploadStatus('success')
-              setIsUploading(false)
+            if (response.success && response.uploadUrl && response.videoId) {
+              console.log('✅ TUS initialized, starting file upload...', response)
               
-              // Get the video URL (direct video file, not embed)
-              const videoUrl = getBunnyVideoUrl(response.videoId)
-              onUploadComplete(response.videoId, videoUrl)
-              
-              // Close after a short delay
-              setTimeout(() => {
-                onClose()
-              }, 2000)
+              // Now upload the actual file using TUS protocol
+              uploadFileWithTUS(file, response.uploadUrl, response.videoId)
             } else {
               setUploadStatus('error')
-              setErrorMessage(response.error || 'Upload failed')
+              setErrorMessage(response.error || 'TUS initialization failed')
               setIsUploading(false)
             }
           } catch (e) {
@@ -168,7 +163,7 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
           }
         } else {
           setUploadStatus('error')
-          setErrorMessage(`Upload failed: ${xhr.status} ${xhr.statusText}`)
+          setErrorMessage(`TUS initialization failed: ${xhr.status} ${xhr.statusText}`)
           setIsUploading(false)
         }
       })
@@ -203,6 +198,90 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
       console.error('Upload error:', error)
       setUploadStatus('error')
       setErrorMessage(error.message || 'Upload failed')
+      setIsUploading(false)
+    }
+  }
+
+  const uploadFileWithTUS = async (file: File, uploadUrl: string, videoId: string) => {
+    try {
+      console.log('🚀 Starting TUS file upload...', { fileSize: file.size, uploadUrl })
+      
+      const chunkSize = 4 * 1024 * 1024 // 4MB chunks
+      let offset = 0
+      
+      while (offset < file.size) {
+        const chunk = file.slice(offset, offset + chunkSize)
+        const chunkBuffer = await chunk.arrayBuffer()
+        
+        console.log(`📦 Uploading chunk: ${offset}-${offset + chunk.size} (${chunk.size} bytes)`)
+        
+        const xhr = new XMLHttpRequest()
+        
+        // Set up progress tracking for this chunk
+        xhr.upload.addEventListener('progress', (event) => {
+          if (event.lengthComputable) {
+            const chunkProgress = (event.loaded / event.total) * 100
+            const totalProgress = ((offset + (event.loaded / event.total) * chunk.size) / file.size) * 100
+            
+            setUploadProgress({
+              bytesUploaded: offset + (event.loaded / event.total) * chunk.size,
+              bytesTotal: file.size,
+              percentage: Math.round(totalProgress)
+            })
+          }
+        })
+        
+        // Wait for chunk upload to complete
+        await new Promise((resolve, reject) => {
+          xhr.addEventListener('load', () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+              console.log(`✅ Chunk uploaded successfully: ${offset}-${offset + chunk.size}`)
+              resolve(true)
+            } else {
+              console.error(`❌ Chunk upload failed: ${xhr.status} ${xhr.statusText}`)
+              reject(new Error(`Chunk upload failed: ${xhr.status}`))
+            }
+          })
+          
+          xhr.addEventListener('error', () => {
+            console.error('❌ Chunk upload error')
+            reject(new Error('Chunk upload error'))
+          })
+          
+          // Send chunk
+          xhr.open('PATCH', uploadUrl)
+          xhr.setRequestHeader('Content-Type', 'application/octet-stream')
+          xhr.setRequestHeader('Upload-Offset', offset.toString())
+          xhr.setRequestHeader('Tus-Resumable', '1.0.0')
+          
+          const adminToken = localStorage.getItem("adminToken")
+          if (adminToken) {
+            xhr.setRequestHeader('Authorization', `Bearer ${adminToken}`)
+          }
+          
+          xhr.send(chunkBuffer)
+        })
+        
+        offset += chunk.size
+      }
+      
+      console.log('🎉 File upload completed!')
+      setUploadStatus('success')
+      setIsUploading(false)
+      
+      // Get the video URL
+      const videoUrl = getBunnyVideoUrl(videoId)
+      onUploadComplete(videoId, videoUrl)
+      
+      // Close after a short delay
+      setTimeout(() => {
+        onClose()
+      }, 2000)
+      
+    } catch (error) {
+      console.error('❌ TUS file upload failed:', error)
+      setUploadStatus('error')
+      setErrorMessage(error instanceof Error ? error.message : 'File upload failed')
       setIsUploading(false)
     }
   }

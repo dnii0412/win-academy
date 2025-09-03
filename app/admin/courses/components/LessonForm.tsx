@@ -156,8 +156,15 @@ export default function LessonForm({ isOpen, onClose, onSubmit, lesson, mode, co
   ): Promise<{ success: boolean; videoId?: string; error?: string }> => {
     try {
       const adminToken = localStorage.getItem("adminToken")
+      console.log("🔐 Admin token check:", {
+        hasToken: !!adminToken,
+        tokenLength: adminToken?.length,
+        tokenStart: adminToken?.substring(0, 20) + "...",
+        tokenEnd: "..." + adminToken?.substring(adminToken.length - 10)
+      })
+      
       if (!adminToken) {
-        throw new Error("No admin token found")
+        throw new Error("No admin token found. Please log in again.")
       }
 
       // Determine upload method based on file size and user preference
@@ -230,6 +237,16 @@ export default function LessonForm({ isOpen, onClose, onSubmit, lesson, mode, co
         }
       })
       
+      console.log("🚀 Starting TUS upload with data:", {
+        url: '/api/admin/upload/tus',
+        uploadData,
+        adminToken: adminToken ? `${adminToken.substring(0, 20)}...` : 'MISSING',
+        headers: {
+          'Authorization': `Bearer ${adminToken ? 'TOKEN_PRESENT' : 'MISSING'}`,
+          'Content-Type': 'application/json'
+        }
+      })
+      
       xhr.open('POST', '/api/admin/upload/tus')
       xhr.setRequestHeader('Authorization', `Bearer ${adminToken}`)
       xhr.setRequestHeader('Content-Type', 'application/json')
@@ -237,30 +254,48 @@ export default function LessonForm({ isOpen, onClose, onSubmit, lesson, mode, co
       
       // Return a promise that will be resolved by the xhr event handlers
       return new Promise((resolve, reject) => {
-        xhr.addEventListener('load', () => {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            try {
-              const response = JSON.parse(xhr.responseText)
-              if (response.success && response.videoId) {
-                setUploadStatus('success')
-                setUploadProgress(100)
-                resolve({ success: true, videoId: response.videoId })
-              } else {
-                setUploadStatus('error')
-                setUploadError(response.error || 'TUS upload failed')
-                reject({ success: false, error: response.error })
-              }
-            } catch (e) {
-              setUploadStatus('error')
-              setUploadError('Invalid response from TUS server')
-              reject({ success: false, error: 'Invalid response' })
-            }
-          } else {
-            setUploadStatus('error')
-            setUploadError(`TUS upload failed: ${xhr.status} ${xhr.statusText}`)
-            reject({ success: false, error: `TUS upload failed: ${xhr.status}` })
-          }
+              xhr.addEventListener('load', () => {
+        console.log("📡 TUS upload response:", {
+          status: xhr.status,
+          statusText: xhr.statusText,
+          responseText: xhr.responseText
         })
+        
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const response = JSON.parse(xhr.responseText)
+            if (response.success && response.uploadUrl && response.videoId) {
+              console.log('✅ TUS initialized, starting file upload...', response)
+              
+              // Now upload the actual file using TUS protocol
+              uploadFileWithTUS(file, response.uploadUrl, response.videoId, resolve, reject)
+            } else {
+              setUploadStatus('error')
+              setUploadError(response.error || 'TUS initialization failed')
+              reject({ success: false, error: response.error })
+            }
+          } catch (e) {
+            setUploadStatus('error')
+            setUploadError('Invalid response from TUS server')
+            reject({ success: false, error: 'Invalid response' })
+          }
+        } else {
+          setUploadStatus('error')
+          let errorMessage = `TUS upload failed: ${xhr.status} ${xhr.statusText}`
+          
+          // Provide specific error messages for common issues
+          if (xhr.status === 401) {
+            errorMessage = "Authentication failed. Please log in again as admin."
+          } else if (xhr.status === 403) {
+            errorMessage = "Access denied. You don't have admin privileges."
+          } else if (xhr.status === 500) {
+            errorMessage = "Server error. Please try again later."
+          }
+          
+          setUploadError(errorMessage)
+          reject({ success: false, error: errorMessage })
+        }
+      })
         
         xhr.addEventListener('error', () => {
           setUploadStatus('error')
@@ -273,6 +308,88 @@ export default function LessonForm({ isOpen, onClose, onSubmit, lesson, mode, co
       setUploadStatus('error')
       setUploadError(error.message || 'TUS upload failed')
       const result = { success: false, error: error.message }
+      if (reject) reject(result)
+      return result
+    }
+  }
+
+  const uploadFileWithTUS = async (
+    file: File, 
+    uploadUrl: string, 
+    videoId: string,
+    resolve?: (value: { success: boolean; videoId?: string; error?: string }) => void,
+    reject?: (reason: any) => void
+  ): Promise<{ success: boolean; videoId?: string; error?: string }> => {
+    try {
+      console.log('🚀 Starting TUS file upload...', { fileSize: file.size, uploadUrl })
+      
+      const chunkSize = 4 * 1024 * 1024 // 4MB chunks
+      let offset = 0
+      
+      while (offset < file.size) {
+        const chunk = file.slice(offset, offset + chunkSize)
+        const chunkBuffer = await chunk.arrayBuffer()
+        
+        console.log(`📦 Uploading chunk: ${offset}-${offset + chunk.size} (${chunk.size} bytes)`)
+        
+        const xhr = new XMLHttpRequest()
+        
+        // Set up progress tracking for this chunk
+        xhr.upload.addEventListener('progress', (event) => {
+          if (event.lengthComputable) {
+            const totalProgress = ((offset + (event.loaded / event.total) * chunk.size) / file.size) * 100
+            setUploadProgress(Math.round(totalProgress))
+          }
+        })
+        
+        // Wait for chunk upload to complete
+        await new Promise((chunkResolve, chunkReject) => {
+          xhr.addEventListener('load', () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+              console.log(`✅ Chunk uploaded successfully: ${offset}-${offset + chunk.size}`)
+              chunkResolve(true)
+            } else {
+              console.error(`❌ Chunk upload failed: ${xhr.status} ${xhr.statusText}`)
+              chunkReject(new Error(`Chunk upload failed: ${xhr.status}`))
+            }
+          })
+          
+          xhr.addEventListener('error', () => {
+            console.error('❌ Chunk upload error')
+            chunkReject(new Error('Chunk upload error'))
+          })
+          
+          // Send chunk
+          xhr.open('PATCH', uploadUrl)
+          xhr.setRequestHeader('Content-Type', 'application/octet-stream')
+          xhr.setRequestHeader('Upload-Offset', offset.toString())
+          xhr.setRequestHeader('Tus-Resumable', '1.0.0')
+          
+          const adminToken = localStorage.getItem("adminToken")
+          if (adminToken) {
+            xhr.setRequestHeader('Authorization', `Bearer ${adminToken}`)
+          }
+          
+          xhr.send(chunkBuffer)
+        })
+        
+        offset += chunk.size
+      }
+      
+      console.log('🎉 File upload completed!')
+      setUploadStatus('success')
+      setUploadProgress(100)
+      
+      const result = { success: true, videoId }
+      if (resolve) resolve(result)
+      return result
+      
+    } catch (error) {
+      console.error('❌ TUS file upload failed:', error)
+      setUploadStatus('error')
+      setUploadError(error instanceof Error ? error.message : 'File upload failed')
+      
+      const result = { success: false, error: error instanceof Error ? error.message : 'File upload failed' }
       if (reject) reject(result)
       return result
     }
@@ -340,33 +457,42 @@ export default function LessonForm({ isOpen, onClose, onSubmit, lesson, mode, co
     const lessonData = {
       ...formData,
       type: "video", // Always video since we only have video upload
-      status: "draft", // Default status
+      status: "published", // Default status
       durationSec: 0, // Will be updated after video processing
       content: "", // Empty content for video lessons
       contentMn: "" // Empty content for video lessons
     }
     
     if (selectedFile) {
+      console.log('🎬 Starting video upload process...')
       const uploadResult = await uploadVideoToBunny()
+      console.log('🎬 Upload result:', uploadResult)
+      
       if (uploadResult.success && uploadResult.videoId) {
+        console.log('✅ Video upload successful, updating form data with videoId:', uploadResult.videoId)
+        
         // Update form data with actual Bunny video ID
-        setFormData(prev => ({
-          ...prev,
+        const updatedLessonData = {
+          ...lessonData,
           video: {
-            ...prev.video,
+            ...lessonData.video,
             videoId: uploadResult.videoId!,
             status: 'ready'
           }
-        }))
+        }
+        
+        console.log('📝 Submitting lesson data:', updatedLessonData)
         
         // Submit the form with updated data and close immediately
-        onSubmit(lessonData)
+        onSubmit(updatedLessonData)
         onClose() // Close the form immediately
       } else {
+        console.log('❌ Upload failed, not submitting lesson')
         // Don't submit if upload failed
         return
       }
     } else {
+      console.log('📝 No file selected, submitting lesson data directly:', lessonData)
       // Submit normally if no file selected and close immediately
       onSubmit(lessonData)
       onClose() // Close the form immediately

@@ -51,17 +51,46 @@ export async function POST(
   { params }: { params: Promise<{ courseId: string }> }
 ) {
   try {
+    console.log('📚 Lesson creation API called')
+    
     // Verify admin token
     const authHeader = request.headers.get("authorization")
+    console.log('🔐 Lesson API - Auth header received:', {
+      hasHeader: !!authHeader,
+      headerValue: authHeader ? `${authHeader.substring(0, 20)}...` : 'MISSING',
+      startsWithBearer: authHeader?.startsWith('Bearer ')
+    })
+    
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      console.log('❌ Lesson API - No admin token found in Authorization header')
+      return NextResponse.json({ 
+        Success: false,
+        Message: "Authentication has been denied for this request.",
+        StatusCode: 401 
+      }, { status: 401 })
     }
 
     const token = authHeader.substring(7)
+    console.log('🔐 Lesson API - Token extracted:', {
+      tokenLength: token.length,
+      tokenStart: token.substring(0, 20) + '...',
+      tokenEnd: '...' + token.substring(token.length - 10)
+    })
+    
     const decoded = jwt.verify(token, process.env.JWT_SECRET || "your-secret-key") as any
+    console.log('✅ Lesson API - Token verified successfully:', {
+      userId: decoded.userId,
+      email: decoded.email,
+      role: decoded.role
+    })
 
     if (decoded.role !== "admin") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+      console.log('❌ Lesson API - Invalid admin token or user role:', { role: decoded.role })
+      return NextResponse.json({ 
+        Success: false,
+        Message: "Authentication has been denied for this request.",
+        StatusCode: 403 
+      }, { status: 403 })
     }
 
     const { courseId } = await params
@@ -73,13 +102,22 @@ export async function POST(
     }
 
     // Connect to database
+    console.log('🔗 Connecting to database...')
     await dbConnect()
+    console.log('✅ Database connected successfully')
 
     // Verify course exists
+    console.log('🔍 Looking for course:', courseId)
     const course = await Course.findById(courseId)
     if (!course) {
-      return NextResponse.json({ error: "Course not found" }, { status: 404 })
+      console.log('❌ Course not found:', courseId)
+      return NextResponse.json({ 
+        Success: false,
+        Message: "Course not found",
+        StatusCode: 404 
+      }, { status: 404 })
     }
+    console.log('✅ Course found:', course.title)
 
     // Verify subcourse exists and belongs to this course
     const subcourse = await Subcourse.findOne({ _id: body.subcourseId, courseId })
@@ -115,7 +153,7 @@ export async function POST(
       descriptionMn: body.descriptionMn || "",
       slug: uniqueSlug,
       type: body.type || 'video',
-      status: body.status || 'draft',
+      status: body.status || 'published',
       order: nextOrder,
       durationSec: body.durationSec || 0,
       content: body.content || "",
@@ -141,16 +179,46 @@ export async function POST(
     }, { status: 201 })
 
   } catch (error: any) {
-    console.error("Error creating lesson:", error)
+    console.error("❌ Error creating lesson:", error)
+    console.error("❌ Error details:", {
+      message: error.message,
+      code: error.code,
+      name: error.name,
+      stack: error.stack
+    })
     
     // Handle duplicate key errors specifically
     if (error.code === 11000) {
       return NextResponse.json({ 
-        error: "Duplicate lesson title or slug. Please use a different title." 
+        Success: false,
+        Message: "Duplicate lesson title or slug. Please use a different title.",
+        StatusCode: 400
       }, { status: 400 })
     }
     
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    // Handle validation errors
+    if (error.name === 'ValidationError') {
+      return NextResponse.json({ 
+        Success: false,
+        Message: "Validation error: " + error.message,
+        StatusCode: 400
+      }, { status: 400 })
+    }
+    
+    // Handle database connection errors
+    if (error.name === 'MongoError' || error.name === 'MongooseError') {
+      return NextResponse.json({ 
+        Success: false,
+        Message: "Database error: " + error.message,
+        StatusCode: 500
+      }, { status: 500 })
+    }
+    
+    return NextResponse.json({ 
+      Success: false,
+      Message: "Internal server error: " + (error.message || "Unknown error"),
+      StatusCode: 500
+    }, { status: 500 })
   }
 }
 

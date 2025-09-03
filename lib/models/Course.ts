@@ -162,8 +162,8 @@ const courseSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['draft', 'active', 'inactive', 'archived'],
-    default: 'draft'
+    enum: ['inactive', 'archived', 'draft', 'published'],
+    default: 'inactive'
   },
   category: {
     type: String,

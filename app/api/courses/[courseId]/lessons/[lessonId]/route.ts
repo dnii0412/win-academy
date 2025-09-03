@@ -34,7 +34,7 @@ export async function GET(
     // Find the lesson by ID and course ID
     const lesson = await Lesson.findOne({
       _id: lessonId,
-      courseId: course._id
+      courseId: (course as any)._id
     }).lean()
 
     if (!lesson) {
@@ -45,11 +45,11 @@ export async function GET(
     }
 
     // Find the subcourse for this lesson
-    const subcourse = await Subcourse.findById(lesson.subcourseId).lean()
+    const subcourse = await Subcourse.findById((lesson as any).subcourseId).lean()
 
     // Get all lessons in the same subcourse for navigation
     const subcourseLessons = await Lesson.find({
-      subcourseId: lesson.subcourseId
+      subcourseId: (lesson as any).subcourseId
     })
     .sort({ order: 1 })
     .select('_id title titleMn slug type durationSec video status order')
@@ -57,7 +57,7 @@ export async function GET(
 
     // Get all subcourses for this course
     const courseSubcourses = await Subcourse.find({
-      courseId: course._id
+      courseId: (course as any)._id
     })
     .sort({ order: 1 })
     .select('_id title titleMn order')
@@ -65,43 +65,43 @@ export async function GET(
 
     // Generate video URL if video exists and is ready
     let videoUrl = null
-    if (lesson.video && lesson.video.videoId && lesson.video.status === 'ready') {
+    if ((lesson as any).video && (lesson as any).video.videoId && (lesson as any).video.status === 'ready') {
       // Use Bunny Stream URL
-      videoUrl = `https://iframe.mediadelivery.net/488255/${lesson.video.videoId}`
+      videoUrl = `https://iframe.mediadelivery.net/488255/${(lesson as any).video.videoId}`
     }
 
     // Format the response
     const formattedLesson = {
-      id: lesson._id.toString(),
-      title: lesson.title,
-      titleMn: lesson.titleMn,
-      slug: lesson.slug,
-      type: lesson.type,
-      duration: lesson.durationSec,
-      description: lesson.description,
-      descriptionMn: lesson.descriptionMn,
+      id: (lesson as any)._id.toString(),
+      title: (lesson as any).title,
+      titleMn: (lesson as any).titleMn,
+      slug: (lesson as any).slug,
+      type: (lesson as any).type,
+      duration: (lesson as any).durationSec,
+      description: (lesson as any).description,
+      descriptionMn: (lesson as any).descriptionMn,
       videoUrl: videoUrl,
-      videoStatus: lesson.video?.status || 'not_available',
-      thumbnailUrl: lesson.video?.thumbnailUrl,
-      attachments: lesson.attachments || [],
-      status: lesson.status,
-      order: lesson.order
+      videoStatus: (lesson as any).video?.status || 'not_available',
+      thumbnailUrl: (lesson as any).video?.thumbnailUrl,
+      attachments: (lesson as any).attachments || [],
+      status: (lesson as any).status,
+      order: (lesson as any).order
     }
 
     const formattedCourse = {
-      id: course._id.toString(),
-      title: course.title,
-      titleMn: course.titleMn,
-      slug: course.slug,
-      instructor: course.instructor || 'Unknown',
-      modules: courseSubcourses.map(sub => ({
+      id: (course as any)._id.toString(),
+      title: (course as any).title,
+      titleMn: (course as any).titleMn,
+      slug: (course as any).slug,
+      instructor: (course as any).instructor || 'Unknown',
+      modules: courseSubcourses.map((sub: any) => ({
         id: sub._id.toString(),
         title: sub.title,
         titleMn: sub.titleMn,
         order: sub.order,
         lessons: subcourseLessons
-          .filter(lesson => lesson.subcourseId?.toString() === sub._id.toString())
-          .map(lesson => ({
+          .filter((lesson: any) => lesson.subcourseId?.toString() === sub._id.toString())
+          .map((lesson: any) => ({
             id: lesson._id.toString(),
             title: lesson.title,
             titleMn: lesson.titleMn,
@@ -125,9 +125,9 @@ export async function GET(
       course: formattedCourse,
       lesson: formattedLesson,
       subcourse: subcourse ? {
-        id: subcourse._id.toString(),
-        title: subcourse.title,
-        titleMn: subcourse.titleMn
+        id: (subcourse as any)._id.toString(),
+        title: (subcourse as any).title,
+        titleMn: (subcourse as any).titleMn
       } : null
     })
 

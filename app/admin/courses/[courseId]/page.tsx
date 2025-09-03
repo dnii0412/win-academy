@@ -28,6 +28,7 @@ import StatusChip from "@/components/admin/StatusChip"
 import SubcourseForm from "../components/SubcourseForm"
 import CourseForm from "../components/CourseForm"
 import LessonForm from "../components/LessonForm"
+import AuthDebugger from "@/components/admin/AuthDebugger"
 import { Course, Lesson } from "@/types/course"
 
 interface Subcourse {
@@ -36,7 +37,7 @@ interface Subcourse {
   titleMn: string
   description: string
   descriptionMn: string
-  status: 'draft' | 'live'
+  status: string
   order: number
   totalLessons: number
   duration: number
@@ -72,15 +73,26 @@ export default function CourseTreePage() {
   const [editingLesson, setEditingLesson] = useState<Lesson | null>(null)
   const [selectedSubcourseForLesson, setSelectedSubcourseForLesson] = useState<string>("")
 
-  const courseId = params.courseId as string
+  const [courseId, setCourseId] = useState<string>("")
+
+  // Get courseId from params
+  useEffect(() => {
+    const getParams = async () => {
+      const resolvedParams = await params
+      setCourseId(resolvedParams.courseId as string)
+    }
+    getParams()
+  }, [params])
 
   useEffect(() => {
-    fetchCourseData()
-    
-    // Auto-expand subcourse if specified in URL
-    const openSubcourse = searchParams.get('open')
-    if (openSubcourse) {
-      setExpandedSubcourses([openSubcourse])
+    if (courseId) {
+      fetchCourseData()
+      
+      // Auto-expand subcourse if specified in URL
+      const openSubcourse = searchParams.get('open')
+      if (openSubcourse) {
+        setExpandedSubcourses([openSubcourse])
+      }
     }
   }, [courseId, searchParams])
 
@@ -299,23 +311,7 @@ export default function CourseTreePage() {
     }
   }
 
-  const handleToggleSubcourseStatus = async (subcourseId: string, status: 'draft' | 'live') => {
-    try {
-      // Toggle subcourse status logic here
-      addToast("success", "Status updated", "Subcourse status has been updated")
-    } catch (error) {
-      addToast("error", "Update failed", "Failed to update subcourse status")
-    }
-  }
-
-  const handleToggleLessonStatus = async (lessonId: string, status: 'draft' | 'live') => {
-    try {
-      // Toggle lesson status logic here
-      addToast("success", "Status updated", "Lesson status has been updated")
-    } catch (error) {
-      addToast("error", "Update failed", "Failed to update lesson status")
-    }
-  }
+  // Status toggle functions removed - all content is now published by default
 
   const handleReorderSubcourses = async (subcourseIds: string[]) => {
     try {
@@ -481,9 +477,17 @@ export default function CourseTreePage() {
   }
 
   const handleLessonSubmit = async (lessonData: any) => {
+    console.log('📚 handleLessonSubmit called with data:', lessonData)
+    
     try {
       const adminToken = localStorage.getItem("adminToken")
+      console.log('🔐 Admin token check in handleLessonSubmit:', {
+        hasToken: !!adminToken,
+        tokenLength: adminToken?.length
+      })
+      
       if (!adminToken) {
+        console.log('❌ No admin token found, redirecting to login')
         router.push("/admin/login")
         return
       }
@@ -507,23 +511,54 @@ export default function CourseTreePage() {
         }
       } else {
         // Create new lesson
+        const requestData = {
+          ...lessonData,
+          subcourseId: selectedSubcourseForLesson
+        }
+        
+        console.log('🚀 Making lesson creation API call:', {
+          url: `/api/admin/courses/${courseId}/lessons`,
+          method: 'POST',
+          requestData,
+          hasToken: !!adminToken
+        })
+        
         const response = await fetch(`/api/admin/courses/${courseId}/lessons`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${adminToken}`,
           },
-          body: JSON.stringify({
-            ...lessonData,
-            subcourseId: selectedSubcourseForLesson
-          }),
+          body: JSON.stringify(requestData),
+        })
+        
+        console.log('📡 Lesson creation API response:', {
+          status: response.status,
+          statusText: response.statusText,
+          ok: response.ok
         })
 
         if (response.ok) {
           addToast("success", "Lesson created", "Lesson has been created successfully")
           await fetchCourseData()
         } else {
-          addToast("error", "Creation failed", "Failed to create lesson")
+          const errorData = await response.json().catch(() => ({}))
+          console.error("❌ Lesson creation failed:", {
+            status: response.status,
+            statusText: response.statusText,
+            errorData
+          })
+          
+          let errorMessage = "Failed to create lesson"
+          if (response.status === 401) {
+            errorMessage = "Authentication failed. Please log in again."
+          } else if (response.status === 403) {
+            errorMessage = "Access denied. You don't have admin privileges."
+          } else if (errorData.error) {
+            errorMessage = errorData.error
+          }
+          
+          addToast("error", "Creation failed", errorMessage)
         }
       }
 
@@ -665,6 +700,11 @@ export default function CourseTreePage() {
         </div>
       </div>
 
+      {/* Auth Debugger - Temporary for debugging */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <AuthDebugger />
+      </div>
+
       {/* Search and Filters */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="mb-6">
@@ -698,8 +738,8 @@ export default function CourseTreePage() {
           onEditLesson={handleEditLesson}
           onDuplicateLesson={handleDuplicateLesson}
           onDeleteLesson={handleDeleteLesson}
-          onToggleLessonStatus={handleToggleLessonStatus}
-          onToggleSubcourseStatus={handleToggleSubcourseStatus}
+          onToggleLessonStatus={async () => {}}
+          onToggleSubcourseStatus={async () => {}}
           expandedSubcourses={expandedSubcourses}
           onToggleExpanded={handleToggleExpanded}
           selectedItems={selectedItems}

@@ -12,8 +12,8 @@ const courseEnrollmentSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['active', 'completed', 'suspended', 'expired'],
-    default: 'active'
+    enum: ['completed', 'suspended', 'expired'],
+    default: 'completed'
   },
   enrolledAt: {
     type: Date,

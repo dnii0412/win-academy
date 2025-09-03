@@ -44,7 +44,7 @@ export async function PUT(
         description: body.description || "",
         descriptionMn: body.descriptionMn || "",
         type: body.type || 'video',
-        status: body.status || 'draft',
+        status: body.status || 'published',
         durationSec: body.durationSec || 0,
         content: body.content || "",
         contentMn: body.contentMn || "",

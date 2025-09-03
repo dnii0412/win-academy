@@ -56,7 +56,7 @@ export async function PUT(
       email: body.email,
       phoneNumber: body.phoneNumber || "",
       role: body.role || "user",
-      status: body.status || "active"
+      status: body.status || "completed"
     }
 
     // Hash password if provided
@@ -134,7 +134,7 @@ export async function DELETE(
     const CourseEnrollment = mongoose.model('CourseEnrollment')
     const activeEnrollments = await CourseEnrollment.countDocuments({ 
       userId, 
-      status: { $in: ['active', 'completed'] } 
+      status: { $in: ['completed', 'suspended'] } 
     })
 
     if (activeEnrollments > 0) {
