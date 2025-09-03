@@ -16,11 +16,10 @@ const orderSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
-  
+
   // User information
   userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    type: String, // Changed to String to handle both ObjectId and string UUIDs
     required: true
   },
   userName: {
@@ -33,7 +32,7 @@ const orderSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
-  
+
   // Payment information
   amount: {
     type: Number,
@@ -58,32 +57,34 @@ const orderSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
-  
-  // QPay specific fields
-  qpayInvoiceId: {
-    type: String,
-    trim: true
+
+  // QPay specific fields - enhanced structure
+  qpay: {
+    invoiceId: { type: String },
+    senderInvoiceNo: { type: String, unique: true, sparse: true },
+    qrText: { type: String },
+    qrImage: { type: String }, // base64 image
+    urls: [{ // deeplinks for bank apps
+      name: String,
+      description: String,
+      link: String
+    }],
+    rawCreateRes: { type: Object }, // full QPay create response
+    lastCheckRes: { type: Object }, // last payment check response
+    webhookEvents: [{ // track webhook calls
+      timestamp: { type: Date, default: Date.now },
+      payload: Object,
+      processed: { type: Boolean, default: false }
+    }]
   },
-  qpayInvoiceCode: {
-    type: String,
-    trim: true
-  },
-  qpayShortLink: {
-    type: String,
-    trim: true
-  },
-  qpayQrCode: {
-    type: String,
-    trim: true
-  },
-  
+
   // Order status
   status: {
     type: String,
-    enum: ['pending', 'completed', 'failed', 'cancelled', 'refunded'],
-    default: 'pending'
+    enum: ['PENDING', 'PAID', 'CANCELLED', 'EXPIRED', 'FAILED', 'REFUNDED'],
+    default: 'PENDING'
   },
-  
+
   // Timestamps
   createdAt: {
     type: Date,
@@ -93,7 +94,7 @@ const orderSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   },
-  
+
   // Additional fields
   notes: {
     type: String,
@@ -112,14 +113,15 @@ orderSchema.index({ courseId: 1 })
 orderSchema.index({ status: 1 })
 orderSchema.index({ paymentMethod: 1 })
 orderSchema.index({ createdAt: -1 })
+orderSchema.index({ 'qpay.invoiceId': 1 })
 
 // Virtual for formatted amount
-orderSchema.virtual('formattedAmount').get(function() {
+orderSchema.virtual('formattedAmount').get(function () {
   return `$${this.amount.toFixed(2)}`
 })
 
 // Pre-save middleware to update updatedAt
-orderSchema.pre('save', function(next) {
+orderSchema.pre('save', function (next) {
   this.updatedAt = new Date()
   next()
 })

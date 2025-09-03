@@ -10,6 +10,7 @@ import Link from "next/link"
 import { useLanguage } from "@/contexts/language-context"
 import { useEffect, useState } from "react"
 import { Course } from "@/types/course"
+import CourseImage from "@/components/course-image"
 
 export default function HomePage() {
   const { t } = useLanguage()
@@ -165,16 +166,16 @@ export default function HomePage() {
               {featuredCourses.map((course, index) => (
                 <AnimatedSection key={course._id} animation="fadeUp" className={`delay-${index * 100}`}>
                   <Link href={`/courses/${course._id}`}>
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer">
-                      {course.thumbnailUrl && (
-                        <div className="mb-4">
-                          <img 
-                            src={course.thumbnailUrl} 
-                            alt={course.title}
-                            className="w-full h-32 object-cover rounded-lg"
-                          />
-                        </div>
-                      )}
+                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer group">
+                      <div className="mb-4">
+                        <CourseImage
+                          thumbnailUrl={course.thumbnailUrl}
+                          title={course.title}
+                          category={course.category}
+                          size="small"
+                          className="w-full h-32 rounded-lg"
+                        />
+                      </div>
                       <div className="text-center">
                         <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">
                           {course.title}

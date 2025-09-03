@@ -20,6 +20,7 @@ import {
 import { useLanguage } from "@/contexts/language-context"
 import Link from "next/link"
 import CourseForm from "./components/CourseForm"
+import CourseImage from "@/components/course-image"
 
 interface Course {
   _id: string
@@ -221,23 +222,19 @@ export default function AdminCoursesPage() {
         {/* Courses Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredCourses.map((course) => (
-            <Card key={course._id} className="overflow-hidden hover:shadow-lg transition-shadow">
+            <Card key={course._id} className="overflow-hidden hover:shadow-lg transition-shadow group">
               {/* Thumbnail */}
               <div className="relative">
-                {course.thumbnailUrl ? (
-                  <img
-                    src={course.thumbnailUrl}
-                    alt={currentLanguage === "mn" ? course.titleMn || course.title : course.title}
-                    className="w-full h-48 object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-48 bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center">
-                    <BookOpen className="h-16 w-16 text-white opacity-80" />
-                  </div>
-                )}
+                <CourseImage
+                  thumbnailUrl={course.thumbnailUrl}
+                  title={currentLanguage === "mn" ? course.titleMn || course.title : course.title}
+                  category={course.category}
+                  size="medium"
+                  className="w-full h-48"
+                />
                 <Badge
                   variant={course.status === "active" ? "default" : "secondary"}
-                  className="absolute top-3 right-3"
+                  className="absolute top-3 right-3 z-10"
                 >
                   {course.status}
                 </Badge>

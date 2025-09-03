@@ -3,6 +3,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { CourseBadge } from "@/components/course-badge"
 import { Calendar, Clock, User } from "lucide-react"
 import Link from "next/link"
+import CourseImage from "@/components/course-image"
 
 interface CourseCardProps {
   title: string
@@ -16,6 +17,7 @@ interface CourseCardProps {
   instructor?: string
   schedule?: string
   courseId?: string
+  category?: string
 }
 
 export default function CourseCard({
@@ -30,19 +32,20 @@ export default function CourseCard({
   instructor,
   schedule,
   courseId,
+  category,
 }: CourseCardProps) {
   return (
     <Card className="overflow-hidden transition-all duration-300 ease-out hover:shadow-2xl hover:-translate-y-2 hover:scale-[1.02] group">
       <div className="aspect-video bg-gray-200 relative overflow-hidden">
-        <img
-          src={
-            image || `/placeholder.svg?height=200&width=350&query=${encodeURIComponent(title + " course thumbnail")}`
-          }
-          alt={title}
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+        <CourseImage
+          thumbnailUrl={image}
+          title={title}
+          category={category}
+          size="medium"
+          className="w-full h-full"
         />
         <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-        <div className="absolute top-3 left-3">
+        <div className="absolute top-3 left-3 z-10">
           <CourseBadge modality={modality} />
         </div>
       </div>

@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Play, BookOpen, Clock, User, ShoppingCart, Search, Filter, Plus } from "lucide-react"
 import Link from "next/link"
 import { Course } from "@/types/course"
+import CourseImage from "@/components/course-image"
 
 export default function CoursesPage() {
   const { data: session, status } = useSession()
@@ -237,26 +238,22 @@ export default function CoursesPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredCourses.map((course) => (
-              <Card key={course._id} className="overflow-hidden hover:shadow-lg transition-shadow">
+              <Card key={course._id} className="overflow-hidden hover:shadow-lg transition-shadow group">
                 <div className="relative">
-                  {course.thumbnailUrl ? (
-                    <img
-                      src={course.thumbnailUrl}
-                      alt={currentLanguage === "mn" ? course.titleMn || course.title : course.title}
-                      className="w-full h-48 object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-48 bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                      <BookOpen className="h-16 w-16 text-white opacity-80" />
-                    </div>
-                  )}
+                  <CourseImage
+                    thumbnailUrl={course.thumbnailUrl}
+                    title={currentLanguage === "mn" ? course.titleMn || course.title : course.title}
+                    category={course.category}
+                    size="medium"
+                    className="w-full h-48"
+                  />
                   {course.isEnrolled && (
-                    <Badge className="absolute top-3 right-3 bg-green-500 hover:bg-green-600">
+                    <Badge className="absolute top-3 right-3 bg-green-500 hover:bg-green-600 z-10">
                       {currentLanguage === "mn" ? "Худалдан авсан" : "Enrolled"}
                     </Badge>
                   )}
                   {course.status === 'draft' && (
-                    <Badge className="absolute top-3 left-3 bg-yellow-500 hover:bg-yellow-600">
+                    <Badge className="absolute top-3 left-3 bg-yellow-500 hover:bg-yellow-600 z-10">
                       {currentLanguage === "mn" ? "Ноорог" : "Draft"}
                     </Badge>
                   )}

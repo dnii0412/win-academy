@@ -8,6 +8,7 @@ import { BookOpen, Users, Award, TrendingUp, Play, Clock, User } from "lucide-re
 import Link from "next/link"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
+import CourseImage from "@/components/course-image"
 
 interface EnrolledCourse {
   _id: string
@@ -175,7 +176,7 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-[#111111] dark:text-white">
-                {enrolledCourses.length > 0 
+                {enrolledCourses.length > 0
                   ? Math.round(enrolledCourses.reduce((total, course) => total + (course.progress || 0), 0) / enrolledCourses.length)
                   : 0}%
               </div>
@@ -237,20 +238,15 @@ export default function DashboardPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {enrolledCourses.map((course) => (
-                <Card key={course._id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                <Card key={course._id} className="overflow-hidden hover:shadow-lg transition-shadow group">
                   <div className="relative">
-                    {course.thumbnailUrl ? (
-                      <img
-                        src={course.thumbnailUrl}
-                        alt={currentLanguage === "mn" ? course.titleMn || course.title : course.title}
-                        className="w-full h-48 object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-48 bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                        <BookOpen className="h-16 w-16 text-white opacity-80" />
-                      </div>
-                    )}
-                    <Badge className="absolute top-3 right-3 bg-green-500 hover:bg-green-600">
+                    <CourseImage
+                      thumbnailUrl={course.thumbnailUrl}
+                      title={currentLanguage === "mn" ? course.titleMn || course.title : course.title}
+                      size="medium"
+                      className="w-full h-48"
+                    />
+                    <Badge className="absolute top-3 right-3 bg-green-500 hover:bg-green-600 z-10">
                       {t("home.courses.enrolled")}
                     </Badge>
                   </div>
@@ -265,12 +261,12 @@ export default function DashboardPage() {
                   </CardHeader>
 
                   <CardContent className="pt-0">
-                                         <div className="space-y-3">
-                                            <div className="text-center">
-                       <span className="text-2xl font-bold text-[#E10600]">
-                         {course.progress || 0}%
-                       </span>
-                     </div>
+                    <div className="space-y-3">
+                      <div className="text-center">
+                        <span className="text-2xl font-bold text-[#E10600]">
+                          {course.progress || 0}%
+                        </span>
+                      </div>
 
                       <div className="flex space-x-2">
                         <Link href={`/learn/${course._id}`} className="flex-1">
@@ -287,7 +283,7 @@ export default function DashboardPage() {
             </div>
           )}
         </div>
-        
+
       </div>
     </div>
   )

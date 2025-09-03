@@ -12,6 +12,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, CreditCard, Smartphone, BookOpen } from "lucide-react"
+import { PayWithQPay } from "@/components/PayWithQPay"
+import CourseImage from "@/components/course-image"
 import type { CheckoutFormData } from "@/types/payment"
 import type { Course } from "@/types/course"
 
@@ -234,17 +236,13 @@ export default function CheckoutPage() {
                         </CardHeader>
                         <CardContent>
                             <div className="flex items-start space-x-4">
-                                {course.thumbnailUrl ? (
-                                    <img
-                                        src={course.thumbnailUrl}
-                                        alt={course.title}
-                                        className="w-20 h-20 object-cover rounded-lg"
-                                    />
-                                ) : (
-                                    <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center rounded-lg">
-                                        <BookOpen className="h-6 w-6 text-white opacity-80" />
-                                    </div>
-                                )}
+                                <CourseImage
+                                    thumbnailUrl={course.thumbnailUrl}
+                                    title={course.title}
+                                    category={course.category}
+                                    size="small"
+                                    className="w-20 h-20 rounded-lg"
+                                />
                                 <div className="flex-1">
                                     <h3 className="font-semibold text-lg">{course.title}</h3>
                                     <p className="text-gray-600 text-sm mt-1">{course.description}</p>
@@ -267,133 +265,18 @@ export default function CheckoutPage() {
                         </CardContent>
                     </Card>
 
-                    {/* Checkout Form */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Checkout Information</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <form onSubmit={handleSubmit} className="space-y-6">
-                                {/* Customer Information */}
-                                <div className="space-y-4">
-                                    <h3 className="font-medium">Contact Information</h3>
-
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <Label htmlFor="firstName">First Name</Label>
-                                            <Input
-                                                id="firstName"
-                                                name="firstName"
-                                                value={formData.firstName}
-                                                onChange={handleInputChange}
-                                                required
-                                            />
-                                        </div>
-                                        <div>
-                                            <Label htmlFor="lastName">Last Name</Label>
-                                            <Input
-                                                id="lastName"
-                                                name="lastName"
-                                                value={formData.lastName}
-                                                onChange={handleInputChange}
-                                                required
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <Label htmlFor="email">Email Address</Label>
-                                        <Input
-                                            id="email"
-                                            name="email"
-                                            type="email"
-                                            value={formData.email}
-                                            onChange={handleInputChange}
-                                            required
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <Label htmlFor="phone">Phone Number</Label>
-                                        <Input
-                                            id="phone"
-                                            name="phone"
-                                            type="tel"
-                                            value={formData.phone}
-                                            onChange={handleInputChange}
-                                            required
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* Payment Method */}
-                                <div className="space-y-4">
-                                    <h3 className="font-medium">Payment Method</h3>
-
-                                    <RadioGroup
-                                        value={formData.paymentMethod}
-                                        onValueChange={handlePaymentMethodChange}
-                                    >
-                                        <div className="flex items-center space-x-2 p-3 border rounded-lg">
-                                            <RadioGroupItem value="qpay" id="qpay" />
-                                            <Label htmlFor="qpay" className="flex items-center space-x-2 cursor-pointer">
-                                                <Smartphone className="w-5 h-5" />
-                                                <span>QPay (Mobile Payment)</span>
-                                            </Label>
-                                        </div>
-
-                                        <div className="flex items-center space-x-2 p-3 border rounded-lg">
-                                            <RadioGroupItem value="byl" id="byl" />
-                                            <Label htmlFor="byl" className="flex items-center space-x-2 cursor-pointer">
-                                                <CreditCard className="w-5 h-5" />
-                                                <span>BYL (Bank Transfer)</span>
-                                            </Label>
-                                        </div>
-                                    </RadioGroup>
-                                </div>
-
-                                {/* Terms and Conditions */}
-                                <div className="flex items-start space-x-2">
-                                    <Checkbox
-                                        id="terms"
-                                        checked={formData.agreeToTerms}
-                                        onCheckedChange={handleTermsChange}
-                                    />
-                                    <Label htmlFor="terms" className="text-sm leading-relaxed">
-                                        I agree to the{" "}
-                                        <a href="/terms" className="text-[#E10600] hover:underline">
-                                            Terms and Conditions
-                                        </a>{" "}
-                                        and{" "}
-                                        <a href="/privacy" className="text-[#E10600] hover:underline">
-                                            Privacy Policy
-                                        </a>
-                                    </Label>
-                                </div>
-
-                                {error && (
-                                    <Alert variant="destructive">
-                                        <AlertDescription>{error}</AlertDescription>
-                                    </Alert>
-                                )}
-
-                                <Button
-                                    type="submit"
-                                    className="w-full bg-[#E10600] hover:bg-[#C70500]"
-                                    disabled={isLoading || !formData.agreeToTerms}
-                                >
-                                    {isLoading ? (
-                                        <>
-                                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                            Processing...
-                                        </>
-                                    ) : (
-                                        `Pay ₮${course.price.toLocaleString()}`
-                                    )}
-                                </Button>
-                            </form>
-                        </CardContent>
-                    </Card>
+                    {/* QPay Payment */}
+                    <div>
+                        <PayWithQPay
+                            courseId={courseId}
+                            priceMnt={course.price}
+                            courseTitle={course.title}
+                            onPaymentSuccess={() => {
+                                // Optional: Show success message or redirect
+                                console.log('Payment successful!')
+                            }}
+                        />
+                    </div>
                 </div>
             </div>
         </div>

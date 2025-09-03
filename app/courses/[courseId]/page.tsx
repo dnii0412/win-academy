@@ -1,360 +1,255 @@
-"use client"
+import { auth } from '@/auth'
+import { notFound, redirect } from 'next/navigation'
+import dbConnect from '@/lib/mongoose'
+import Course from '@/lib/models/Course'
+import { checkCourseAccess } from '@/lib/course-access'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Clock, User, BookOpen, Lock, Play } from 'lucide-react'
+import Link from 'next/link'
+import CourseImage from '@/components/course-image'
 
-import { useState, useEffect } from "react"
-import { useParams, useRouter } from "next/navigation"
-import { useSession } from "next-auth/react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import {
-  Clock,
-  Play,
-  ShoppingCart,
-  Star,
-  Users,
-  ChevronRight
-} from "lucide-react"
-import { useLanguage } from "@/contexts/language-context"
-import Link from "next/link"
-import { Course } from "@/types/course"
-
-interface Subcourse {
-  _id: string
-  title: string
-  titleMn: string
-  description: string
-  descriptionMn: string
-  order: number
-  status: string
-  thumbnailUrl?: string
-  totalLessons: number
-  duration: number
+interface CoursePageProps {
+  params: { courseId: string }
 }
 
+export default async function CoursePage({ params }: CoursePageProps) {
+  const session = await auth()
+  const { courseId } = params
 
+  await dbConnect()
 
-export default function CourseOverviewPage() {
-  const params = useParams()
-  const router = useRouter()
-  const { data: session } = useSession()
-  const { currentLanguage } = useLanguage()
-  const courseId = params.courseId as string
-
-  const [course, setCourse] = useState<Course | null>(null)
-  const [subcourses, setSubcourses] = useState<Subcourse[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    fetchCourse()
-  }, [courseId])
-
-  const fetchCourse = async () => {
-    try {
-      // Fetch course data
-      const courseResponse = await fetch(`/api/courses/${courseId}`)
-      if (courseResponse.ok) {
-        const courseData = await courseResponse.json()
-        setCourse(courseData.course)
-      } else {
-        setError("Course not found")
-        return
-      }
-
-      // Fetch subcourses for this course
-      const subcoursesResponse = await fetch(`/api/courses/${courseId}/subcourses`)
-      if (subcoursesResponse.ok) {
-        const subcoursesData = await subcoursesResponse.json()
-        setSubcourses(subcoursesData.subcourses)
-      }
-    } catch (error) {
-      console.error('Error fetching course:', error)
-      setError("Failed to load course information")
-    } finally {
-      setIsLoading(false)
-    }
+  // Fetch course details
+  const course = await Course.findById(courseId).lean()
+  if (!course) {
+    notFound()
   }
 
-  const formatPrice = (price: number) => {
-    return `₮${price.toLocaleString()}`
-  }
+  // Check if user has access to this course
+  const hasAccess = session?.user?.email
+    ? await checkCourseAccess(courseId, session.user.id || session.user.email)
+    : false
 
-  const formatDuration = (minutes: number) => {
-    if (minutes < 60) return `${minutes} мин`
-    const hours = Math.floor(minutes / 60)
-    const remainingMinutes = minutes % 60
-    return remainingMinutes > 0 ? `${hours}ч ${remainingMinutes}мин` : `${hours}ч`
-  }
-
-
-
-  const getLevelColor = (level: string) => {
-    switch (level.toLowerCase()) {
-      case 'beginner':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-      case 'intermediate':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-      case 'advanced':
-        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-      default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
-    }
-  }
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#E10600] mx-auto mb-4"></div>
-          <h1 className="text-2xl font-bold text-gray-900">Loading course...</h1>
-        </div>
-      </div>
-    )
-  }
-
-  if (error || !course) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">
-            {error || "Course not found"}
-          </h1>
-          <Button onClick={() => router.push("/courses")}>
-            Back to Courses
-          </Button>
-        </div>
-      </div>
-    )
+  // If not authenticated, redirect to login
+  if (!session?.user?.email) {
+    redirect(`/login?callbackUrl=${encodeURIComponent(`/courses/${courseId}`)}`)
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Breadcrumb */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-        <nav className="flex items-center space-x-2 text-sm text-muted-foreground mb-6">
-          <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
-          <ChevronRight className="w-4 h-4" />
-          <Link href="/courses" className="hover:text-foreground transition-colors">Courses</Link>
-          <ChevronRight className="w-4 h-4" />
-          <span className="text-foreground font-medium">
-            {currentLanguage === "mn" ? course.titleMn || course.title : course.title}
-          </span>
-        </nav>
-      </div>
-
-      {/* Hero Image Section */}
-      {course.thumbnailUrl && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
-          <div className="relative h-64 md:h-80 lg:h-96 rounded-xl overflow-hidden">
-            <img
-              src={course.thumbnailUrl}
-              alt={currentLanguage === "mn" ? course.titleMn || course.title : course.title}
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-              <div className="text-center text-white">
-                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
-                  {currentLanguage === "mn" ? course.titleMn || course.title : course.title}
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-6xl mx-auto px-4">
+        {/* Course Header */}
+        <div className="mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Course Info */}
+            <div className="lg:col-span-2">
+              <div className="mb-4">
+                <Badge variant="outline" className="mb-2">
+                  {course.level}
+                </Badge>
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                  {course.title}
                 </h1>
-                <p className="text-lg md:text-xl opacity-90">
-                  {currentLanguage === "mn" ? course.shortDescriptionMn || course.shortDescription : course.shortDescription}
+                <p className="text-lg text-gray-600 mb-4">
+                  {course.description}
                 </p>
+
+                <div className="flex items-center gap-6 text-sm text-gray-500">
+                  {course.instructor && (
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      <span>{course.instructor}</span>
+                    </div>
+                  )}
+                  {course.duration && (
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4" />
+                      <span>{course.duration} minutes</span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2">
+                    <BookOpen className="h-4 w-4" />
+                    <span>{course.totalLessons} lessons</span>
+                  </div>
+                </div>
               </div>
             </div>
+
+            {/* Course Thumbnail and Purchase */}
+            <div>
+              <Card>
+                <CardContent className="p-0">
+                  <CourseImage
+                    thumbnailUrl={course.thumbnailUrl}
+                    title={course.title}
+                    category={course.category}
+                    size="medium"
+                    className="w-full h-48 rounded-t-lg"
+                  />
+                  <div className="p-6">
+                    <div className="text-center mb-4">
+                      <div className="text-3xl font-bold text-[#E10600]">
+                        ₮{course.price.toLocaleString()}
+                      </div>
+                      <p className="text-sm text-gray-500">One-time payment</p>
+                    </div>
+
+                    {hasAccess ? (
+                      <Button className="w-full bg-green-600 hover:bg-green-700" asChild>
+                        <Link href={`/learn/${courseId}`}>
+                          <Play className="mr-2 h-4 w-4" />
+                          Continue Learning
+                        </Link>
+                      </Button>
+                    ) : (
+                      <Button className="w-full bg-[#E10600] hover:bg-[#C70500]" asChild>
+                        <Link href={`/checkout/${courseId}`}>
+                          <Lock className="mr-2 h-4 w-4" />
+                          Purchase Course
+                        </Link>
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
-      )}
 
-      {/* Top Section - Course Overview */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
-        <div className="space-y-4">
-          {/* Course Tag and ID */}
-          <div className="flex items-start space-x-4">
-            {/* Course Tag */}
-            <div className="bg-blue-500 text-white px-3 py-1 rounded-lg text-sm font-medium">
-              {currentLanguage === "mn" ? "Хичээл" : "Course"}
-            </div>
-
-            {/* Course ID/Number */}
-            <div className="text-4xl font-bold text-gray-900">
-              {course._id.slice(-3)}
-            </div>
-          </div>
-
-          {/* Course Title */}
-          <h1 className="text-2xl font-normal text-gray-900">
-            {currentLanguage === "mn" ? course.titleMn || course.title : course.title}
-          </h1>
-
-          {/* Course Metrics */}
-          <div className="flex items-center space-x-6 text-sm text-gray-600">
-            <div className="flex items-center space-x-2">
-              <Star className="w-4 h-4 text-yellow-500 fill-current" />
-              <span>4.8 {currentLanguage === "mn" ? "үнэлгээ" : "rating"}</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Users className="w-4 h-4" />
-              <span>{course.enrolledUsers} {currentLanguage === "mn" ? "суралцагч" : "students"}</span>
-            </div>
-            <div className="text-blue-600 font-semibold text-lg">
-              {formatPrice(course.price)}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content - Two Column Layout */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left Column - Course Details */}
-          <div className="space-y-8">
-            {/* About the Course */}
-            <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-gray-900">
-                {currentLanguage === "mn" ? "Хичээлийн тухай" : "About the Course"}
-              </h2>
-              <p className="text-gray-700 leading-relaxed">
-                {currentLanguage === "mn" ? course.descriptionMn || course.description : course.description}
-              </p>
-            </div>
-
-            {/* Course Content */}
-            <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-gray-900">
-                {currentLanguage === "mn" ? "Хичээлийн агуулга" : "Course Content"}
-              </h2>
-
-              {subcourses && subcourses.length > 0 ? (
-                <div className="space-y-4">
-                  {subcourses
-                    .sort((a, b) => a.order - b.order)
-                    .map((subcourse, subcourseIndex) => (
-                      <div key={subcourse._id} className="border border-gray-200 rounded-lg p-4">
-                        <div className="flex items-center space-x-3 mb-3">
-                          <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center text-sm font-semibold text-red-600">
-                            {subcourseIndex + 1}
-                          </div>
-                          <h3 className="font-semibold text-gray-900">
-                            {currentLanguage === "mn" ? subcourse.titleMn || subcourse.title : subcourse.title}
-                          </h3>
-                        </div>
-                        {subcourse.description && (
-                          <p className="text-gray-600 text-sm mb-3">
-                            {currentLanguage === "mn" ? subcourse.descriptionMn || subcourse.description : subcourse.description}
-                          </p>
-                        )}
-
-                        <div className="flex items-center justify-between text-sm text-gray-500">
-                          <div className="flex items-center space-x-4">
-                            <span className="flex items-center space-x-1">
-                              <Play className="w-4 h-4" />
-                              <span>{subcourse.totalLessons} {currentLanguage === "mn" ? "хичээл" : "lessons"}</span>
-                            </span>
-                            {subcourse.duration > 0 && (
-                              <span className="flex items-center space-x-1">
-                                <Clock className="w-4 h-4" />
-                                <span>{formatDuration(subcourse.duration)}</span>
-                              </span>
+        {/* Course Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2">
+            {hasAccess ? (
+              // Show course content for users with access
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Course Content</CardTitle>
+                    <CardDescription>
+                      You have full access to this course
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {course.modules && course.modules.length > 0 ? (
+                      <div className="space-y-4">
+                        {course.modules.map((module: any, index: number) => (
+                          <div key={module._id || index} className="border rounded-lg p-4">
+                            <h3 className="font-semibold text-lg mb-2">
+                              {module.title}
+                            </h3>
+                            {module.description && (
+                              <p className="text-gray-600 text-sm mb-3">
+                                {module.description}
+                              </p>
+                            )}
+                            {module.topics && module.topics.length > 0 && (
+                              <div className="space-y-2">
+                                {module.topics.map((topic: any, topicIndex: number) => (
+                                  <div key={topic._id || topicIndex} className="flex items-center gap-3 p-2 bg-gray-50 rounded">
+                                    <Play className="h-4 w-4 text-[#E10600]" />
+                                    <span className="text-sm">{topic.title}</span>
+                                    {topic.videoDuration && (
+                                      <span className="text-xs text-gray-500 ml-auto">
+                                        {Math.floor(topic.videoDuration / 60)}:{(topic.videoDuration % 60).toString().padStart(2, '0')}
+                                      </span>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
                             )}
                           </div>
-                          <Badge variant="outline" className="text-xs">
-                            {subcourse.status === 'live' ? (currentLanguage === "mn" ? "Идэвхтэй" : "Active") : (currentLanguage === "mn" ? "Ноорог" : "Draft")}
-                          </Badge>
-                        </div>
+                        ))}
                       </div>
-                    ))}
-                </div>
-              ) : (
-                <div className="border border-gray-200 rounded-lg p-12 text-center">
-                  <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <Play className="h-12 w-12 text-gray-400" />
+                    ) : (
+                      <p className="text-gray-500 text-center py-8">
+                        Course content is being prepared. Check back soon!
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            ) : (
+              // Show preview for users without access
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Lock className="h-5 w-5" />
+                    Course Preview
+                  </CardTitle>
+                  <CardDescription>
+                    Purchase this course to unlock all content
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-12">
+                    <Lock className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                      Unlock Full Course Access
+                    </h3>
+                    <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                      Get lifetime access to all course materials, video lessons,
+                      and exclusive resources.
+                    </p>
+                    <Button className="bg-[#E10600] hover:bg-[#C70500]" asChild>
+                      <Link href={`/checkout/${courseId}`}>
+                        Purchase for ₮{course.price.toLocaleString()}
+                      </Link>
+                    </Button>
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-700 mb-4">
-                    {currentLanguage === "mn"
-                      ? "Хичээлийн агуулга удахгүй нэмэгдэх болно"
-                      : "Course content will be added soon"
-                    }
-                  </h3>
-                  <p className="text-gray-500 max-w-md mx-auto">
-                    {currentLanguage === "mn"
-                      ? "Манай багш нар одоогоор хичээлийн агуулгыг бэлтгэж байна. Удахгүй шинэ хичээлүүд нэмэгдэх болно."
-                      : "Our instructors are currently preparing the course content. New lessons will be added soon!"
-                    }
-                  </p>
-                </div>
-              )}
-            </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
 
-          {/* Right Column - Video and Purchase */}
-          <div className="space-y-6">
-            {/* Course Video/Thumbnail */}
-            <div className="border border-gray-200 rounded-lg overflow-hidden">
-              {course.thumbnailUrl ? (
-                <div className="relative aspect-video">
-                  <img
-                    src={course.thumbnailUrl}
-                    alt={currentLanguage === "mn" ? course.titleMn || course.title : course.title}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-                    <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center">
-                      <Play className="w-8 h-8 text-gray-800 ml-1" />
+          {/* Sidebar */}
+          <div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Course Details</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <h4 className="font-medium text-sm text-gray-700 mb-1">Level</h4>
+                  <Badge variant="outline">{course.level}</Badge>
+                </div>
+
+                {course.category && (
+                  <div>
+                    <h4 className="font-medium text-sm text-gray-700 mb-1">Category</h4>
+                    <p className="text-sm">{course.category}</p>
+                  </div>
+                )}
+
+                {course.tags && course.tags.length > 0 && (
+                  <div>
+                    <h4 className="font-medium text-sm text-gray-700 mb-1">Tags</h4>
+                    <div className="flex flex-wrap gap-1">
+                      {course.tags.map((tag: string, index: number) => (
+                        <Badge key={index} variant="secondary" className="text-xs">
+                          {tag}
+                        </Badge>
+                      ))}
                     </div>
                   </div>
+                )}
+
+                <div>
+                  <h4 className="font-medium text-sm text-gray-700 mb-1">Students Enrolled</h4>
+                  <p className="text-sm">{course.enrolledUsers.toLocaleString()} students</p>
                 </div>
-              ) : (
-                <div className="aspect-video bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                  <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center">
-                    <Play className="w-8 h-8 text-gray-800 ml-1" />
+
+                {course.certificate && (
+                  <div className="pt-4 border-t">
+                    <div className="flex items-center gap-2 text-green-600">
+                      <BookOpen className="h-4 w-4" />
+                      <span className="text-sm font-medium">Certificate included</span>
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
-
-            {/* Purchase Requirement Box */}
-            <div className="bg-pink-50 border border-pink-200 rounded-lg p-4">
-              <div className="flex items-center space-x-2 mb-2">
-                <ShoppingCart className="w-5 h-5 text-red-600" />
-                <span className="font-semibold text-red-700">
-                  {currentLanguage === "mn" ? "Худалдаж авах шаардлагатай" : "Purchase Required"}
-                </span>
-              </div>
-              <p className="text-sm text-red-600">
-                {currentLanguage === "mn"
-                  ? "Энэ хичээлийг үзэхийн тулд худалдаж авна уу"
-                  : "Please purchase this course to view it"
-                }
-              </p>
-            </div>
-
-            {/* Purchase Button */}
-            {session?.user ? (
-              <Link href={`/checkout/${course._id}`} className="block">
-                <Button className="w-full bg-red-600 hover:bg-red-700 text-white text-lg py-4">
-                  <ShoppingCart className="w-5 h-5 mr-2" />
-                  {formatPrice(course.price)} {currentLanguage === "mn" ? "- Худалдаж авах" : "- Buy Now"}
-                </Button>
-              </Link>
-            ) : (
-              <Link href={`/login?callbackUrl=${encodeURIComponent(`/checkout/${course._id}`)}`} className="block">
-                <Button className="w-full bg-red-600 hover:bg-red-700 text-white text-lg py-4">
-                  <ShoppingCart className="w-5 h-5 mr-2" />
-                  {currentLanguage === "mn"
-                    ? `Нэвтэрч ${formatPrice(course.price)}-өөр худалдаж авах`
-                    : `Login to Purchase for ${formatPrice(course.price)}`
-                  }
-                </Button>
-              </Link>
-            )}
-
-            {/* Course Status */}
-            {course.status === 'draft' && (
-              <div className="text-center">
-                <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
-                  {currentLanguage === "mn" ? "Ноорог хичээл - Удахгүй" : "Draft Course - Coming Soon"}
-                </Badge>
-              </div>
-            )}
+                )}
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>

@@ -2,8 +2,7 @@ import mongoose from 'mongoose'
 
 const courseEnrollmentSchema = new mongoose.Schema({
   userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    type: String, // Changed to String to handle both ObjectId and string UUIDs
     required: true
   },
   courseId: {
