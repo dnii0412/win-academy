@@ -96,6 +96,16 @@ export async function POST(
     const { courseId } = await params
     const body = await request.json()
 
+    console.log('📥 Lesson creation request body:', {
+      title: body.title,
+      titleMn: body.titleMn,
+      subcourseId: body.subcourseId,
+      video: body.video,
+      hasVideo: !!body.video,
+      videoId: body.video?.videoId,
+      videoStatus: body.video?.status
+    })
+
     // Validate required fields
     if (!body.title || !body.titleMn || !body.subcourseId) {
       return NextResponse.json({ error: "Title and subcourseId are required" }, { status: 400 })
@@ -153,7 +163,6 @@ export async function POST(
       descriptionMn: body.descriptionMn || "",
       slug: uniqueSlug,
       type: body.type || 'video',
-      status: body.status || 'published',
       order: nextOrder,
       durationSec: body.durationSec || 0,
       content: body.content || "",
@@ -164,6 +173,12 @@ export async function POST(
         thumbnailUrl: '',
         duration: 0
       }
+    })
+
+    console.log('📝 Creating lesson with video data:', {
+      videoId: body.video?.videoId,
+      status: body.video?.status,
+      hasVideo: !!body.video
     })
 
     await lesson.save()

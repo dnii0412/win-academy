@@ -252,11 +252,6 @@ export default function CoursesPage() {
                       {currentLanguage === "mn" ? "Худалдан авсан" : "Enrolled"}
                     </Badge>
                   )}
-                  {course.status === 'draft' && (
-                    <Badge className="absolute top-3 left-3 bg-yellow-500 hover:bg-yellow-600 z-10">
-                      {currentLanguage === "mn" ? "Ноорог" : "Draft"}
-                    </Badge>
-                  )}
                 </div>
 
                 <CardHeader className="pb-3">

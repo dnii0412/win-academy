@@ -54,10 +54,8 @@ export default function SubcourseForm({ isOpen, onClose, onSubmit, subcourse, mo
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     
-    // Add default status
     const subcourseData = {
-      ...formData,
-      status: "published" // Default status
+      ...formData
     }
     
     onSubmit(subcourseData)

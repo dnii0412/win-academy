@@ -432,7 +432,9 @@ export default function CourseTreePage() {
           addToast("success", "Subcourse created", "Subcourse has been created successfully")
           await fetchCourseData()
         } else {
-          addToast("error", "Creation failed", "Failed to create subcourse")
+          const errorData = await response.json()
+          console.error("Subcourse creation failed:", errorData)
+          addToast("error", "Creation failed", errorData.details || "Failed to create subcourse")
         }
       }
 
@@ -691,7 +693,6 @@ export default function CourseTreePage() {
                   <DollarSign className="w-4 h-4" />
                   <span>${course.price}</span>
                 </div>
-                <StatusChip status={course.status} />
               </div>
             </div>
 
@@ -738,8 +739,6 @@ export default function CourseTreePage() {
           onEditLesson={handleEditLesson}
           onDuplicateLesson={handleDuplicateLesson}
           onDeleteLesson={handleDeleteLesson}
-          onToggleLessonStatus={async () => {}}
-          onToggleSubcourseStatus={async () => {}}
           expandedSubcourses={expandedSubcourses}
           onToggleExpanded={handleToggleExpanded}
           selectedItems={selectedItems}

@@ -31,7 +31,7 @@ export const BUNNY_STREAM_CONFIG = {
   uploadUrl: 'https://video.bunnycdn.com',
   // Enhanced configuration for better TUS uploads
   maxChunkSize: 4 * 1024 * 1024, // 4MB chunks
-  uploadTimeout: 300000, // 5 minutes
+  uploadTimeout: 1800000, // 30 minutes for large files
   retryAttempts: 3,
   retryDelay: 1000 // 1 second
 }

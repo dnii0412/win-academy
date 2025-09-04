@@ -49,7 +49,6 @@ export async function GET(
       description: subcourse.description,
       descriptionMn: subcourse.descriptionMn,
       order: subcourse.order,
-      status: subcourse.status,
       lessons: lessons.filter(lesson => 
         lesson.subcourseId && lesson.subcourseId.toString() === subcourse._id.toString()
       ).map(lesson => ({
@@ -59,11 +58,10 @@ export async function GET(
         slug: lesson.slug,
         type: lesson.type,
         duration: lesson.durationSec,
-        videoUrl: lesson.video && lesson.video.videoId && lesson.video.status === 'ready' 
-          ? `https://iframe.mediadelivery.net/488255/${lesson.video.videoId}`
+                videoUrl: lesson.video && lesson.video.videoId && lesson.video.status === 'ready'
+          ? `https://iframe.mediadelivery.net/embed/488255/${lesson.video.videoId}`
           : null,
         videoStatus: lesson.video?.status || 'not_available',
-        status: lesson.status,
         order: lesson.order,
         description: lesson.description,
         descriptionMn: lesson.descriptionMn

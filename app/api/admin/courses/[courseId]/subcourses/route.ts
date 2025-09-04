@@ -49,6 +49,7 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ courseId: string }> }
 ) {
+  let body: any
   try {
     // Verify admin token
     const authHeader = request.headers.get("authorization")
@@ -64,7 +65,7 @@ export async function POST(
     }
 
     const { courseId } = await params
-    const body = await request.json()
+    body = await request.json()
 
     // Validate required fields
     if (!body.title || !body.titleMn) {
@@ -98,7 +99,6 @@ export async function POST(
       description: body.description || "",
       descriptionMn: body.descriptionMn || "",
       slug,
-      status: body.status || 'published',
       thumbnailUrl: body.thumbnailUrl,
       order: nextOrder
     })
@@ -112,7 +112,15 @@ export async function POST(
 
   } catch (error) {
     console.error("Error creating subcourse:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    console.error("Error details:", {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      body: body
+    })
+    return NextResponse.json({ 
+      error: "Internal server error",
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 })
   }
 }
 

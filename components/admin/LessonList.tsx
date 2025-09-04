@@ -25,7 +25,6 @@ interface Lesson {
   title: string
   titleMn: string
   type: 'video' | 'article' | 'quiz'
-  status: 'published'
   order: number
   durationSec: number
   video?: {
@@ -41,7 +40,6 @@ interface LessonListProps {
   onDuplicate: (lesson: Lesson) => void
   onDelete: (lesson: Lesson) => void
   onReorder: (lessonIds: string[]) => void
-  onToggleStatus: (lessonId: string, status: 'published') => Promise<void>
   selectedItems: string[]
   onSelectItem: (itemId: string, type: 'subcourse' | 'lesson') => void
   isDragging: boolean

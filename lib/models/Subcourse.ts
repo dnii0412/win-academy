@@ -30,11 +30,6 @@ const subcourseSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
-  status: {
-    type: String,
-    enum: ['draft', 'live'],
-    default: 'draft'
-  },
   thumbnailUrl: {
     type: String,
     trim: true
@@ -57,7 +52,6 @@ const subcourseSchema = new mongoose.Schema({
 
 // Create indexes for better query performance
 subcourseSchema.index({ courseId: 1, order: 1 })
-subcourseSchema.index({ status: 1 })
 
 // Pre-save middleware to ensure slug uniqueness within course
 subcourseSchema.pre('save', async function(next) {

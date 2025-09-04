@@ -66,8 +66,8 @@ export async function GET(
     // Generate video URL if video exists and is ready
     let videoUrl = null
     if ((lesson as any).video && (lesson as any).video.videoId && (lesson as any).video.status === 'ready') {
-      // Use Bunny Stream URL
-      videoUrl = `https://iframe.mediadelivery.net/488255/${(lesson as any).video.videoId}`
+      // Use Bunny Stream embed URL
+      videoUrl = `https://iframe.mediadelivery.net/embed/488255/${(lesson as any).video.videoId}`
     }
 
     // Format the response
@@ -84,7 +84,6 @@ export async function GET(
       videoStatus: (lesson as any).video?.status || 'not_available',
       thumbnailUrl: (lesson as any).video?.thumbnailUrl,
       attachments: (lesson as any).attachments || [],
-      status: (lesson as any).status,
       order: (lesson as any).order
     }
 
@@ -113,7 +112,7 @@ export async function GET(
             status: lesson.status,
             order: lesson.order,
             videoUrl: lesson.video && lesson.video.videoId && lesson.video.status === 'ready' 
-              ? `https://iframe.mediadelivery.net/488255/${lesson.video.videoId}`
+              ? `https://iframe.mediadelivery.net/embed/488255/${lesson.video.videoId}`
               : null,
             videoStatus: lesson.video?.status || 'not_available',
             completed: false // Default to false, can be updated based on user progress

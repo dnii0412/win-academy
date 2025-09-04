@@ -63,45 +63,136 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
     }
   }, [currentLanguage])
 
-  const createVideoEntry = async (title: string, description: string) => {
-    try {
-      // Get admin token for authentication
-      const adminToken = localStorage.getItem("adminToken")
-      if (!adminToken) {
-        throw new Error('No admin token found. Please log in again.')
-      }
+  // REMOVED: Duplicate video creation - now handled by TUS API
 
-      console.log('Creating video entry with config:', {
-        libraryId: BUNNY_STREAM_CONFIG.libraryId,
-        apiKey: BUNNY_STREAM_CONFIG.apiKey.substring(0, 8) + '...',
-        baseUrl: BUNNY_STREAM_CONFIG.baseUrl
+  const createTusUpload = async (file: File, tusHeaders: any): Promise<string | null> => {
+    try {
+      console.log('🔧 Creating TUS upload session with Bunny...', {
+        fileSize: file.size,
+        fileName: file.name,
+        tusHeaders: {
+          ...tusHeaders,
+          authorizationSignature: tusHeaders?.authorizationSignature?.substring(0, 16) + '...'
+        }
       })
 
-      const response = await fetch(`${BUNNY_STREAM_CONFIG.baseUrl}/library/${BUNNY_STREAM_CONFIG.libraryId}/videos`, {
+      const response = await fetch('https://video.bunnycdn.com/tusupload', {
         method: 'POST',
         headers: {
-          'AccessKey': BUNNY_STREAM_CONFIG.apiKey,
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${adminToken}`
-        },
-        body: JSON.stringify({
-          title,
-          description
-        })
+          'Tus-Resumable': '1.0.0',
+          'Upload-Length': file.size.toString(),
+          'Upload-Metadata': `filename ${btoa(file.name)},filetype ${btoa(file.type)}`,
+          'AuthorizationSignature': tusHeaders.authorizationSignature,
+          'AuthorizationExpire': tusHeaders.authorizationExpire.toString(),
+          'LibraryId': tusHeaders.libraryId,
+          'VideoId': tusHeaders.videoId,
+          'Content-Type': 'application/octet-stream'
+        }
       })
 
-      if (response.ok) {
-        const data = await response.json()
-        console.log('Video entry created:', data)
-        return data.guid
+      console.log('📡 TUS creation response:', {
+        status: response.status,
+        statusText: response.statusText,
+        location: response.headers.get('Location'),
+        tusResumable: response.headers.get('Tus-Resumable')
+      })
+
+      if (response.status === 201) {
+        const location = response.headers.get('Location')
+        if (location) {
+          // Convert relative URL to absolute URL
+          const fullLocation = location.startsWith('http') 
+            ? location 
+            : `https://video.bunnycdn.com${location}`
+          
+          console.log('✅ TUS session created successfully:', fullLocation)
+          return fullLocation
+        } else {
+          console.error('❌ No Location header in TUS creation response')
+          return null
+        }
       } else {
         const errorText = await response.text()
-        console.error('Failed to create video entry:', response.status, errorText)
-        throw new Error(`Failed to create video entry: ${response.status} ${errorText}`)
+        console.error('❌ TUS creation failed:', response.status, errorText)
+        throw new Error(`TUS creation failed: ${response.status} ${errorText}`)
       }
     } catch (error) {
-      console.error('Error creating video entry:', error)
+      console.error('❌ TUS creation error:', error)
       throw error
+    }
+  }
+
+  const pollVideoStatus = async (videoId: string) => {
+    try {
+      const adminToken = localStorage.getItem("adminToken")
+      if (!adminToken) return
+
+      console.log(`🔄 Polling video status: ${videoId}`)
+      
+      const maxAttempts = 60 // 5 minutes with 5-second intervals
+      let attempts = 0
+      
+      const pollInterval = setInterval(async () => {
+        attempts++
+        
+        try {
+          const response = await fetch(`/api/admin/videos/${videoId}/status`, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${adminToken}`
+            }
+          })
+
+          if (response.ok) {
+            const status = await response.json()
+            console.log(`📊 Video status (${attempts}/${maxAttempts}):`, status)
+            
+            if (status.isReady) {
+              clearInterval(pollInterval)
+              setUploadStatus('success')
+              setIsUploading(false)
+              onUploadComplete(videoId, status.urls?.embed || '')
+              
+              // Close after a short delay
+              setTimeout(() => {
+                onClose()
+              }, 2000)
+            } else if (status.isError) {
+              clearInterval(pollInterval)
+              setUploadStatus('error')
+              setErrorMessage(status.error || 'Video processing failed')
+              setIsUploading(false)
+            } else if (attempts >= maxAttempts) {
+              clearInterval(pollInterval)
+              setUploadStatus('error')
+              setErrorMessage('Video processing timed out')
+              setIsUploading(false)
+            }
+          } else {
+            console.error(`❌ Status check failed: ${response.status}`)
+            if (attempts >= maxAttempts) {
+              clearInterval(pollInterval)
+              setUploadStatus('error')
+              setErrorMessage('Failed to check video status')
+              setIsUploading(false)
+            }
+          }
+        } catch (error) {
+          console.error('❌ Status polling error:', error)
+          if (attempts >= maxAttempts) {
+            clearInterval(pollInterval)
+            setUploadStatus('error')
+            setErrorMessage('Status polling failed')
+            setIsUploading(false)
+          }
+        }
+      }, 5000) // Poll every 5 seconds
+      
+    } catch (error) {
+      console.error('❌ Failed to start status polling:', error)
+      setUploadStatus('error')
+      setErrorMessage('Failed to start status monitoring')
+      setIsUploading(false)
     }
   }
 
@@ -117,68 +208,6 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
       setUploadStatus('uploading')
       setErrorMessage('')
 
-      // Create video entry first
-      const videoId = await createVideoEntry(videoTitle, videoDescription)
-      
-      // Use TUS upload through our API with proper JSON format
-      const uploadData = {
-        fileSize: file.size,
-        filename: file.name,
-        contentType: file.type,
-        title: videoTitle,
-        description: videoDescription
-      }
-      
-      const xhr = new XMLHttpRequest()
-      
-      xhr.upload.addEventListener('progress', (event) => {
-        if (event.lengthComputable) {
-          const percentage = Math.round((event.loaded / event.total) * 100)
-          setUploadProgress({
-            bytesUploaded: event.loaded,
-            bytesTotal: event.total,
-            percentage
-          })
-        }
-      })
-      
-      xhr.addEventListener('load', () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          try {
-            const response = JSON.parse(xhr.responseText)
-            if (response.success && response.uploadUrl && response.videoId) {
-              console.log('✅ TUS initialized, starting file upload...', response)
-              
-              // Now upload the actual file using TUS protocol
-              uploadFileWithTUS(file, response.uploadUrl, response.videoId)
-            } else {
-              setUploadStatus('error')
-              setErrorMessage(response.error || 'TUS initialization failed')
-              setIsUploading(false)
-            }
-          } catch (e) {
-            setUploadStatus('error')
-            setErrorMessage('Invalid response from server')
-            setIsUploading(false)
-          }
-        } else {
-          setUploadStatus('error')
-          setErrorMessage(`TUS initialization failed: ${xhr.status} ${xhr.statusText}`)
-          setIsUploading(false)
-        }
-      })
-      
-      xhr.addEventListener('error', () => {
-        setUploadStatus('error')
-        setErrorMessage('Upload failed due to network error')
-        setIsUploading(false)
-      })
-      
-      xhr.addEventListener('abort', () => {
-        setUploadStatus('idle')
-        setIsUploading(false)
-      })
-      
       // Get admin token for authentication
       const adminToken = localStorage.getItem("adminToken")
       if (!adminToken) {
@@ -188,12 +217,41 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
         return
       }
 
-      xhr.open('POST', '/api/admin/upload/tus')
-      xhr.setRequestHeader('Authorization', `Bearer ${adminToken}`)
-      xhr.setRequestHeader('Content-Type', 'application/json')
-      xhr.send(JSON.stringify(uploadData))
+      // Initialize TUS upload (this will create video entry)
+      const tusInitResponse = await fetch('/api/admin/upload/tus', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${adminToken}`
+        },
+        body: JSON.stringify({
+          fileSize: file.size,
+          filename: file.name,
+          contentType: file.type
+        })
+      })
+
+      if (!tusInitResponse.ok) {
+        const errorData = await tusInitResponse.json()
+        throw new Error(errorData.error || 'Failed to initialize upload')
+      }
+
+      const tusInitResult = await tusInitResponse.json()
+      const videoId = tusInitResult.videoId
+      const uploadUrl = tusInitResult.uploadUrl
+      const tusHeaders = tusInitResult.tusHeaders
       
-      uploadRef.current = xhr
+      console.log('✅ TUS initialized, starting direct upload to Bunny...', {
+        videoId,
+        uploadUrl,
+        tusHeaders: {
+          ...tusHeaders,
+          authorizationSignature: tusHeaders?.authorizationSignature?.substring(0, 16) + '...'
+        }
+      })
+      
+      // Upload directly to Bunny TUS endpoint
+      await uploadFileWithTUS(file, uploadUrl, videoId, tusHeaders)
     } catch (error: any) {
       console.error('Upload error:', error)
       setUploadStatus('error')
@@ -202,9 +260,17 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
     }
   }
 
-  const uploadFileWithTUS = async (file: File, uploadUrl: string, videoId: string) => {
+  const uploadFileWithTUS = async (file: File, uploadUrl: string, videoId: string, tusHeaders: any) => {
     try {
       console.log('🚀 Starting TUS file upload...', { fileSize: file.size, uploadUrl })
+      
+      // Step 1: Create TUS upload session with Bunny
+      const tusLocation = await createTusUpload(file, tusHeaders)
+      if (!tusLocation) {
+        throw new Error('Failed to create TUS upload session')
+      }
+      
+      console.log('✅ TUS session created:', tusLocation)
       
       const chunkSize = 4 * 1024 * 1024 // 4MB chunks
       let offset = 0
@@ -213,7 +279,7 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
         const chunk = file.slice(offset, offset + chunkSize)
         const chunkBuffer = await chunk.arrayBuffer()
         
-        console.log(`📦 Uploading chunk: ${offset}-${offset + chunk.size} (${chunk.size} bytes)`)
+        console.log(`📦 Uploading chunk: ${offset}-${offset + chunk.size} (${chunk.size} bytes) to ${tusLocation}`)
         
         const xhr = new XMLHttpRequest()
         
@@ -248,15 +314,18 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
             reject(new Error('Chunk upload error'))
           })
           
-          // Send chunk
-          xhr.open('PATCH', uploadUrl)
-          xhr.setRequestHeader('Content-Type', 'application/octet-stream')
+          // Send chunk to the TUS location URL (not the base URL)
+          xhr.open('PATCH', tusLocation)
+          xhr.setRequestHeader('Content-Type', 'application/offset+octet-stream')
           xhr.setRequestHeader('Upload-Offset', offset.toString())
           xhr.setRequestHeader('Tus-Resumable', '1.0.0')
           
-          const adminToken = localStorage.getItem("adminToken")
-          if (adminToken) {
-            xhr.setRequestHeader('Authorization', `Bearer ${adminToken}`)
+          // Bunny TUS requires these specific headers
+          if (tusHeaders) {
+            xhr.setRequestHeader('AuthorizationSignature', tusHeaders.authorizationSignature)
+            xhr.setRequestHeader('AuthorizationExpire', tusHeaders.authorizationExpire.toString())
+            xhr.setRequestHeader('LibraryId', tusHeaders.libraryId)
+            xhr.setRequestHeader('VideoId', tusHeaders.videoId)
           }
           
           xhr.send(chunkBuffer)
@@ -265,18 +334,10 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
         offset += chunk.size
       }
       
-      console.log('🎉 File upload completed!')
-      setUploadStatus('success')
-      setIsUploading(false)
+      console.log('🎉 File upload completed! Starting status polling...')
       
-      // Get the video URL
-      const videoUrl = getBunnyVideoUrl(videoId)
-      onUploadComplete(videoId, videoUrl)
-      
-      // Close after a short delay
-      setTimeout(() => {
-        onClose()
-      }, 2000)
+      // Start polling for video processing status
+      await pollVideoStatus(videoId)
       
     } catch (error) {
       console.error('❌ TUS file upload failed:', error)
@@ -335,6 +396,50 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
     } catch (error) {
       console.error('Bunny API test error:', error)
       alert(currentLanguage === "mn" ? "Bunny API холболтод алдаа гарлаа" : "Bunny API connection error")
+    }
+  }
+
+  const testTusHeaders = async () => {
+    try {
+      setErrorMessage('')
+      
+      // Get admin token for authentication
+      const adminToken = localStorage.getItem("adminToken")
+      if (!adminToken) {
+        alert(currentLanguage === "mn" ? "Админ токен олдсонгүй. Дахин нэвтэрнэ үү." : "No admin token found. Please log in again.")
+        return
+      }
+
+      // Test TUS header generation
+      const response = await fetch('/api/admin/upload/tus', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${adminToken}`
+        },
+        body: JSON.stringify({
+          fileSize: 1024,
+          filename: 'test.txt',
+          contentType: 'text/plain'
+        })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        console.log('TUS headers test successful:', {
+          videoId: data.videoId,
+          uploadUrl: data.uploadUrl,
+          tusHeaders: data.tusHeaders
+        })
+        alert(currentLanguage === "mn" ? "TUS загварууд амжилттай!" : "TUS headers generated successfully!")
+      } else {
+        const errorText = await response.text()
+        console.error('TUS headers test failed:', response.status, errorText)
+        alert(currentLanguage === "mn" ? `TUS загварууд алдаа: ${response.status}` : `TUS headers error: ${response.status}`)
+      }
+    } catch (error) {
+      console.error('TUS headers test error:', error)
+      alert(currentLanguage === "mn" ? "TUS загварууд тест алдаа" : "TUS headers test error")
     }
   }
 
@@ -465,9 +570,14 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
 
             {/* Action Buttons */}
             <div className="flex justify-between items-center">
-              <Button type="button" variant="outline" onClick={testBunnyAPI}>
-                {currentLanguage === "mn" ? "API Тест" : "Test API"}
-              </Button>
+              <div className="flex space-x-2">
+                <Button type="button" variant="outline" onClick={testBunnyAPI}>
+                  {currentLanguage === "mn" ? "API Тест" : "Test API"}
+                </Button>
+                <Button type="button" variant="outline" onClick={testTusHeaders}>
+                  {currentLanguage === "mn" ? "TUS Тест" : "Test TUS"}
+                </Button>
+              </div>
               <div className="flex space-x-3">
                 <Button type="button" variant="outline" onClick={onClose}>
                   {currentLanguage === "mn" ? "Цуцлах" : "Cancel"}

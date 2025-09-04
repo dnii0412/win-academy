@@ -160,11 +160,6 @@ const courseSchema = new mongoose.Schema({
     type: Number,
     min: 0
   },
-  status: {
-    type: String,
-    enum: ['inactive', 'archived', 'draft', 'published'],
-    default: 'inactive'
-  },
   category: {
     type: String,
     trim: true
@@ -238,7 +233,6 @@ const courseSchema = new mongoose.Schema({
 })
 
 // Create indexes for better query performance
-courseSchema.index({ status: 1, createdAt: -1 })
 courseSchema.index({ category: 1 })
 courseSchema.index({ featured: 1 })
 courseSchema.index({ 'modules.topics.videoUrl': 1 })

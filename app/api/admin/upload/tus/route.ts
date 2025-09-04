@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import jwt from "jsonwebtoken"
 import { BUNNY_STREAM_CONFIG, TUS_CONFIG } from "@/lib/bunny-stream"
 import { tusStorage } from "@/lib/tus-storage"
+import { bunnyVideoService } from "@/lib/bunny-video-service"
 
 // Configure for large file uploads
 export const config = {
@@ -38,58 +39,7 @@ function validateFile(filename: string, contentType: string, fileSize: number): 
   return { isValid: true }
 }
 
-// Enhanced Bunny.net video creation with retry logic
-async function createBunnyVideoWithRetry(filename: string, description: string, retryCount = 0): Promise<{ success: boolean; videoId?: string; error?: string }> {
-  try {
-    console.log(`🔗 Creating Bunny.net video entry (attempt ${retryCount + 1})...`)
-    
-    const response = await fetch(`${BUNNY_STREAM_CONFIG.baseUrl}/library/${BUNNY_STREAM_CONFIG.libraryId}/videos`, {
-      method: 'POST',
-      headers: {
-        'AccessKey': BUNNY_STREAM_CONFIG.apiKey,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        title: filename,
-        description: `Uploaded via TUS: ${description}`,
-        metadata: {
-          uploadMethod: 'TUS',
-          originalFilename: filename,
-          uploadTimestamp: new Date().toISOString()
-        }
-      }),
-      signal: AbortSignal.timeout(30000) // 30 seconds timeout
-    })
-
-    if (response.ok) {
-      const videoEntry = await response.json()
-      const videoId = videoEntry.guid
-      
-      if (!videoId) {
-        throw new Error('No video ID returned from Bunny.net')
-      }
-
-      console.log('✅ Video entry created in Bunny.net:', videoId)
-      return { success: true, videoId }
-    } else {
-      const errorText = await response.text()
-      throw new Error(`Bunny.net API error: ${response.status} - ${errorText}`)
-    }
-  } catch (error) {
-    console.error(`❌ Failed to create Bunny.net video (attempt ${retryCount + 1}):`, error)
-    
-    if (retryCount < BUNNY_STREAM_CONFIG.retryAttempts) {
-      console.log(`🔄 Retrying in ${BUNNY_STREAM_CONFIG.retryDelay}ms...`)
-      await new Promise(resolve => setTimeout(resolve, BUNNY_STREAM_CONFIG.retryDelay))
-      return createBunnyVideoWithRetry(filename, description, retryCount + 1)
-    }
-    
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Unknown error during video creation'
-    }
-  }
-}
+// REMOVED: Duplicate video creation function - now using bunnyVideoService
 
 // POST /api/admin/upload/tus - Initialize TUS upload
 export async function POST(request: NextRequest) {
@@ -276,10 +226,15 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ File validation passed')
 
-    // Create Bunny.net video entry with retry logic
+    // Create Bunny.net video entry using centralized service
     console.log('🔗 Creating Bunny.net video entry...')
     
-    const videoCreation = await createBunnyVideoWithRetry(filename, `File: ${filename}, Size: ${(fileSize / (1024 * 1024)).toFixed(2)}MB`)
+    const correlationId = `upload_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    const videoCreation = await bunnyVideoService.createVideo(
+      filename, 
+      `File: ${filename}, Size: ${(fileSize / (1024 * 1024)).toFixed(2)}MB`,
+      correlationId
+    )
     
     if (!videoCreation.success || !videoCreation.videoId) {
       console.log('❌ Failed to create Bunny.net video entry:', videoCreation.error)
@@ -311,17 +266,13 @@ export async function POST(request: NextRequest) {
     console.log('📊 TUS storage after creation:', tusStorage.getStats())
     console.log('📋 Created upload details:', createdUpload)
 
-    // Return TUS-compatible response with proper headers
+    // Return Bunny TUS headers for direct upload
     const response = NextResponse.json({
       success: true,
-      uploadUrl: uploadUrl,
-      uploadId,
       videoId: videoId,
-      uploadHeaders: {
-        'AccessKey': BUNNY_STREAM_CONFIG.apiKey,
-        'Content-Type': 'application/octet-stream'
-      },
-      message: "TUS upload initialized successfully. Use the uploadUrl for file uploads."
+      uploadUrl: videoCreation.uploadUrl, // This is now Bunny's TUS endpoint
+      tusHeaders: videoCreation.tusHeaders, // Presigned headers for Bunny
+      message: "TUS upload initialized successfully. Use Bunny TUS endpoint directly."
     })
 
     // Set TUS headers

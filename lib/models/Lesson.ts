@@ -100,11 +100,6 @@ const lessonSchema = new mongoose.Schema({
       default: 0
     }
   },
-  status: {
-    type: String,
-    enum: ['published'],
-    default: 'published'
-  },
   order: {
     type: Number,
     default: 0
@@ -123,7 +118,6 @@ const lessonSchema = new mongoose.Schema({
 
 // Create indexes for better query performance
 lessonSchema.index({ courseId: 1, subcourseId: 1, order: 1 })
-lessonSchema.index({ status: 1 })
 lessonSchema.index({ 'video.videoId': 1 })
 
 // Pre-save middleware to ensure slug uniqueness within course

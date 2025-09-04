@@ -64,8 +64,6 @@ interface SubcourseAccordionProps {
   onEditLesson: (lesson: Lesson) => void
   onDuplicateLesson: (lesson: Lesson) => void
   onDeleteLesson: (lesson: Lesson) => void
-  onToggleLessonStatus: (lessonId: string, status: 'published') => Promise<void>
-  onToggleSubcourseStatus: (subcourseId: string, status: 'published') => Promise<void>
   expandedSubcourses: string[]
   onToggleExpanded: (subcourseId: string) => void
   selectedItems: string[]

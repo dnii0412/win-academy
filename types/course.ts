@@ -40,7 +40,6 @@ export interface Course {
   thumbnailUrl?: string
   price: number
   originalPrice?: number
-  status: 'inactive' | 'archived' | 'draft' | 'published'
   category: string
   categoryMn: string
   level: string
