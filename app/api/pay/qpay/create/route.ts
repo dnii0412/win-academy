@@ -45,7 +45,8 @@ export async function POST(req: NextRequest) {
     const existingOrder = await Order.findOne({
       userId: session.user.id || session.user.email,
       courseId,
-      status: 'PENDING'
+      status: 'PENDING',
+      paymentMethod: 'qpay'
     })
 
     if (existingOrder) {
@@ -84,6 +85,18 @@ export async function POST(req: NextRequest) {
       amount: priceMnt,
       description: `Win Academy — ${course.title}`,
     })
+
+    // Validate QPay response
+    if (!inv.invoice_id) {
+      throw new Error('QPay did not return invoice ID')
+    }
+
+    if (!inv.qr_text && !inv.qr_image) {
+      console.warn('QPay invoice created but no QR code returned', { 
+        invoiceId: inv.invoice_id, 
+        response: inv 
+      })
+    }
 
     // Persist invoice linkage
     order.qpay = {

@@ -4,8 +4,10 @@ export const paymentConfig = {
         accessToken: process.env.BYL_ACCESS_TOKEN,
         projectId: process.env.BYL_PROJECT_ID,
     },
+    // QPay configuration is handled by lib/qpay/config.ts
+    // This is kept for backward compatibility but should not be used
     qpay: {
-        apiUrl: process.env.QPAY_API_URL || 'https://merchant.qpay.mn/v2',
+        apiUrl: process.env.QPAY_BASE_URL || 'https://merchant-sandbox.qpay.mn',
         merchantCode: process.env.QPAY_MERCHANT_CODE,
         mccCode: process.env.QPAY_MCC_CODE,
     },

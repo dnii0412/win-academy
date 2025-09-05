@@ -49,21 +49,36 @@ export async function GET(req: NextRequest) {
         const check = await qpayPaymentCheckByInvoice(order.qpay.invoiceId)
         order.qpay.lastCheckRes = check
 
-        const paidAmount = Array.isArray(check?.payments)
-          ? check.payments.reduce((sum: number, p: any) => sum + (p.amount || 0), 0)
-          : 0
+        const paidAmount = (check as any)?.paid_amount || 0
 
         if (paidAmount >= order.amount && order.status !== 'PAID') {
-          order.status = 'PAID'
-          order.transactionId = check.payments?.[0]?.payment_id || order.qpay.invoiceId
-          await order.save()
-
-          await CourseAccess.grantAccess(
-            order.userId,
-            order.courseId,
-            order._id.toString(),
-            'purchase'
+          // Use atomic update to prevent race conditions with webhook
+          const updateResult = await Order.updateOne(
+            { 
+              _id: order._id, 
+              status: { $ne: 'PAID' } // Only update if not already paid
+            },
+            {
+              $set: {
+                status: 'PAID',
+                transactionId: check.payments?.[0]?.payment_id || order.qpay.invoiceId,
+                updatedAt: new Date()
+              }
+            }
           )
+
+          if (updateResult.modifiedCount > 0) {
+            console.log('qpay.status.poll.paid', { orderId: order._id, paidAmount, requiredAmount: order.amount })
+            
+            await CourseAccess.grantAccess(
+              order.userId,
+              order.courseId,
+              order._id.toString(),
+              'purchase'
+            )
+          } else {
+            console.log('qpay.status.poll.already_processed', { orderId: order._id })
+          }
 
           return NextResponse.json({
             status: 'PAID',
