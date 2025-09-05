@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { X } from "lucide-react"
-import { useLanguage } from "@/contexts/language-context"
 
 interface SubcourseFormProps {
   isOpen: boolean
@@ -18,7 +17,6 @@ interface SubcourseFormProps {
 }
 
 export default function SubcourseForm({ isOpen, onClose, onSubmit, subcourse, mode, courseId }: SubcourseFormProps) {
-  const { currentLanguage } = useLanguage()
   const [formData, setFormData] = useState({
     title: "",
     titleMn: "",

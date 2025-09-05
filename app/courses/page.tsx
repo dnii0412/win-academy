@@ -2,7 +2,6 @@
 
 import { useSession } from "next-auth/react"
 import { useEffect, useState } from "react"
-import { useLanguage } from "@/contexts/language-context"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -15,7 +14,6 @@ import CourseImage from "@/components/course-image"
 
 export default function CoursesPage() {
   const { data: session, status } = useSession()
-  const { currentLanguage } = useLanguage()
   const [courses, setCourses] = useState<Course[]>([])
   const [filteredCourses, setFilteredCourses] = useState<Course[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -79,8 +77,8 @@ export default function CoursesPage() {
     // Filter by search term
     if (searchTerm) {
       filtered = filtered.filter(course => {
-        const title = currentLanguage === "mn" ? course.titleMn || course.title : course.title
-        const description = currentLanguage === "mn" ? course.descriptionMn || course.description : course.description
+        const title = course.titleMn || course.title
+        const description = course.descriptionMn || course.description
         return title.toLowerCase().includes(searchTerm.toLowerCase()) ||
           description.toLowerCase().includes(searchTerm.toLowerCase())
       })
@@ -144,13 +142,10 @@ export default function CoursesPage() {
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-[#111111] dark:text-white mb-4">
-            {currentLanguage === "mn" ? "Бүх сургалтууд" : "All Courses"}
+            Бүх сургалтууд
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            {currentLanguage === "mn"
-              ? "Манай мэргэжлийн багшаас суралцаж, ур чадвараа сайжруулна уу"
-              : "Learn from our professional instructors and improve your skills"
-            }
+            Манай мэргэжлийн багшаас суралцаж, ур чадвараа сайжруулна уу
           </p>
         </div>
 
@@ -160,7 +155,7 @@ export default function CoursesPage() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
-                placeholder={currentLanguage === "mn" ? "Сургалт хайх..." : "Search courses..."}
+                placeholder="Сургалт хайх..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -168,25 +163,25 @@ export default function CoursesPage() {
             </div>
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
               <SelectTrigger className="w-full sm:w-48">
-                <SelectValue placeholder={currentLanguage === "mn" ? "Бүх ангилал" : "All Categories"} />
+                <SelectValue placeholder="Бүх ангилал" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{currentLanguage === "mn" ? "Бүх ангилал" : "All Categories"}</SelectItem>
-                <SelectItem value="design">{currentLanguage === "mn" ? "Дизайн" : "Design"}</SelectItem>
-                <SelectItem value="marketing">{currentLanguage === "mn" ? "Маркетинг" : "Marketing"}</SelectItem>
-                <SelectItem value="programming">{currentLanguage === "mn" ? "Програмчлал" : "Programming"}</SelectItem>
-                <SelectItem value="business">{currentLanguage === "mn" ? "Бизнес" : "Business"}</SelectItem>
+                <SelectItem value="all">Бүх ангилал</SelectItem>
+                <SelectItem value="design">Дизайн</SelectItem>
+                <SelectItem value="marketing">Маркетинг</SelectItem>
+                <SelectItem value="programming">Програмчлал</SelectItem>
+                <SelectItem value="business">Бизнес</SelectItem>
               </SelectContent>
             </Select>
             <Select value={selectedLevel} onValueChange={setSelectedLevel}>
               <SelectTrigger className="w-full sm:w-48">
-                <SelectValue placeholder={currentLanguage === "mn" ? "Бүх түвшин" : "All Levels"} />
+                <SelectValue placeholder="Бүх түвшин" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{currentLanguage === "mn" ? "Бүх түвшин" : "All Levels"}</SelectItem>
-                <SelectItem value="beginner">{currentLanguage === "mn" ? "Эхлэгч" : "Beginner"}</SelectItem>
-                <SelectItem value="intermediate">{currentLanguage === "mn" ? "Дунд" : "Intermediate"}</SelectItem>
-                <SelectItem value="advanced">{currentLanguage === "mn" ? "Дээд" : "Advanced"}</SelectItem>
+                <SelectItem value="all">Бүх түвшин</SelectItem>
+                <SelectItem value="beginner">Эхлэгч</SelectItem>
+                <SelectItem value="intermediate">Дунд</SelectItem>
+                <SelectItem value="advanced">Дээд</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -199,23 +194,17 @@ export default function CoursesPage() {
               <BookOpen className="h-16 w-16 text-gray-400" />
             </div>
             <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-4">
-              {currentLanguage === "mn"
-                ? "Одоогоор сургалт байхгүй байна"
-                : "No courses available yet"
-              }
+              Одоогоор сургалт байхгүй байна
             </h2>
             <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-lg mx-auto">
-              {currentLanguage === "mn"
-                ? "Манай багш нар одоогоор сургалтуудыг бэлтгэж байна. Удахгүй шинэ сургалтууд нэмэгдэх болно."
-                : "Our instructors are currently preparing courses. New courses will be added soon."
-              }
+              Манай багш нар одоогоор сургалтуудыг бэлтгэж байна. Удахгүй шинэ сургалтууд нэмэгдэх болно.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               {session ? (
                 // Logged in users - show Dashboard button only
                 <Link href="/dashboard">
                   <Button className="bg-[#E10600] hover:bg-[#C70500] text-white">
-                    {currentLanguage === "mn" ? "Хяналтын самбар руу буцах" : "Back to Dashboard"}
+                    Хяналтын самбар руу буцах
                   </Button>
                 </Link>
               ) : (
@@ -223,12 +212,12 @@ export default function CoursesPage() {
                 <>
                   <Link href="/">
                     <Button variant="outline" className="border-[#E10600] text-[#E10600] hover:bg-[#E10600] hover:text-white">
-                      {currentLanguage === "mn" ? "Нүүр хуудас руу буцах" : "Back to Home"}
+                      Нүүр хуудас руу буцах
                     </Button>
                   </Link>
                   <Link href="/register">
                     <Button className="bg-[#E10600] hover:bg-[#C70500] text-white">
-                      {currentLanguage === "mn" ? "Бүртгүүлэх" : "Register"}
+                      Бүртгүүлэх
                     </Button>
                   </Link>
                 </>
@@ -242,27 +231,24 @@ export default function CoursesPage() {
                 <div className="relative">
                   <CourseImage
                     thumbnailUrl={course.thumbnailUrl}
-                    title={currentLanguage === "mn" ? course.titleMn || course.title : course.title}
+                    title={course.titleMn || course.title}
                     category={course.category}
                     size="medium"
                     className="w-full h-48"
                   />
                   {course.isEnrolled && (
                     <Badge className="absolute top-3 right-3 bg-green-500 hover:bg-green-600 z-10">
-                      {currentLanguage === "mn" ? "Худалдан авсан" : "Enrolled"}
+                      Худалдан авсан
                     </Badge>
                   )}
                 </div>
 
                 <CardHeader className="pb-3">
                   <CardTitle className="text-lg line-clamp-2">
-                    {currentLanguage === "mn" ? course.titleMn || course.title : course.title}
+                    {course.titleMn || course.title}
                   </CardTitle>
                   <CardDescription className="line-clamp-2">
-                    {currentLanguage === "mn"
-                      ? (course.descriptionMn || course.description || '').substring(0, 120) + '...'
-                      : (course.description || '').substring(0, 120) + '...'
-                    }
+                    {(course.descriptionMn || course.description || '').substring(0, 120) + '...'}
                   </CardDescription>
                 </CardHeader>
 
@@ -274,17 +260,17 @@ export default function CoursesPage() {
                     </div>
                     <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
                       <User className="h-4 w-4 mr-2" />
-                      <span>{currentLanguage === "mn" ? course.instructorMn || course.instructor : course.instructor}</span>
+                      <span>{course.instructorMn || course.instructor}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <Badge variant="secondary">
-                        {currentLanguage === "mn" ? course.categoryMn || course.category : course.category}
+                        {course.categoryMn || course.category}
                       </Badge>
                       <Badge
                         variant="outline"
                         className={getLevelColor(course.level)}
                       >
-                        {currentLanguage === "mn" ? course.levelMn || course.level : course.level}
+                        {course.levelMn || course.level}
                       </Badge>
                     </div>
                   </div>
@@ -301,7 +287,7 @@ export default function CoursesPage() {
                         <Link href={`/learn/${course._id}`} className="flex-1">
                           <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
                             <Play className="h-4 w-4 mr-2" />
-                            {currentLanguage === "mn" ? "Үргэлжлүүлэх" : "Continue Learning"}
+                            Үргэлжлүүлэх
                           </Button>
                         </Link>
                       ) : (
@@ -309,21 +295,21 @@ export default function CoursesPage() {
                           <Link href={`/courses/${course._id}`} className="flex-1">
                             <Button variant="outline" className="w-full border-[#E10600] text-[#E10600] hover:bg-[#E10600] hover:text-white">
                               <BookOpen className="h-4 w-4 mr-2" />
-                              {currentLanguage === "mn" ? "дэлгэрэнгүй" : "View Course"}
+                              дэлгэрэнгүй
                             </Button>
                           </Link>
                           {session?.user ? (
                             <Link href={`/checkout/${course._id}`} className="flex-1">
                               <Button className="w-full bg-[#E10600] hover:bg-[#C70500] text-white">
                                 <ShoppingCart className="h-4 w-4 mr-2" />
-                                {currentLanguage === "mn" ? "Худалдаж авах" : "Buy Course"}
+                                Худалдаж авах
                               </Button>
                             </Link>
                           ) : (
                             <Link href={`/login?callbackUrl=${encodeURIComponent(`/checkout/${course._id}`)}`} className="flex-1">
                               <Button className="w-full bg-[#E10600] hover:bg-[#C70500] text-white">
                                 <ShoppingCart className="h-4 w-4 mr-2" />
-                                {currentLanguage === "mn" ? "Нэвтэрч худалдаж авах" : "Login to Buy"}
+                                Нэвтэрч худалдаж авах
                               </Button>
                             </Link>
                           )}

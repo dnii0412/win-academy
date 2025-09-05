@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react"
 import { useRouter, usePathname } from "next/navigation"
-import { useLanguage } from "@/contexts/language-context"
 
 interface AdminLayoutProps {
   children: React.ReactNode
@@ -13,7 +12,6 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
   const pathname = usePathname()
-  const { currentLanguage } = useLanguage()
 
   useEffect(() => {
     // Add a small delay to ensure token is properly stored
@@ -99,7 +97,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-red-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600 dark:text-gray-400">
-            {currentLanguage === "mn" ? "Шалгаж байна..." : "Checking authentication..."}
+            Шалгаж байна...
           </p>
         </div>
       </div>
@@ -118,7 +116,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-red-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600 dark:text-gray-400">
-            {currentLanguage === "mn" ? "Шилжүүлж байна..." : "Redirecting..."}
+            Шилжүүлж байна...
           </p>
         </div>
       </div>
@@ -137,7 +135,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               {/* Admin Title */}
               <div className="flex-shrink-0">
                 <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                  {currentLanguage === "mn" ? "Админ удирдлага" : "Admin Management"}
+                  Админ удирдлага
                 </h1>
               </div>
               
@@ -151,7 +149,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                              : "text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400"
                          }`}
                        >
-                         {currentLanguage === "mn" ? "Удирдлага" : "Dashboard"}
+                         Удирдлага
                        </a>
                        <a 
                          href="/admin/courses" 
@@ -161,7 +159,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                              : "text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400"
                          }`}
                        >
-                         {currentLanguage === "mn" ? "Сургалтууд" : "Courses"}
+                         Сургалтууд
                        </a>
 
                        <a 
@@ -172,7 +170,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                              : "text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400"
                          }`}
                        >
-                         {currentLanguage === "mn" ? "Хэрэглэгчид" : "Users"}
+                         Хэрэглэгчид
                        </a>
                        <a 
                          href="/admin/orders" 
@@ -182,7 +180,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                              : "text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400"
                          }`}
                        >
-                         {currentLanguage === "mn" ? "Захиалгууд" : "Orders"}
+                         Захиалгууд
                        </a>
 
                      </nav>
@@ -197,7 +195,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 }}
                 className="px-4 py-2 text-sm font-medium text-red-600 bg-white border border-red-600 hover:bg-red-50 rounded-md transition-colors"
               >
-                {currentLanguage === "mn" ? "Гарах" : "Logout"}
+                Гарах
               </button>
             </div>
           </div>

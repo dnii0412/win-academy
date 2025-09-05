@@ -9,7 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { X, Plus, Upload } from "lucide-react"
-import { useLanguage } from "@/contexts/language-context"
 import { useEffect } from "react"
 import ImageUpload from "@/components/ImageUpload"
 
@@ -22,7 +21,6 @@ interface CourseFormProps {
 }
 
 export default function CourseForm({ isOpen, onClose, onSubmit, course, mode }: CourseFormProps) {
-  const { currentLanguage } = useLanguage()
   const [formData, setFormData] = useState({
     title: course?.title || "",
     titleMn: course?.titleMn || "",
@@ -73,12 +71,12 @@ export default function CourseForm({ isOpen, onClose, onSubmit, course, mode }: 
 
     // Client-side validation
     if (!formData.title.trim() || !formData.titleMn.trim() || !formData.description.trim() || !formData.descriptionMn.trim()) {
-      alert(currentLanguage === "mn" ? "Бүх талбарыг бөглөнө үү!" : "Please fill in all required fields!")
+      alert("Бүх талбарыг бөглөнө үү!")
       return
     }
 
     if (!formData.price || Number(formData.price) < 50) {
-      alert(currentLanguage === "mn" ? "Үнэ дор хаяж ₮50 байх ёстой! (Тест бүтээгдэхүүн)" : "Price must be at least ₮50 MNT (Test Product)!")
+      alert("Үнэ дор хаяж ₮50 байх ёстой! (Тест бүтээгдэхүүн)")
       return
     }
 

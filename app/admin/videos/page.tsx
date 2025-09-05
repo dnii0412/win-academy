@@ -4,12 +4,10 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Plus, Upload, Video, Settings } from "lucide-react"
-import { useLanguage } from "@/contexts/language-context"
 import TUSUploader from "@/components/video-upload/TUSUploader"
 import VideoLibrary from "@/components/video-upload/VideoLibrary"
 
 export default function AdminVideosPage() {
-  const { currentLanguage } = useLanguage()
   const [showUploader, setShowUploader] = useState(false)
 
   const handleUploadComplete = (videoId: string, videoUrl: string) => {

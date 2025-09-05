@@ -51,24 +51,23 @@ export async function getQPayAccessToken(): Promise<string> {
     }
   }
 
-  // Fresh token - QPay uses Basic Auth, not OAuth2
+  // Fresh token - QPay V2 uses username/password authentication
   console.log('qpay.token.request', { 
     correlationId, 
-    method: 'Basic Auth',
+    method: 'Username/Password',
     url: `${QPAY.baseUrl}/v2/auth/token`
   })
-  
-  // Create Basic Auth header
-  const credentials = Buffer.from(`${QPAY.clientId}:${QPAY.clientSecret}`).toString('base64')
 
   try {
     const authRes = await qpayFetch('/v2/auth/token', {
       method: 'POST',
       headers: {
-        'Authorization': `Basic ${credentials}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({}), // Empty body for Basic Auth
+      body: JSON.stringify({
+        username: QPAY.username,
+        password: QPAY.password
+      }),
     })
 
     inMemoryToken = {

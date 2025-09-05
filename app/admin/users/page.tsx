@@ -17,7 +17,6 @@ import {
   Users,
   BookOpen
 } from "lucide-react"
-import { useLanguage } from "@/contexts/language-context"
 import Link from "next/link"
 import UserForm from "./components/UserForm"
 import CourseAccessManager from "./components/CourseAccessManager"
@@ -44,7 +43,6 @@ export default function AdminUsersPage() {
   const [showEditForm, setShowEditForm] = useState(false)
   const [showCourseAccess, setShowCourseAccess] = useState(false)
   const [selectedUserForAccess, setSelectedUserForAccess] = useState<AdminUser | null>(null)
-  const { currentLanguage } = useLanguage()
 
   useEffect(() => {
     fetchUsers()
@@ -87,14 +85,14 @@ export default function AdminUsersPage() {
         setUsers(prev => [data.user, ...prev])
         setShowAddForm(false)
         // Show success message
-        alert(currentLanguage === "mn" ? "Хэрэглэгч амжилттай үүслээ!" : "User created successfully!")
+        alert("User created successfully!")
       } else {
         const errorData = await response.json()
-        alert(currentLanguage === "mn" ? `Алдаа: ${errorData.message}` : `Error: ${errorData.message}`)
+        alert(`Error: ${errorData.message}`)
       }
     } catch (error) {
       console.error("Failed to create user:", error)
-      alert(currentLanguage === "mn" ? "Хэрэглэгч үүсгэхэд алдаа гарлаа" : "Failed to create user")
+      alert("Failed to create user")
     }
   }
 
@@ -117,14 +115,14 @@ export default function AdminUsersPage() {
         ))
         setShowEditForm(false)
         setEditingUser(null)
-        alert(currentLanguage === "mn" ? "Хэрэглэгч амжилттай шинэчлэгдлээ!" : "User updated successfully!")
+        alert("User updated successfully!")
       } else {
         const errorData = await response.json()
-        alert(currentLanguage === "mn" ? `Алдаа: ${errorData.message}` : `Error: ${errorData.message}`)
+        alert(`Error: ${errorData.message}`)
       }
     } catch (error) {
       console.error("Failed to update user:", error)
-      alert(currentLanguage === "mn" ? "Хэрэглэгч шинэчлэхэд алдаа гарлаа" : "Failed to update user")
+      alert("Failed to update user")
     }
   }
 
@@ -134,18 +132,12 @@ export default function AdminUsersPage() {
     const userToDelete = users.find(user => user._id === userId)
     
     if (userToDelete?.email === currentUserEmail) {
-      alert(currentLanguage === "mn" 
-        ? "Та өөрийгөө устгах боломжгүй!" 
-        : "You cannot delete yourself!"
-      )
+      alert("You cannot delete yourself!")
       return
     }
 
     // Confirm deletion
-    if (!confirm(currentLanguage === "mn" 
-      ? "Хэрэглэгчийг устгахдаа итгэлтэй байна уу? Энэ үйлдлийг буцаах боломжгүй." 
-      : "Are you sure you want to delete this user? This action cannot be undone."
-    )) {
+    if (!confirm("Are you sure you want to delete this user? This action cannot be undone.")) {
       return
     }
 
@@ -161,23 +153,14 @@ export default function AdminUsersPage() {
       if (response.ok) {
         // Remove user from local state
         setUsers(prev => prev.filter(user => user._id !== userId))
-        alert(currentLanguage === "mn" 
-          ? "Хэрэглэгч амжилттай устгагдлаа!" 
-          : "User deleted successfully!"
-        )
+        alert("User deleted successfully!")
       } else {
         const errorData = await response.json()
-        alert(currentLanguage === "mn" 
-          ? `Алдаа: ${errorData.message}` 
-          : `Error: ${errorData.message}`
-        )
+        alert(`Error: ${errorData.message}`)
       }
     } catch (error) {
       console.error("Failed to delete user:", error)
-      alert(currentLanguage === "mn" 
-        ? "Хэрэглэгч устгахад алдаа гарлаа" 
-        : "Failed to delete user"
-      )
+      alert("Failed to delete user")
     }
   }
 
@@ -241,7 +224,7 @@ export default function AdminUsersPage() {
           <div className="relative max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
-              placeholder={currentLanguage === "mn" ? "Хэрэглэгч хайх..." : "Search users..."}
+              placeholder="Search users..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -252,7 +235,7 @@ export default function AdminUsersPage() {
             className="bg-green-600 hover:bg-green-700"
           >
             <Plus className="h-4 w-4 mr-2" />
-            {currentLanguage === "mn" ? "Хэрэглэгч нэмэх" : "Add User"}
+            Add User
           </Button>
         </div>
 
@@ -311,7 +294,7 @@ export default function AdminUsersPage() {
                     onClick={() => handleEditClick(user)}
                   >
                     <Edit className="h-4 w-4 mr-2" />
-                    {currentLanguage === "mn" ? "Засах" : "Edit"}
+                    Edit
                   </Button>
                   <Button
                     variant="outline"
@@ -320,7 +303,7 @@ export default function AdminUsersPage() {
                     onClick={() => handleCourseAccessClick(user)}
                   >
                     <BookOpen className="h-4 w-4 mr-2" />
-                    {currentLanguage === "mn" ? "Курс" : "Courses"}
+                    Courses
                   </Button>
                   <Button
                     variant="outline"
@@ -329,7 +312,7 @@ export default function AdminUsersPage() {
                     onClick={() => handleDeleteUser(user._id)}
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
-                    {currentLanguage === "mn" ? "Устгах" : "Delete"}
+                    Delete
                   </Button>
                 </div>
               </CardContent>
@@ -341,13 +324,10 @@ export default function AdminUsersPage() {
           <div className="text-center py-12">
             <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-              {currentLanguage === "mn" ? "Хэрэглэгч олдсонгүй" : "No users found"}
+              No users found
             </h3>
             <p className="text-gray-500 dark:text-gray-400">
-              {currentLanguage === "mn" 
-                ? "Хайлтын үр дүнд тохирох хэрэглэгч байхгүй байна" 
-                : "No users match your search criteria"
-              }
+              No users match your search criteria
             </p>
           </div>
         )}

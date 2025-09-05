@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useLanguage } from "@/contexts/language-context"
 import { useToast } from "@/hooks/use-toast"
 import { User, Edit, Phone, BookOpen, CheckCircle } from "lucide-react"
 
@@ -25,7 +24,6 @@ interface LessonStats {
 
 export default function ProfilePage() {
   const { data: session, status, update } = useSession()
-  const { currentLanguage } = useLanguage()
   const { toast } = useToast()
   const [isEditing, setIsEditing] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -73,8 +71,8 @@ export default function ProfilePage() {
   const handleSaveChanges = async () => {
     if (!session?.user?.email) {
       toast({
-        title: currentLanguage === "mn" ? "Алдаа" : "Error",
-        description: currentLanguage === "mn" ? "Хэрэглэгчийн мэдээлэл олдсонгүй" : "User information not found",
+        title: "Алдаа",
+        description: "Хэрэглэгчийн мэдээлэл олдсонгүй",
         variant: "destructive"
       })
       return
@@ -96,15 +94,15 @@ export default function ProfilePage() {
       })
 
       toast({
-        title: currentLanguage === "mn" ? "Амжилттай" : "Success",
-        description: currentLanguage === "mn" ? "Профайл амжилттай хадгалагдлаа" : "Profile updated successfully"
+        title: "Амжилттай",
+        description: "Профайл амжилттай хадгалагдлаа"
       })
       setIsEditing(false)
     } catch (error) {
       console.error("Failed to update profile:", error)
       toast({
-        title: currentLanguage === "mn" ? "Алдаа" : "Error",
-        description: currentLanguage === "mn" ? "Профайл шинэчлэхэд алдаа гарлаа" : "Failed to update profile",
+        title: "Алдаа",
+        description: "Профайл шинэчлэхэд алдаа гарлаа",
         variant: "destructive"
       })
     } finally {
@@ -136,19 +134,16 @@ export default function ProfilePage() {
       <div className="p-8">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-[#111111] dark:text-white mb-4">
-            {currentLanguage === "mn" ? "Профайлд хандахын тулд нэвтэрнэ үү" : "Please log in to access your profile"}
+            Профайлд хандахын тулд нэвтэрнэ үү
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mb-6">
-            {currentLanguage === "mn"
-              ? "Таны профайлыг харахын тулд нэвтэрсэн байх шаардлагатай."
-              : "You need to be authenticated to view your profile."
-            }
+            Таны профайлыг харахын тулд нэвтэрсэн байх шаардлагатай.
           </p>
           <a
             href="/login"
             className="inline-block bg-[#E10600] hover:bg-[#C70500] text-white px-6 py-3 rounded-lg font-medium transition-colors"
           >
-            {currentLanguage === "mn" ? "Нэвтрэх рүү оч" : "Go to Login"}
+            Нэвтрэх рүү оч
           </a>
         </div>
       </div>
@@ -160,10 +155,10 @@ export default function ProfilePage() {
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-[#111111] dark:text-white mb-2">
-            {currentLanguage === "mn" ? "Миний профайл" : "My Profile"}
+            Миний профайл
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
-            {currentLanguage === "mn" ? "Профайлын мэдээллээ засварлах" : "Edit your profile information"}
+            Профайлын мэдээллээ засварлах
           </p>
         </div>
 
@@ -201,7 +196,7 @@ export default function ProfilePage() {
                 <div className="space-y-3 pt-6 border-t border-gray-200 dark:border-gray-700">
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600 dark:text-gray-400">
-                      {currentLanguage === "mn" ? "Нийт хичээл:" : "Total lessons:"}
+                      Нийт хичээл:
                     </span>
                     <span className="font-semibold text-[#111111] dark:text-white">
                       {lessonStats.totalLessons}
@@ -209,7 +204,7 @@ export default function ProfilePage() {
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600 dark:text-gray-400">
-                      {currentLanguage === "mn" ? "Дууссан хичээл:" : "Completed lessons:"}
+                      Дууссан хичээл:
                     </span>
                     <span className="font-semibold text-[#111111] dark:text-white">
                       {lessonStats.completedLessons}
@@ -224,7 +219,7 @@ export default function ProfilePage() {
           <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-xl font-semibold text-[#111111] dark:text-white">
-                {currentLanguage === "mn" ? "Профайлын мэдээл" : "Profile Information"}
+                Профайлын мэдээл
               </CardTitle>
               {!isEditing && (
                 <Button
@@ -233,7 +228,7 @@ export default function ProfilePage() {
                   className="border-[#E10600] text-[#E10600] hover:bg-[#E10600] hover:text-white transition-colors"
                 >
                   <Edit className="h-4 w-4 mr-2" />
-                  {currentLanguage === "mn" ? "Засварлах" : "Edit"}
+                  Засварлах
                 </Button>
               )}
             </CardHeader>
@@ -242,7 +237,7 @@ export default function ProfilePage() {
                 {/* Name Field */}
                 <div>
                   <Label htmlFor="firstName" className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                    {currentLanguage === "mn" ? "Нэр" : "Name"}
+                    Нэр
                   </Label>
                   <Input
                     id="firstName"
@@ -261,7 +256,7 @@ export default function ProfilePage() {
                 {/* Email Field */}
                 <div>
                   <Label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                    {currentLanguage === "mn" ? "И-мэйл" : "Email"}
+                    И-мэйл
                   </Label>
                   <Input
                     id="email"
@@ -274,14 +269,14 @@ export default function ProfilePage() {
                 {/* Phone Number Field */}
                 <div>
                   <Label htmlFor="phoneNumber" className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                    {currentLanguage === "mn" ? "Утасны дугаар" : "Phone number"}
+                    Утасны дугаар
                   </Label>
                   <Input
                     id="phoneNumber"
                     value={profile.phoneNumber}
                     onChange={(e) => handleInputChange("phoneNumber", e.target.value)}
                     disabled={!isEditing}
-                    placeholder={currentLanguage === "mn" ? "+976 9999 9999" : "+976 9999 9999"}
+                    placeholder="+976 9999 9999"
                     className="h-12 text-base"
                   />
                 </div>
@@ -295,8 +290,8 @@ export default function ProfilePage() {
                       className="bg-[#E10600] hover:bg-[#C70500] text-white px-6 py-2"
                     >
                       {isLoading
-                        ? (currentLanguage === "mn" ? "Хадгалж байна..." : "Saving...")
-                        : (currentLanguage === "mn" ? "Хадгалах" : "Save")
+                        ? "Хадгалж байна..."
+                        : "Хадгалах"
                       }
                     </Button>
                     <Button
@@ -319,7 +314,7 @@ export default function ProfilePage() {
                       }}
                       className="px-6 py-2"
                     >
-                      {currentLanguage === "mn" ? "Цуцлах" : "Cancel"}
+                      Цуцлах
                     </Button>
                   </div>
                 )}

@@ -1,7 +1,6 @@
 "use client"
 
 import { useSession } from "next-auth/react"
-import { useLanguage } from "@/contexts/language-context"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { BookOpen, Users, Award, TrendingUp, Play, Clock, User } from "lucide-react"
@@ -26,7 +25,6 @@ interface EnrolledCourse {
 
 export default function DashboardPage() {
   const { data: session, status } = useSession()
-  const { currentLanguage, t } = useLanguage()
   const [enrolledCourses, setEnrolledCourses] = useState<EnrolledCourse[]>([])
   const [isLoadingCourses, setIsLoadingCourses] = useState(true)
 
@@ -85,16 +83,16 @@ export default function DashboardPage() {
       <div className="p-8">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-[#111111] dark:text-white mb-4">
-            {t("auth.login.authenticationRequired")}
+            Нэвтрэх шаардлагатай
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mb-6">
-            {t("auth.login.authenticationRequiredDescription")}
+            Хяналтын самбар руу хандахын тулд нэвтэрсэн байх шаардлагатай.
           </p>
           <a
             href="/login"
             className="inline-block bg-[#E10600] hover:bg-[#C70500] text-white px-6 py-3 rounded-lg font-medium transition-colors"
           >
-            {t("auth.login.goToLogin")}
+            Нэвтрэх хэсэг рүү очих
           </a>
         </div>
       </div>
@@ -106,13 +104,10 @@ export default function DashboardPage() {
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-[#111111] dark:text-white mb-2">
-            {currentLanguage === "mn" ? "Хянах самбар" : "Dashboard"}
+            Хянах самбар
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
-            {currentLanguage === "mn"
-              ? `Сайн байна уу, ${session?.user?.name || session?.user?.email}!`
-              : `Welcome back, ${session?.user?.name || session?.user?.email}!`
-            }
+            {`Сайн байна уу, ${session?.user?.name || session?.user?.email}!`}
           </p>
         </div>
 
@@ -121,14 +116,14 @@ export default function DashboardPage() {
           <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                {currentLanguage === "mn" ? "Нийт сургалт" : "Total Courses"}
+                Нийт сургалт
               </CardTitle>
               <BookOpen className="h-4 w-4 text-gray-400" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-[#111111] dark:text-white">{enrolledCourses.length}</div>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                {currentLanguage === "mn" ? "Худалдан авсан" : "Enrolled"}
+                Худалдан авсан
               </p>
             </CardContent>
           </Card>
@@ -136,7 +131,7 @@ export default function DashboardPage() {
           <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                {currentLanguage === "mn" ? "Нийт хичээл" : "Total Lessons"}
+                Нийт хичээл
               </CardTitle>
               <Users className="h-4 w-4 text-gray-400" />
             </CardHeader>
@@ -145,7 +140,7 @@ export default function DashboardPage() {
                 {enrolledCourses.reduce((total, course) => total + (course.totalLessons || 0), 0)}
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                {currentLanguage === "mn" ? "Нийт" : "Total"}
+                Нийт
               </p>
             </CardContent>
           </Card>
@@ -153,7 +148,7 @@ export default function DashboardPage() {
           <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                {currentLanguage === "mn" ? "Дууссан хичээл" : "Completed Lessons"}
+                Дууссан хичээл
               </CardTitle>
               <Award className="h-4 w-4 text-gray-400" />
             </CardHeader>
@@ -162,7 +157,7 @@ export default function DashboardPage() {
                 {enrolledCourses.reduce((total, course) => total + (course.completedLessons || 0), 0)}
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                {currentLanguage === "mn" ? "Дууссан" : "Completed"}
+                Дууссан
               </p>
             </CardContent>
           </Card>
@@ -170,7 +165,7 @@ export default function DashboardPage() {
           <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                {currentLanguage === "mn" ? "Дундаж үйл явц" : "Avg. Progress"}
+                Дундаж үйл явц
               </CardTitle>
               <TrendingUp className="h-4 w-4 text-gray-400" />
             </CardHeader>
@@ -181,7 +176,7 @@ export default function DashboardPage() {
                   : 0}%
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                {currentLanguage === "mn" ? "Бүх хичээл" : "All Lessons"}
+                Бүх хичээл
               </p>
             </CardContent>
           </Card>
@@ -191,7 +186,7 @@ export default function DashboardPage() {
         <div className="mb-8">
           <div className="mb-6">
             <h2 className="text-2xl font-bold text-[#111111] dark:text-white">
-              {currentLanguage === "mn" ? "Миний сургалтууд" : "My Enrolled Courses"}
+              Миний сургалтууд
             </h2>
           </div>
 
@@ -224,14 +219,14 @@ export default function DashboardPage() {
                 <BookOpen className="h-12 w-12 text-gray-400" />
               </div>
               <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4">
-                {t("home.courses.noEnrollment")}
+                Та одоогоор сургалт худалдаж аваагүй байна
               </h3>
               <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md mx-auto">
-                {t("home.courses.noEnrollmentDescription")}
+                Танд одоогоор худалдаж авсан сургалт байхгүй байна. Манай сургалтуудас худалдаж авахыг хүсэвэл энд дарна уу.
               </p>
               <Link href="/courses">
                 <span className="inline-block bg-[#E10600] hover:bg-[#C70500] text-white px-6 py-3 rounded-lg font-medium transition-colors cursor-pointer">
-                  {t("home.courses.browseCourses")}
+                  Сургалтуудыг харах
                 </span>
               </Link>
             </div>
@@ -242,21 +237,21 @@ export default function DashboardPage() {
                   <div className="relative">
                     <CourseImage
                       thumbnailUrl={course.thumbnailUrl}
-                      title={currentLanguage === "mn" ? course.titleMn || course.title : course.title}
+                      title={course.titleMn || course.title}
                       size="medium"
                       className="w-full h-48"
                     />
                     <Badge className="absolute top-3 right-3 bg-green-500 hover:bg-green-600 z-10">
-                      {t("home.courses.enrolled")}
+                      Худалдан авсан
                     </Badge>
                   </div>
 
                   <CardHeader className="pb-3">
                     <CardTitle className="text-lg line-clamp-2">
-                      {currentLanguage === "mn" ? course.titleMn || course.title : course.title}
+                      {course.titleMn || course.title}
                     </CardTitle>
                     <CardDescription className="line-clamp-2">
-                      {currentLanguage === "mn" ? course.descriptionMn || course.description : course.description}
+                      {course.descriptionMn || course.description}
                     </CardDescription>
                   </CardHeader>
 
@@ -272,7 +267,7 @@ export default function DashboardPage() {
                         <Link href={`/learn/${course._id}`} className="flex-1">
                           <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
                             <Play className="h-4 w-4 mr-2" />
-                            {t("home.courses.continueLearning")}
+                            Үргэлжлүүлэх
                           </Button>
                         </Link>
                       </div>

@@ -17,7 +17,6 @@ import {
   DollarSign,
   Calendar
 } from "lucide-react"
-import { useLanguage } from "@/contexts/language-context"
 import Link from "next/link"
 import CourseForm from "./components/CourseForm"
 import CourseImage from "@/components/course-image"
@@ -58,7 +57,6 @@ export default function AdminCoursesPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingCourse, setEditingCourse] = useState<Course | null>(null)
-  const { currentLanguage } = useLanguage()
 
   useEffect(() => {
     fetchCourses()
@@ -101,14 +99,14 @@ export default function AdminCoursesPage() {
         setCourses(prev => [data.course, ...prev])
         setShowAddForm(false)
         // Show success message
-        alert(currentLanguage === "mn" ? "Сургалт амжилттай үүслээ!" : "Course created successfully!")
+        alert("Сургалт амжилттай үүслээ!")
       } else {
         const errorData = await response.json()
-        alert(currentLanguage === "mn" ? `Алдаа: ${errorData.message}` : `Error: ${errorData.message}`)
+        alert(`Алдаа: ${errorData.message}`)
       }
     } catch (error) {
       console.error("Failed to create course:", error)
-      alert(currentLanguage === "mn" ? "Сургалт үүсгэхэд алдаа гарлаа" : "Failed to create course")
+      alert("Сургалт үүсгэхэд алдаа гарлаа")
     }
   }
 
@@ -131,19 +129,19 @@ export default function AdminCoursesPage() {
         ))
         setEditingCourse(null)
         // Show success message
-        alert(currentLanguage === "mn" ? "Сургалт амжилттай шинэчлэгдлээ!" : "Course updated successfully!")
+        alert("Сургалт амжилттай шинэчлэгдлээ!")
       } else {
         const errorData = await response.json()
-        alert(currentLanguage === "mn" ? `Алдаа: ${errorData.message}` : `Error: ${errorData.message}`)
+        alert(`Алдаа: ${errorData.message}`)
       }
     } catch (error) {
       console.error("Failed to update course:", error)
-      alert(currentLanguage === "mn" ? "Сургалт шинэчлэхэд алдаа гарлаа" : "Failed to update course")
+      alert("Сургалт шинэчлэхэд алдаа гарлаа")
     }
   }
 
   const handleDeleteCourse = async (courseId: string) => {
-    if (!confirm(currentLanguage === "mn" ? "Сургалтыг устгахдаа итгэлтэй байна уу?" : "Are you sure you want to delete this course?")) {
+    if (!confirm("Сургалтыг устгахдаа итгэлтэй байна уу?")) {
       return
     }
 
@@ -159,14 +157,14 @@ export default function AdminCoursesPage() {
       if (response.ok) {
         setCourses(prev => prev.filter(course => course._id !== courseId))
         // Show success message
-        alert(currentLanguage === "mn" ? "Сургалт амжилттай устгагдлаа!" : "Course deleted successfully!")
+        alert("Сургалт амжилттай устгагдлаа!")
       } else {
         const errorData = await response.json()
-        alert(currentLanguage === "mn" ? `Алдаа: ${errorData.message}` : `Error: ${errorData.message}`)
+        alert(`Алдаа: ${errorData.message}`)
       }
     } catch (error) {
       console.error("Failed to delete course:", error)
-      alert(currentLanguage === "mn" ? "Сургалт устгахад алдаа гарлаа" : "Failed to delete course")
+      alert("Сургалт устгахад алдаа гарлаа")
     }
   }
 
@@ -203,7 +201,7 @@ export default function AdminCoursesPage() {
           <div className="relative max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
-              placeholder={currentLanguage === "mn" ? "Сургалт хайх..." : "Search courses..."}
+              placeholder="Сургалт хайх..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -214,7 +212,7 @@ export default function AdminCoursesPage() {
             className="bg-blue-600 hover:bg-blue-700"
           >
             <Plus className="h-4 w-4 mr-2" />
-            {currentLanguage === "mn" ? "Сургалт нэмэх" : "Add Course"}
+            Сургалт нэмэх
           </Button>
         </div>
 
@@ -226,7 +224,7 @@ export default function AdminCoursesPage() {
               <div className="relative">
                 <CourseImage
                   thumbnailUrl={course.thumbnailUrl}
-                  title={currentLanguage === "mn" ? course.titleMn || course.title : course.title}
+                  title={course.titleMn || course.title}
                   category={course.category}
                   size="medium"
                   className="w-full h-48"
@@ -235,10 +233,10 @@ export default function AdminCoursesPage() {
 
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg line-clamp-2">
-                  {currentLanguage === "mn" ? course.titleMn || course.title : course.title}
+                  {course.titleMn || course.title}
                 </CardTitle>
                 <CardDescription className="line-clamp-2">
-                  {currentLanguage === "mn" ? course.descriptionMn || course.description : course.description}
+                  {course.descriptionMn || course.description}
                 </CardDescription>
               </CardHeader>
 
@@ -246,7 +244,7 @@ export default function AdminCoursesPage() {
                 <div className="space-y-3 mb-4">
                   <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
                     <Users className="h-4 w-4 mr-2 flex-shrink-0" />
-                    <span>{course.enrolledUsers} {currentLanguage === "mn" ? "хэрэглэгч" : "students"}</span>
+                    <span>{course.enrolledUsers} хэрэглэгч</span>
                   </div>
                   <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
                     <DollarSign className="h-4 w-4 mr-2 flex-shrink-0" />
@@ -262,7 +260,7 @@ export default function AdminCoursesPage() {
                   <Link href={`/admin/courses/${course._id}`} className="flex-1 min-w-0">
                     <Button variant="outline" size="sm" className="w-full">
                       <BookOpen className="h-4 w-4 mr-1" />
-                      {currentLanguage === "mn" ? "Удирдах" : "Manage"}
+                      Удирдах
                     </Button>
                   </Link>
                   <Button
@@ -272,7 +270,7 @@ export default function AdminCoursesPage() {
                     className="flex-1 min-w-0"
                   >
                     <Edit className="h-4 w-4 mr-1" />
-                    {currentLanguage === "mn" ? "Засах" : "Edit"}
+                    Засах
                   </Button>
                   <Button
                     variant="outline"
@@ -281,7 +279,7 @@ export default function AdminCoursesPage() {
                     onClick={() => handleDeleteCourse(course._id)}
                   >
                     <Trash2 className="h-4 w-4 mr-1" />
-                    {currentLanguage === "mn" ? "Устгах" : "Delete"}
+                    Устгах
                   </Button>
                 </div>
               </CardContent>
@@ -293,22 +291,18 @@ export default function AdminCoursesPage() {
           <div className="text-center py-12">
             <BookOpen className="h-16 w-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-              {currentLanguage === "mn" ? "Сургалт олдсонгүй" : "No courses found"}
+              Сургалт олдсонгүй
             </h3>
             <p className="text-gray-500 dark:text-gray-400 mb-6">
               {searchTerm
-                ? (currentLanguage === "mn"
-                  ? "Хайлтын үр дүнд тохирох сургалт байхгүй байна"
-                  : "No courses match your search criteria")
-                : (currentLanguage === "mn"
-                  ? "Өгөгдлийн сан дээр сургалт байхгүй байна. Эхний сургалтаа үүсгэж эхлээрэй!"
-                  : "No courses in the database yet. Start by creating your first course!")
+                ? "Хайлтын үр дүнд тохирох сургалт байхгүй байна"
+                : "Өгөгдлийн сан дээр сургалт байхгүй байна. Эхний сургалтаа үүсгэж эхлээрэй!"
               }
             </p>
             {!searchTerm && (
               <Button onClick={() => setShowAddForm(true)} size="lg">
                 <Plus className="h-5 w-5 mr-2" />
-                {currentLanguage === "mn" ? "Эхний сургалт үүсгэх" : "Create First Course"}
+                Эхний сургалт үүсгэх
               </Button>
             )}
           </div>

@@ -16,7 +16,6 @@ import {
   BookOpen,
   User
 } from "lucide-react"
-import { useLanguage } from "@/contexts/language-context"
 import Link from "next/link"
 import { useSession } from "next-auth/react"
 
@@ -79,7 +78,6 @@ interface Course {
 export default function CourseOverviewPage() {
   const params = useParams()
   const router = useRouter()
-  const { currentLanguage } = useLanguage()
   const { data: session, status } = useSession()
   const courseId = params.courseId as string
 
@@ -207,7 +205,7 @@ export default function CourseOverviewPage() {
           <Link href="/courses" className="hover:text-foreground transition-colors">Courses</Link>
           <ChevronRight className="w-4 h-4" />
           <span className="text-foreground font-medium">
-            {currentLanguage === "mn" ? course.titleMn || course.title : course.title}
+            {course.titleMn || course.title}
           </span>
         </nav>
       </div>
@@ -219,7 +217,7 @@ export default function CourseOverviewPage() {
           <div className="flex items-start space-x-4">
             {/* Course Tag */}
             <div className="bg-blue-500 text-white px-3 py-1 rounded-lg text-sm font-medium">
-              {currentLanguage === "mn" ? "Хичээл" : "Course"}
+              Хичээл
             </div>
             
             {/* Course ID/Number */}
@@ -230,18 +228,18 @@ export default function CourseOverviewPage() {
           
           {/* Course Title */}
           <h1 className="text-2xl font-normal text-gray-900">
-            {currentLanguage === "mn" ? course.titleMn || course.title : course.title}
+            {course.titleMn || course.title}
           </h1>
           
           {/* Course Metrics */}
           <div className="flex items-center space-x-6 text-sm text-gray-600">
             <div className="flex items-center space-x-2">
               <Star className="w-4 h-4 text-yellow-500 fill-current" />
-              <span>4.8 {currentLanguage === "mn" ? "үнэлгээ" : "rating"}</span>
+              <span>4.8 үнэлгээ</span>
             </div>
             <div className="flex items-center space-x-2">
               <Users className="w-4 h-4" />
-              <span>{course.enrolledUsers} {currentLanguage === "mn" ? "суралцагч" : "students"}</span>
+              <span>{course.enrolledUsers} суралцагч</span>
             </div>
             <div className="text-blue-600 font-semibold text-lg">
               {formatPrice(course.price)}
@@ -258,17 +256,17 @@ export default function CourseOverviewPage() {
             {/* About the Course */}
             <div className="space-y-4">
               <h2 className="text-2xl font-bold text-gray-900">
-                {currentLanguage === "mn" ? "Хичээлийн тухай" : "About the Course"}
+                Хичээлийн тухай
               </h2>
               <p className="text-gray-700 leading-relaxed">
-                {currentLanguage === "mn" ? course.descriptionMn || course.description : course.description}
+                {course.descriptionMn || course.description}
               </p>
             </div>
 
             {/* Course Content */}
             <div className="space-y-4">
               <h2 className="text-2xl font-bold text-gray-900">
-                {currentLanguage === "mn" ? "Хичээлийн агуулга" : "Course Content"}
+                Хичээлийн агуулга
               </h2>
               
               {subcourses && subcourses.length > 0 ? (
@@ -282,12 +280,12 @@ export default function CourseOverviewPage() {
                             {subcourseIndex + 1}
                           </div>
                           <h3 className="font-semibold text-gray-900">
-                            {currentLanguage === "mn" ? subcourse.titleMn || subcourse.title : subcourse.title}
+                            {subcourse.titleMn || subcourse.title}
                           </h3>
                         </div>
                         {subcourse.description && (
                           <p className="text-gray-600 text-sm mb-3">
-                            {currentLanguage === "mn" ? subcourse.descriptionMn || subcourse.description : subcourse.description}
+                            {subcourse.descriptionMn || subcourse.description}
                           </p>
                         )}
                         
@@ -302,11 +300,11 @@ export default function CourseOverviewPage() {
                                   </div>
                                   <div className="flex-1">
                                     <h4 className="font-medium text-sm text-gray-900">
-                                      {currentLanguage === "mn" ? lesson.titleMn || lesson.title : lesson.title}
+                                      {lesson.titleMn || lesson.title}
                                     </h4>
                                     {lesson.description && (
                                       <p className="text-xs text-gray-600 mt-1">
-                                        {currentLanguage === "mn" ? lesson.descriptionMn || lesson.description : lesson.description}
+                                        {lesson.descriptionMn || lesson.description}
                                       </p>
                                     )}
                                   </div>
@@ -325,10 +323,7 @@ export default function CourseOverviewPage() {
                         ) : (
                           <div className="text-center py-8 text-gray-500">
                             <p className="text-sm">
-                              {currentLanguage === "mn" 
-                                ? "Энэ дэд хэсэгт одоогоор хичээл байхгүй байна" 
-                                : "No lessons available in this subcourse yet"
-                              }
+                              Энэ дэд хэсэгт одоогоор хичээл байхгүй байна
                             </p>
                           </div>
                         )}
@@ -341,16 +336,10 @@ export default function CourseOverviewPage() {
                     <Play className="h-12 w-12 text-gray-400" />
                   </div>
                   <h3 className="text-xl font-semibold text-gray-700 mb-4">
-                    {currentLanguage === "mn" 
-                      ? "Хичээлийн агуулга удахгүй нэмэгдэх болно" 
-                      : "Course content will be added soon"
-                    }
+                                        Хичээлийн агуулга удахгүй нэмэгдэх болно
                   </h3>
                   <p className="text-gray-500 max-w-md mx-auto">
-                    {currentLanguage === "mn"
-                      ? "Манай багш нар одоогоор хичээлийн агуулгыг бэлтгэж байна. Удахгүй шинэ хичээлүүд нэмэгдэх болно."
-                      : "Our instructors are currently preparing the course content. New lessons will be added soon!"
-                    }
+                    Манай багш нар одоогоор хичээлийн агуулгыг бэлтгэж байна. Удахгүй шинэ хичээлүүд нэмэгдэх болно.
                   </p>
                 </div>
               )}
@@ -365,7 +354,7 @@ export default function CourseOverviewPage() {
                 <div className="relative aspect-video">
                   <img
                     src={course.thumbnailUrl}
-                    alt={currentLanguage === "mn" ? course.titleMn || course.title : course.title}
+                    alt={course.titleMn || course.title}
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
@@ -389,14 +378,11 @@ export default function CourseOverviewPage() {
                 <div className="flex items-center space-x-2 mb-2">
                   <Play className="w-5 h-5 text-green-600" />
                   <span className="font-semibold text-green-700">
-                    {currentLanguage === "mn" ? "Хандалттай" : "You have access"}
+                    Хандалттай
                   </span>
                 </div>
                 <p className="text-sm text-green-600">
-                  {currentLanguage === "mn" 
-                    ? "Та энэ хичээлийг үзэх эрхтэй" 
-                    : "You can now access all course content"
-                  }
+                  Та энэ хичээлийг үзэх эрхтэй
                 </p>
               </div>
             ) : (
@@ -404,14 +390,11 @@ export default function CourseOverviewPage() {
                 <div className="flex items-center space-x-2 mb-2">
                   <ShoppingCart className="w-5 h-5 text-red-600" />
                   <span className="font-semibold text-red-700">
-                    {currentLanguage === "mn" ? "Худалдаж авах шаардлагатай" : "Purchase Required"}
+                    Худалдаж авах шаардлагатай
                   </span>
                 </div>
                 <p className="text-sm text-red-600">
-                  {currentLanguage === "mn" 
-                    ? "Энэ хичээлийг үзэхийн тулд худалдаж авна уу" 
-                    : "Please purchase this course to view it"
-                  }
+                  Энэ хичээлийг үзэхийн тулд худалдаж авна уу
                 </p>
               </div>
             )}
@@ -421,20 +404,14 @@ export default function CourseOverviewPage() {
               <Link href={`/learn/${course._id}`} className="block">
                 <Button className="w-full bg-green-600 hover:bg-green-700 text-white text-lg py-4">
                   <Play className="w-5 h-5 mr-2" />
-                  {currentLanguage === "mn" 
-                    ? "Хичээл үзэх" 
-                    : "Start Learning"
-                  }
+                  Хичээл үзэх
                 </Button>
               </Link>
             ) : (
               <Link href={`/checkout/${course._id}`} className="block">
                 <Button className="w-full bg-red-600 hover:bg-red-700 text-white text-lg py-4">
                   <ShoppingCart className="w-5 h-5 mr-2" />
-                  {currentLanguage === "mn" 
-                    ? `₮${course.price.toLocaleString()}-өөр худалдаж авах` 
-                    : `Purchase for ${formatPrice(course.price)}`
-                  }
+                  ₮{course.price.toLocaleString()}-өөр худалдаж авах
                 </Button>
               </Link>
             )}

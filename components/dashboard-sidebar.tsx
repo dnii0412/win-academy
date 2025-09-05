@@ -4,7 +4,6 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { signOut } from "next-auth/react"
-import { useLanguage } from "@/contexts/language-context"
 import Logo from "./logo"
 
 const navigation = [
@@ -17,7 +16,6 @@ const navigation = [
 
 export default function DashboardSidebar() {
   const pathname = usePathname()
-  const { currentLanguage } = useLanguage()
 
   const handleLogout = async () => {
     await signOut({ callbackUrl: "/" })

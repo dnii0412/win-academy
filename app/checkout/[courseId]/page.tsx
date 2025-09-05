@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
-import { useLanguage } from "@/contexts/language-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -21,7 +20,6 @@ export default function CheckoutPage() {
     const params = useParams()
     const router = useRouter()
     const { data: session, status } = useSession()
-    const { t } = useLanguage()
     const courseId = params.courseId as string
 
     const [course, setCourse] = useState<Course | null>(null)

@@ -17,7 +17,6 @@ import { cn } from "@/lib/utils"
 import StatusChip from "./StatusChip"
 import ReorderHandle from "./ReorderHandle"
 import InlineEditableText from "./InlineEditableText"
-import { useLanguage } from "@/contexts/language-context"
 
 interface Lesson {
   _id: string
@@ -61,7 +60,6 @@ export default function LessonList({
   onDragStart,
   onDragEnd
 }: LessonListProps) {
-  const { currentLanguage } = useLanguage()
 
   const formatDuration = (seconds: number) => {
     if (seconds < 60) return `${seconds}s`

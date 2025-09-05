@@ -16,7 +16,6 @@ import {
   Clock,
   XCircle
 } from "lucide-react"
-import { useLanguage } from "@/contexts/language-context"
 import Link from "next/link"
 
 interface Order {
@@ -36,7 +35,6 @@ export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
-  const { currentLanguage } = useLanguage()
 
   useEffect(() => {
     fetchOrders()

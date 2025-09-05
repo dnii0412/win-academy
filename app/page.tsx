@@ -7,13 +7,11 @@ import TestimonialCarousel from "@/components/testimonial-carousel"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import Link from "next/link"
-import { useLanguage } from "@/contexts/language-context"
 import { useEffect, useState } from "react"
 import { Course } from "@/types/course"
 import CourseImage from "@/components/course-image"
 
 export default function HomePage() {
-  const { t } = useLanguage()
   const [featuredCourses, setFeaturedCourses] = useState<Course[]>([])
   const [isLoadingCourses, setIsLoadingCourses] = useState(true)
 
@@ -39,18 +37,18 @@ export default function HomePage() {
 
   const benefits = [
     {
-      title: t("home.benefits.skills.title"),
-      description: t("home.benefits.skills.description"),
+      title: "Чухал ур чадварууд",
+      description: "Монголын хөгжиж буй дижитал эдийн засгийн бодит ажлын байрны төлөө зориулсан сургалтууд.",
       icon: "🎯",
     },
     {
-      title: t("home.benefits.growth.title"),
-      description: t("home.benefits.growth.description"),
+      title: "Хурдан хөгжил",
+      description: "Манай хурдасгасан сургалтын аргаар суралцаж, дадлага хийж, хурдан ажилд орно уу.",
       icon: "⚡",
     },
     {
-      title: t("home.benefits.ai.title"),
-      description: t("home.benefits.ai.description"),
+      title: "AI-аар хөгжсөн",
+      description: "Бүх сургалтад нэгтгэгдсэн дэлгээний AI хэрэгслүүд, арга техникээр урьдчилж байна уу.",
       icon: "🤖",
     },
   ]
@@ -58,18 +56,18 @@ export default function HomePage() {
   const testimonials = [
     {
       name: "Batbayar S.",
-      role: t("home.testimonials.batbayar.role"),
-      content: t("home.testimonials.batbayar.content"),
+      role: "Дижитал маркетингийн мэргэжилтэн",
+      content: "WIN Academy надад дээд зэргийн маркетингийн агентлагт мөрөөдлийн ажлыг олход тусалсан. Би сурсан практик ур чадварууд нь ажил олгогчдын хайж байсан зүйл байсан.",
     },
     {
       name: "Oyunaa T.",
-      role: t("home.testimonials.oyunaa.role"),
-      content: t("home.testimonials.oyunaa.content"),
+      role: "Чөлөөт дизайнер",
+      content: "UI/UX сургалт нь миний карьерыг өөрчилсөн. Би тэг дизайн туршлагатай байснаас сая ₮2M+ сарын орлоготой чөлөөт дизайнер болсон.",
     },
     {
       name: "Munkh-Erdene B.",
-      role: t("home.testimonials.munkh.role"),
-      content: t("home.testimonials.munkh.content"),
+      role: "AI зөвлөгч",
+      content: "AI хэрэгслүүдийн сургалт надад шаардлагатай давуу талыг өгсөн. Одоо би бизнесүүдэд үйл явцыг автоматжуулж, үр ашгийг нэмэгдүүлэхэд тусалдаг.",
     },
   ]
 
@@ -84,18 +82,22 @@ export default function HomePage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
             <AnimatedSection animation="slideLeft">
               <h1 className="text-4xl lg:text-5xl font-bold text-foreground mb-4 leading-tight">
-                Learn. Create. <span className="text-[#E10600]">Get Hired.</span>
+                Learn. Build. <span className="text-[#E10600]">Get Hired.</span>
               </h1>
+
+              <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
+                Маркетинг, дизайн, AI-ийн практик ур чадвараар өөрийгөө хөгжүүл. Монголын тэргүүлэгч дижитал мэргэжлийн академид нэгдээрэй.
+              </p>
 
               {/* Main Motto */}
               <div className="mb-4">
                 <h2 className="text-lg font-medium text-muted-foreground leading-relaxed">
-                  {t("home.hero.motto")}
+                  Дижитал маркетинг, борлуулалт, график дизайн, хиймэл оюуны хамгийн шинэлэг хөтөлбөрүүд
                 </h2>
               </div>
               <div className="mb-6 p-3 bg-muted rounded-lg inline-block">
                 <div className="flex items-center space-x-2">
-                  <span className="text-muted-foreground">Students Hired:</span>
+                  <span className="text-muted-foreground">Ажилд орсон сурагчид:</span>
                   <AnimatedCounter end={120} suffix="+" />
                 </div>
               </div>
@@ -134,8 +136,8 @@ export default function HomePage() {
         <div className="absolute top-0 left-0 w-full h-12 bg-background transform -skew-y-1 origin-top-left"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimatedSection className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-foreground mb-4">{t("home.courses.title")}</h2>
-            <p className="text-xl text-muted-foreground">{t("home.courses.subtitle")}</p>
+            <h2 className="text-4xl font-bold text-foreground mb-4">Боломжит сургалтууд</h2>
+            <p className="text-xl text-muted-foreground">Манай мэргэжлийн сургалтуудаар сургалтын аялаа эхлээрэй</p>
           </AnimatedSection>
           {isLoadingCourses ? (
             <div className="text-center py-16">
@@ -143,10 +145,10 @@ export default function HomePage() {
                 <span className="text-4xl">⚙️</span>
               </div>
               <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4">
-                {t("home.courses.loading")}
+                Уншиж байна...
               </h3>
               <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-md mx-auto">
-                {t("home.courses.preparing")}
+                Манай багш нар гайхалтай сургалтууд бэлтгэж байна. Шинэчлэлтүүдийг хүлээж байгаарай!
               </p>
             </div>
           ) : featuredCourses.length === 0 ? (
@@ -155,10 +157,10 @@ export default function HomePage() {
                 <span className="text-4xl">📚</span>
               </div>
               <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4">
-                {t("home.courses.comingSoon") || "Courses Coming Soon"}
+                Сургалтууд удахгүй ирнэ
               </h3>
               <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-md mx-auto">
-                {t("home.courses.preparing") || "Our instructors are currently preparing amazing courses. Stay tuned for updates!"}
+                Манай багш нар гайхалтай сургалтууд бэлтгэж байна. Шинэчлэлтүүдийг хүлээж байгаарай!
               </p>
             </div>
           ) : (
@@ -200,7 +202,7 @@ export default function HomePage() {
           <AnimatedSection className="text-center mt-12">
             <Link href="/courses">
               <Button className="bg-[#E10600] hover:bg-[#C70500] text-white text-lg px-8 py-4 transition-all duration-300 hover:shadow-lg hover:scale-105">
-                {t("home.courses.viewAll")}
+                Бүх сургалтыг харах
               </Button>
             </Link>
           </AnimatedSection>
@@ -211,8 +213,8 @@ export default function HomePage() {
       <section className="py-20 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimatedSection className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-foreground mb-4">{t("home.benefits.title")}</h2>
-            <p className="text-xl text-muted-foreground">{t("home.benefits.subtitle")}</p>
+            <h2 className="text-4xl font-bold text-foreground mb-4">Яагаад WIN Academy?</h2>
+            <p className="text-xl text-muted-foreground">Монголын дижитал ирээдүйн төлөө бүтээгдсэн</p>
           </AnimatedSection>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {benefits.map((benefit, index) => (
@@ -239,8 +241,8 @@ export default function HomePage() {
         <div className="absolute top-0 left-0 w-full h-12 bg-background transform skew-y-1 origin-top-left"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimatedSection className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-foreground mb-4">{t("home.testimonials.title")}</h2>
-            <p className="text-xl text-muted-foreground">{t("home.testimonials.subtitle")}</p>
+            <h2 className="text-4xl font-bold text-foreground mb-4">Амжилтын түүхүүд</h2>
+            <p className="text-xl text-muted-foreground">Карьераа өөрчилсөн төгсөгчдийнхээ түүхийг сонсоорой</p>
           </AnimatedSection>
           <AnimatedSection>
             <TestimonialCarousel testimonials={testimonials} />
@@ -253,26 +255,26 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             <AnimatedSection animation="slideLeft">
-              <h2 className="text-4xl font-bold text-foreground mb-6">{t("home.contact.title")}</h2>
+              <h2 className="text-4xl font-bold text-foreground mb-6">Холбоо барих</h2>
               <p className="text-xl text-muted-foreground mb-8">
-                {t("home.contact.subtitle")}
+                Дижитал хувиргалтаа эхлүүлэхэд бэлэн үү? Өнөөдөр бидэнтэй холбогдоорой.
               </p>
               <div className="space-y-4">
                 <div className="flex items-start space-x-3 group">
                   <span className="text-[#E10600] transition-transform duration-300 group-hover:scale-110 mt-1">📍</span>
                   <div className="text-foreground">
-                    <div className="font-medium">{t("home.contact.location")}</div>
-                    <div className="text-sm text-muted-foreground">{t("home.contact.floor")}</div>
-                    <div className="text-sm text-muted-foreground">{t("home.contact.city")}</div>
+                    <div className="font-medium">Pearl Tower B Corpus</div>
+                    <div className="text-sm text-muted-foreground">11 давхарт 1101 тоот</div>
+                    <div className="text-sm text-muted-foreground">Улаанбаатар, Монгол</div>
                   </div>
                 </div>
                 <div className="flex items-center space-x-3 group">
                   <span className="text-[#E10600] transition-transform duration-300 group-hover:scale-110">📞</span>
-                  <span className="text-foreground">{t("home.contact.phone")}</span>
+                  <span className="text-foreground">9016-6060, 9668-0707</span>
                 </div>
                 <div className="flex items-center space-x-3 group">
                   <span className="text-[#E10600] transition-transform duration-300 group-hover:scale-110">✉️</span>
-                  <span className="text-foreground">{t("home.contact.email")}</span>
+                  <span className="text-foreground">hello@winacademy.mn</span>
                 </div>
               </div>
             </AnimatedSection>

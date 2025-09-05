@@ -20,7 +20,6 @@ import {
   XCircle,
   AlertCircle
 } from "lucide-react"
-import { useLanguage } from "@/contexts/language-context"
 
 interface Course {
   _id: string
@@ -54,7 +53,6 @@ interface CourseAccessManagerProps {
 }
 
 export default function CourseAccessManager({ userId, userName, onClose }: CourseAccessManagerProps) {
-  const { currentLanguage } = useLanguage()
   const [enrollments, setEnrollments] = useState<CourseEnrollment[]>([])
   const [availableCourses, setAvailableCourses] = useState<Course[]>([])
   const [isLoading, setIsLoading] = useState(true)

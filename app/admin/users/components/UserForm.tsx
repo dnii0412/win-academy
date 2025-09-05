@@ -7,7 +7,6 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { X, User, Mail, Shield } from "lucide-react"
-import { useLanguage } from "@/contexts/language-context"
 
 interface UserFormProps {
   isOpen: boolean
@@ -18,7 +17,6 @@ interface UserFormProps {
 }
 
 export default function UserForm({ isOpen, onClose, onSubmit, user, mode }: UserFormProps) {
-  const { currentLanguage } = useLanguage()
   const [formData, setFormData] = useState({
     firstName: user?.firstName || "",
     lastName: user?.lastName || "",
@@ -56,28 +54,19 @@ export default function UserForm({ isOpen, onClose, onSubmit, user, mode }: User
     
     // Client-side validation
     if (!formData.firstName.trim() || !formData.lastName.trim() || !formData.email.trim() || !formData.password.trim()) {
-      alert(currentLanguage === "mn" 
-        ? "Бүх талбарыг бөглөнө үү!" 
-        : "Please fill in all required fields!"
-      )
+      alert("Please fill in all required fields!")
       return
     }
     
     if (formData.password.length < 6) {
-      alert(currentLanguage === "mn" 
-        ? "Нууц үг хамгийн багадаа 6 тэмдэгт байх ёстой!" 
-        : "Password must be at least 6 characters long!"
-      )
+      alert("Password must be at least 6 characters long!")
       return
     }
     
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(formData.email)) {
-      alert(currentLanguage === "mn" 
-        ? "Зөв имэйл хаяг оруулна уу!" 
-        : "Please enter a valid email address!"
-      )
+      alert("Please enter a valid email address!")
       return
     }
     
@@ -92,10 +81,7 @@ export default function UserForm({ isOpen, onClose, onSubmit, user, mode }: User
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-              {mode === "create" 
-                ? (currentLanguage === "mn" ? "Хэрэглэгч үүсгэх" : "Create User")
-                : (currentLanguage === "mn" ? "Хэрэглэгч засах" : "Edit User")
-              }
+              {mode === "create" ? "Create User" : "Edit User"}
             </h2>
             <Button variant="ghost" size="sm" onClick={onClose}>
               <X className="h-5 w-5" />
@@ -108,7 +94,7 @@ export default function UserForm({ isOpen, onClose, onSubmit, user, mode }: User
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <User className="h-5 w-5" />
-                  {currentLanguage === "mn" ? "Үндсэн мэдээлэл" : "Basic Information"}
+                  Basic Information
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -176,7 +162,7 @@ export default function UserForm({ isOpen, onClose, onSubmit, user, mode }: User
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Shield className="h-5 w-5" />
-                  {currentLanguage === "mn" ? "Хэрэглэгчийн тохиргоо" : "User Settings"}
+                  User Settings
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -213,13 +199,10 @@ export default function UserForm({ isOpen, onClose, onSubmit, user, mode }: User
             {/* Form Actions */}
             <div className="flex justify-end space-x-3">
               <Button type="button" variant="outline" onClick={onClose}>
-                {currentLanguage === "mn" ? "Цуцлах" : "Cancel"}
+                Cancel
               </Button>
               <Button type="submit">
-                {mode === "create" 
-                  ? (currentLanguage === "mn" ? "Үүсгэх" : "Create User")
-                  : (currentLanguage === "mn" ? "Хадгалах" : "Save Changes")
-                }
+                {mode === "create" ? "Create User" : "Save Changes"}
               </Button>
             </div>
           </form>

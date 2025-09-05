@@ -19,7 +19,6 @@ import {
   EyeOff,
   Trash2
 } from "lucide-react"
-import { useLanguage } from "@/contexts/language-context"
 import SubcourseAccordion from "@/components/admin/SubcourseAccordion"
 import BulkActionsBar from "@/components/admin/BulkActionsBar"
 import ConfirmDialog from "@/components/admin/ConfirmDialog"
@@ -48,7 +47,6 @@ export default function CourseTreePage() {
   const params = useParams()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { currentLanguage } = useLanguage()
   
   const [course, setCourse] = useState<Course | null>(null)
   const [subcourses, setSubcourses] = useState<Subcourse[]>([])

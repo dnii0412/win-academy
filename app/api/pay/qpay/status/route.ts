@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
         const check = await qpayPaymentCheckByInvoice(order.qpay.invoiceId)
         order.qpay.lastCheckRes = check
 
-        const paidAmount = (check as any)?.paid_amount || 0
+        const paidAmount = check?.paid_amount || 0
 
         if (paidAmount >= order.amount && order.status !== 'PAID') {
           // Use atomic update to prevent race conditions with webhook

@@ -7,9 +7,7 @@ import { useTheme } from "next-themes"
 import { Moon, Sun, Menu, X, User, LogOut, Settings } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
 import { useSession, signOut } from "next-auth/react"
-import { useLanguage } from "@/contexts/language-context"
 import Logo from "./logo"
-import LanguageSwitcher from "./language-switcher"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,7 +21,6 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
-  const { currentLanguage, setLanguage, t } = useLanguage()
   const pathname = usePathname()
   const router = useRouter()
   const { data: session, status } = useSession()
@@ -84,23 +81,19 @@ export default function Navbar() {
                 href="/"
                 className="text-foreground hover:text-[#E10600] transition-colors duration-200 font-medium"
               >
-                {currentLanguage === "mn" ? "Нүүр" : "Home"}
+                Нүүр
               </Link>
               <Link
                 href="/courses"
                 className="text-foreground hover:text-[#E10600] transition-colors duration-200 font-medium"
               >
-                {currentLanguage === "mn" ? "Сургалтууд" : "Courses"}
+                Сургалтууд
               </Link>
             </div>
           </div>
 
           {/* Right - User Controls - more gathered and left-sided */}
           <div className="hidden md:flex items-center space-x-3">
-            <LanguageSwitcher
-              currentLanguage={currentLanguage}
-              onLanguageChange={setLanguage}
-            />
             <Button
               variant="ghost"
               size="icon"
@@ -123,19 +116,19 @@ export default function Navbar() {
                   <DropdownMenuItem asChild>
                     <Link href="/dashboard">
                       <Settings className="mr-2 h-4 w-4" />
-                      {currentLanguage === "mn" ? "Хяналтын самбар" : "Dashboard"}
+                      Хяналтын самбар
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="/dashboard/profile">
                       <User className="mr-2 h-4 w-4" />
-                      {currentLanguage === "mn" ? "Профил" : "Profile"}
+                      Профил
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut}>
                     <LogOut className="mr-2 h-4 w-4" />
-                    {currentLanguage === "mn" ? "Гарах" : "Logout"}
+                    Гарах
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -143,7 +136,7 @@ export default function Navbar() {
               <div className="flex items-center space-x-2">
                 <Link href="/register">
                   <Button className="bg-[#E10600] hover:bg-[#C70500] text-white transition-colors duration-200">
-                    {currentLanguage === "mn" ? "Бүртгүүлэх" : "Register"}
+                    Бүртгүүлэх
                   </Button>
                 </Link>
               </div>
@@ -201,25 +194,18 @@ export default function Navbar() {
                   className="block text-lg font-medium text-foreground hover:text-[#E10600] transition-colors duration-200 py-2"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  {currentLanguage === "mn" ? "Нүүр" : "Home"}
+                  Нүүр
                 </Link>
                 <Link
                   href="/courses"
                   className="block text-lg font-medium text-foreground hover:text-[#E10600] transition-colors duration-200 py-2"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  {currentLanguage === "mn" ? "Сургалтууд" : "Courses"}
+                  Сургалтууд
                 </Link>
               </div>
 
               <div className="space-y-4 pt-6 border-t border-border">
-                <div className="flex items-center justify-center">
-                  <LanguageSwitcher
-                    currentLanguage={currentLanguage}
-                    onLanguageChange={setLanguage}
-                  />
-                </div>
-
                 <Button
                   variant="ghost"
                   size="icon"
@@ -247,13 +233,13 @@ export default function Navbar() {
                         <DropdownMenuItem asChild>
                           <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
                             <Settings className="mr-2 h-4 w-4" />
-                            {currentLanguage === "mn" ? "Хяналтын самбар" : "Dashboard"}
+                            Хяналтын самбар
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                           <Link href="/dashboard/profile" onClick={() => setIsMobileMenuOpen(false)}>
                             <User className="mr-2 h-4 w-4" />
-                            {currentLanguage === "mn" ? "Профил" : "Profile"}
+                            Профил
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
@@ -262,7 +248,7 @@ export default function Navbar() {
                           setIsMobileMenuOpen(false)
                         }}>
                           <LogOut className="mr-2 h-4 w-4" />
-                          {currentLanguage === "mn" ? "Гарах" : "Logout"}
+                          Гарах
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -275,7 +261,7 @@ export default function Navbar() {
                         className="w-full border-[#E10600] text-[#E10600] hover:bg-[#E10600] hover:text-white bg-transparent transition-colors duration-200"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
-                        {currentLanguage === "mn" ? "Нэвтрэх" : "Login"}
+                        Нэвтрэх
                       </Button>
                     </Link>
 
@@ -284,7 +270,7 @@ export default function Navbar() {
                         className="w-full bg-[#E10600] hover:bg-[#C70500] text-white transition-colors duration-200"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
-                        {currentLanguage === "mn" ? "Бүртгүүлэх" : "Register"}
+                        Бүртгүүлэх
                       </Button>
                     </Link>
                   </div>

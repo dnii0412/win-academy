@@ -17,7 +17,6 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import StatusChip from "./StatusChip"
-import { useLanguage } from "@/contexts/language-context"
 
 interface Subcourse {
   _id: string
@@ -95,7 +94,6 @@ export default function SubcourseAccordion({
   onDragStart,
   onDragEnd
 }: SubcourseAccordionProps) {
-  const { currentLanguage } = useLanguage()
   const [draggedId, setDraggedId] = useState<string | null>(null)
   const [dragOverId, setDragOverId] = useState<string | null>(null)
 

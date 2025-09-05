@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { X, Play, Upload, CheckCircle, AlertCircle, Loader2 } from "lucide-react"
-import { useLanguage } from "@/contexts/language-context"
 
 interface LessonFormProps {
   isOpen: boolean
@@ -20,7 +19,6 @@ interface LessonFormProps {
 }
 
 export default function LessonForm({ isOpen, onClose, onSubmit, lesson, mode, courseId, subcourseId }: LessonFormProps) {
-  const { currentLanguage } = useLanguage()
   
   const [formData, setFormData] = useState({
     title: "",

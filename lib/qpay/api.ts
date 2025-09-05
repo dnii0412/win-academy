@@ -47,7 +47,7 @@ export async function qpayCreateInvoice(params: {
     invoice_receiver_code: QPAY.invoiceCode, // Required field - using invoice_code as receiver
     invoice_description: params.description || 'Win Academy course payment',
     amount: params.amount,
-    calback_url: params.callback_url || QPAY.webhookUrl, // Note: QPay API has typo "calback_url"
+    callback_url: params.callback_url || QPAY.webhookUrl, // Fixed typo: "callback_url" not "calback_url"
     allow_partial: params.allow_partial ?? false,
   }
   if (params.expiry_date) payload.expiry_date = params.expiry_date

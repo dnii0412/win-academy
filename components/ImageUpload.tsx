@@ -14,7 +14,6 @@ import {
   AlertCircle,
   Trash2
 } from "lucide-react"
-import { useLanguage } from "@/contexts/language-context"
 
 interface ImageUploadProps {
   onUploadSuccess: (url: string, publicId: string) => void
@@ -53,22 +52,17 @@ export default function ImageUpload({
   const [dragActive, setDragActive] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string | null>(currentImageUrl || null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const { currentLanguage } = useLanguage()
 
   const validateFile = (file: File): string | null => {
     // Check file type
     if (!acceptedFormats.includes(file.type)) {
-      return currentLanguage === "mn"
-        ? "Зөвшөөрөгдсөн файлын төрөл: JPEG, PNG, WebP, GIF"
-        : "Allowed file types: JPEG, PNG, WebP, GIF"
+      return "Зөвшөөрөгдсөн файлын төрөл: JPEG, PNG, WebP, GIF"
     }
 
     // Check file size
     const maxSizeBytes = maxSizeInMB * 1024 * 1024
     if (file.size > maxSizeBytes) {
-      return currentLanguage === "mn"
-        ? `Файлын хэмжээ ${maxSizeInMB}MB-аас их байж болохгүй`
-        : `File size must be less than ${maxSizeInMB}MB`
+      return `Файлын хэмжээ ${maxSizeInMB}MB-аас их байж болохгүй`
     }
 
     return null
@@ -140,7 +134,7 @@ export default function ImageUpload({
       // Get admin token for authentication
       const adminToken = localStorage.getItem("adminToken")
       if (!adminToken) {
-        throw new Error(currentLanguage === "mn" ? "Нэвтэрч орох шаардлагатай" : "Authentication required")
+        throw new Error("Нэвтэрч орох шаардлагатай")
       }
 
             // Try direct Cloudinary upload (simpler and more reliable)
@@ -152,13 +146,9 @@ export default function ImageUpload({
 
       // Provide helpful error messages
       if (errorMessage.includes('not configured')) {
-        errorMessage = currentLanguage === "mn"
-          ? "Cloudinary тохиргоо дутуу байна. .env.local файлд CLOUDINARY хувьсагчдыг нэмнэ үү"
-          : "Cloudinary not configured. Please add CLOUDINARY environment variables to .env.local"
+        errorMessage = "Cloudinary тохиргоо дутуу байна. .env.local файлд CLOUDINARY хувьсагчдыг нэмнэ үү"
       } else if (errorMessage.includes('Authentication required')) {
-        errorMessage = currentLanguage === "mn"
-          ? "Админ эрхээр нэвтэрч орно уу"
-          : "Please login as admin to upload images"
+        errorMessage = "Админ эрхээр нэвтэрч орно уу"
       }
 
       setError(errorMessage)
@@ -205,7 +195,7 @@ export default function ImageUpload({
     try {
       const adminToken = localStorage.getItem("adminToken")
       if (!adminToken) {
-        throw new Error(currentLanguage === "mn" ? "Нэвтэрч орох шаардлагатай" : "Authentication required")
+        throw new Error("Нэвтэрч орох шаардлагатай")
       }
 
       const response = await fetch('/api/cloudinary/delete', {
@@ -262,7 +252,7 @@ export default function ImageUpload({
                 <Loader2 className="w-8 h-8 animate-spin mx-auto text-blue-500" />
                 <div className="space-y-2">
                   <p className="text-sm text-gray-600">
-                    {currentLanguage === "mn" ? "Илгээж байна..." : "Uploading..."}
+                    Илгээж байна...
                   </p>
                   {uploadProgress && (
                     <div className="space-y-1">
@@ -310,10 +300,7 @@ export default function ImageUpload({
                   </div>
                 </div>
                 <p className="text-sm text-gray-600">
-                  {currentLanguage === "mn"
-                    ? "Шинэ зураг илгээхийн тулд дээр дарна уу"
-                    : "Click to upload a new image"
-                  }
+                  Шинэ зураг илгээхийн тулд дээр дарна уу
                 </p>
               </div>
             ) : (
@@ -321,27 +308,18 @@ export default function ImageUpload({
                 <ImageIcon className="w-12 h-12 mx-auto text-gray-400" />
                 <div className="space-y-2">
                   <p className="text-lg font-medium text-gray-700">
-                    {currentLanguage === "mn"
-                      ? "Зураг илгээх"
-                      : "Upload Image"
-                    }
+                    Зураг илгээх
                   </p>
                   <p className="text-sm text-gray-500">
-                    {currentLanguage === "mn"
-                      ? "Файл сонгоно уу эсвэл энд чирэн оруулна уу"
-                      : "Choose a file or drag and drop here"
-                    }
+                    Файл сонгоно уу эсвэл энд чирэн оруулна уу
                   </p>
                   <p className="text-xs text-gray-400">
-                    {currentLanguage === "mn"
-                      ? `JPEG, PNG, WebP, GIF (хамгийн ихдээ ${maxSizeInMB}MB)`
-                      : `JPEG, PNG, WebP, GIF (max ${maxSizeInMB}MB)`
-                    }
+                    JPEG, PNG, WebP, GIF (хамгийн ихдээ ${maxSizeInMB}MB)
                   </p>
                 </div>
                 <Button type="button" variant="outline" disabled={disabled}>
                   <Upload className="w-4 h-4 mr-2" />
-                  {currentLanguage === "mn" ? "Файл сонгох" : "Choose File"}
+                  Файл сонгох
                 </Button>
               </div>
             )}
@@ -378,10 +356,7 @@ export default function ImageUpload({
         <Alert className="border-green-200 bg-green-50">
           <CheckCircle className="h-4 w-4 text-green-600" />
           <AlertDescription className="text-green-800">
-            {currentLanguage === "mn"
-              ? "Зураг амжилттай илгээлээ!"
-              : "Image uploaded successfully!"
-            }
+            Зураг амжилттай илгээлээ!
           </AlertDescription>
         </Alert>
       )}

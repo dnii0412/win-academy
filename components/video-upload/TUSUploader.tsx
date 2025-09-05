@@ -7,7 +7,6 @@ import { Label } from "@/components/ui/label"
 import { Progress } from "@/components/ui/progress"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Upload, Video, X, CheckCircle, AlertCircle } from "lucide-react"
-import { useLanguage } from "@/contexts/language-context"
 
 
 
@@ -26,7 +25,6 @@ interface UploadProgress {
 }
 
 export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderProps) {
-  const { currentLanguage } = useLanguage()
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState<UploadProgress>({
     bytesUploaded: 0,

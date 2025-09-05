@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
     order.qpay.lastCheckRes = check
 
     // The check response typically lists payments for the invoice.
-    const paidAmount = (check as any)?.paid_amount || 0
+    const paidAmount = check?.paid_amount || 0
 
     const fullyPaid = paidAmount >= order.amount
 

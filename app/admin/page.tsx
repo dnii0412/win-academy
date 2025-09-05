@@ -15,7 +15,6 @@ import {
   UserPlus,
   FileText
 } from "lucide-react"
-import { useLanguage } from "@/contexts/language-context"
 import Link from "next/link"
 
 interface AdminStats {
@@ -34,7 +33,6 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<AdminStats | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
-  const { currentLanguage } = useLanguage()
 
   useEffect(() => {
     // Check if admin is authenticated
@@ -105,7 +103,7 @@ export default function AdminDashboard() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                {currentLanguage === "mn" ? "Нийт хэрэглэгчид" : "Total Users"}
+                Нийт хэрэглэгчид
               </CardTitle>
               <Users className="h-4 w-4 text-blue-600" />
             </CardHeader>
@@ -114,7 +112,7 @@ export default function AdminDashboard() {
                 {stats?.totalUsers || 0}
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                {currentLanguage === "mn" ? "Бүртгэлтэй хэрэглэгчид" : "Registered users"}
+                Бүртгэлтэй хэрэглэгчид
               </p>
             </CardContent>
           </Card>
@@ -122,7 +120,7 @@ export default function AdminDashboard() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                {currentLanguage === "mn" ? "Нийт сургалтууд" : "Total Courses"}
+                Нийт сургалтууд
               </CardTitle>
               <BookOpen className="h-4 w-4 text-green-600" />
             </CardHeader>
@@ -131,7 +129,7 @@ export default function AdminDashboard() {
                 {stats?.totalCourses || 0}
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                {currentLanguage === "mn" ? "Боломжит сургалтууд" : "Available courses"}
+                Боломжит сургалтууд
               </p>
             </CardContent>
           </Card>
@@ -141,7 +139,7 @@ export default function AdminDashboard() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                {currentLanguage === "mn" ? "Долоо хоногийн орлого" : "Weekly Income"}
+                Долоо хоногийн орлого
               </CardTitle>
               <TrendingUp className="h-4 w-4 text-orange-600" />
             </CardHeader>
@@ -150,7 +148,7 @@ export default function AdminDashboard() {
                 ${stats?.weeklyIncome || 0}
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                {currentLanguage === "mn" ? "Долоо хоногийн орлого" : "Weekly income"}
+                Долоо хоногийн орлого
               </p>
             </CardContent>
           </Card>
@@ -162,7 +160,7 @@ export default function AdminDashboard() {
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">
-                {currentLanguage === "mn" ? "Сүүлийн хэрэглэгчид" : "Recent Users"}
+                Сүүлийн хэрэглэгчид
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -179,7 +177,7 @@ export default function AdminDashboard() {
                   </div>
                 )) || (
                   <p className="text-gray-500 dark:text-gray-400 text-center py-4">
-                    {currentLanguage === "mn" ? "Хэрэглэгч байхгүй" : "No users yet"}
+                    Хэрэглэгч байхгүй
                   </p>
                 )}
               </div>
@@ -190,7 +188,7 @@ export default function AdminDashboard() {
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">
-                {currentLanguage === "mn" ? "Хурдан үйлдлүүд" : "Quick Actions"}
+                Хурдан үйлдлүүд
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -199,7 +197,7 @@ export default function AdminDashboard() {
                   <Button className="w-full h-20 flex-row space-x-3 bg-blue-600 hover:bg-blue-700">
                     <Plus className="h-5 w-5" />
                     <span className="text-sm">
-                      {currentLanguage === "mn" ? "Сургалт нэмэх" : "Add Course"}
+                      Сургалт нэмэх
                     </span>
                   </Button>
                 </Link>
@@ -207,7 +205,7 @@ export default function AdminDashboard() {
                   <Button className="w-full h-20 flex-row space-x-3 bg-green-600 hover:bg-green-700">
                     <UserPlus className="h-5 w-5" />
                     <span className="text-sm">
-                      {currentLanguage === "mn" ? "Хэрэглэгч нэмэх" : "Add User"}
+                      Хэрэглэгч нэмэх
                     </span>
                   </Button>
                 </Link>
@@ -215,7 +213,7 @@ export default function AdminDashboard() {
                   <Button className="w-full h-20 flex-row space-x-3 bg-purple-600 hover:bg-purple-700">
                     <FileText className="h-5 w-5" />
                     <span className="text-sm">
-                      {currentLanguage === "mn" ? "Захиалга харах" : "View Orders"}
+                      Захиалга харах
                     </span>
                   </Button>
                 </Link>
@@ -223,7 +221,7 @@ export default function AdminDashboard() {
                   <Button className="w-full h-20 flex-row space-x-3 bg-gray-600 hover:bg-gray-700">
                     <Settings className="h-5 w-5" />
                     <span className="text-sm">
-                      {currentLanguage === "mn" ? "Тохиргоо" : "Settings"}
+                      Тохиргоо
                     </span>
                   </Button>
                 </Link>

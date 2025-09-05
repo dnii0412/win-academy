@@ -3,10 +3,8 @@
 import Link from "next/link"
 import Image from "next/image"
 import Logo from "./logo"
-import { useLanguage } from "@/contexts/language-context"
 
 export default function Footer() {
-  const { t } = useLanguage()
 
   return (
     <footer className="bg-[#111111] text-white">

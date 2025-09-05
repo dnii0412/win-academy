@@ -12,7 +12,6 @@ import Logo from "@/components/logo"
 import { signIn, getSession } from "next-auth/react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Eye, EyeOff } from "lucide-react"
-import { useLanguage } from "@/contexts/language-context"
 
 function LoginForm() {
   const [formData, setFormData] = useState({
@@ -25,7 +24,6 @@ function LoginForm() {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { t } = useLanguage()
   const callbackUrl = searchParams.get('callbackUrl') || '/dashboard'
 
   useEffect(() => {
@@ -58,13 +56,13 @@ function LoginForm() {
     const newErrors: Record<string, string> = {}
 
     if (!formData.email.trim()) {
-      newErrors.email = t('auth.login.emailRequired') || "Email is required"
+      newErrors.email = "И-мэйл хаяг оруулах шаардлагатай"
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = t('auth.login.emailInvalid') || "Please enter a valid email address"
+      newErrors.email = "Зөв и-мэйл хаяг оруулна уу"
     }
 
     if (!formData.password) {
-      newErrors.password = t('auth.login.passwordRequired') || "Password is required"
+      newErrors.password = "Нууц үг оруулах шаардлагатай"
     }
 
     setErrors(newErrors)
@@ -88,7 +86,7 @@ function LoginForm() {
       })
 
       if (result?.error) {
-        setErrors({ general: t('auth.login.invalidCredentials') || "Invalid email or password. Please try again." })
+        setErrors({ general: "И-мэйл эсвэл нууц үг буруу байна. Дахин оролдоно уу." })
       } else {
         // Handle remember me
         if (formData.rememberMe) {
@@ -104,7 +102,7 @@ function LoginForm() {
       }
     } catch (error) {
       console.error("Login error:", error)
-      setErrors({ general: t('auth.login.unexpectedError') || "An unexpected error occurred. Please try again." })
+      setErrors({ general: "Санаандгүй алдаа гарлаа. Дахин оролдоно уу." })
     } finally {
       setIsLoading(false)
     }
@@ -129,21 +127,21 @@ function LoginForm() {
           <div className="flex justify-center mb-4">
             <Logo size="lg" showText={false} />
           </div>
-          <CardTitle className="text-2xl font-bold text-foreground">{t('auth.login.title')}</CardTitle>
-          <p className="text-muted-foreground">{t('auth.login.subtitle')}</p>
+          <CardTitle className="text-2xl font-bold text-foreground">Сайн байна уу</CardTitle>
+          <p className="text-muted-foreground">Үргэлжлүүлэн суралцахын тулд бүртгэлдээ нэвтэрнэ үү</p>
         </CardHeader>
         <CardContent className="space-y-6">
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-foreground mb-1">
-                {t('auth.login.email')}
+                И-мэйл хаяг
               </label>
               <Input
                 id="email"
                 name="email"
                 type="email"
-                placeholder={t('auth.login.emailPlaceholder') || "Enter your email"}
+                placeholder="И-мэйл хаягаа оруулна уу"
                 className="w-full bg-background border-border text-foreground placeholder:text-muted-foreground"
                 value={formData.email}
                 onChange={handleInputChange}
@@ -154,14 +152,14 @@ function LoginForm() {
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-foreground mb-1">
-                {t('auth.login.password')}
+                Нууц үг
               </label>
               <div className="relative">
                 <Input
                   id="password"
                   name="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder={t('auth.login.passwordPlaceholder') || "Enter your password"}
+                  placeholder="Нууц үгээ оруулна уу"
                   className="w-full bg-background border-border text-foreground placeholder:text-muted-foreground pr-10"
                   value={formData.password}
                   onChange={handleInputChange}
@@ -187,10 +185,10 @@ function LoginForm() {
                   checked={formData.rememberMe}
                   onChange={handleInputChange}
                 />
-                <span className="ml-2 text-sm text-muted-foreground">{t('auth.login.rememberMe')}</span>
+                <span className="ml-2 text-sm text-muted-foreground">Намайг сана</span>
               </label>
               <Link href="/forgot-password" className="text-sm text-[#E10600] hover:underline">
-                {t('auth.login.forgotPassword')}
+                Нууц үгээ мартсан уу?
               </Link>
             </div>
 
@@ -201,7 +199,7 @@ function LoginForm() {
               disabled={isLoading}
               className="w-full bg-[#E10600] hover:bg-[#C70500] text-white"
             >
-              {isLoading ? t('common.loading') : t('auth.login.signIn')}
+              {isLoading ? "Уншиж байна..." : "Нэвтрэх"}
             </Button>
           </form>
 
@@ -210,7 +208,7 @@ function LoginForm() {
               <div className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-card text-muted-foreground">{t('auth.login.or')}</span>
+              <span className="px-2 bg-card text-muted-foreground">эсвэл</span>
             </div>
           </div>
 
@@ -238,13 +236,13 @@ function LoginForm() {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               />
             </svg>
-            <span>{t('auth.login.googleSignIn')}</span>
+            <span>Google-аар үргэлжлүүлэх</span>
           </Button>
 
           <p className="text-center text-sm text-muted-foreground">
-            {t('auth.login.noAccount')}{" "}
+            Бүртгэл байхгүй юу?{" "}
             <Link href="/register" className="text-[#E10600] hover:underline font-medium">
-              {t('auth.login.signUp')}
+              Бүртгүүлэх
             </Link>
           </p>
         </CardContent>

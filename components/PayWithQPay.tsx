@@ -36,6 +36,7 @@ export function PayWithQPay({ courseId, priceMnt, courseTitle, onPaymentSuccess 
         body: JSON.stringify({ courseId, priceMnt }),
       })
       const json = await res.json()
+      console.log('Payment response:', json)
       if (!res.ok) throw new Error(json.error || 'Failed to create invoice')
       setData(json)
       setPaymentStatus('pending')
@@ -154,16 +155,21 @@ export function PayWithQPay({ courseId, priceMnt, courseTitle, onPaymentSuccess 
           {data.qr_image ? (
             <div className="inline-block p-4 bg-white rounded-lg border-2 border-gray-200">
               <img 
-                src={`data:image/png;base64,${data.qr_image}`} 
+                src={data.qr_image.startsWith('data:') ? data.qr_image : `data:image/png;base64,${data.qr_image}`} 
                 alt="QPay QR Code" 
                 className="w-48 h-48 mx-auto"
+                onError={(e) => {
+                  console.error('QR image failed to load:', e)
+                  console.log('QR image src:', data.qr_image)
+                }}
               />
             </div>
           ) : (
             <div className="p-4 bg-gray-50 rounded-lg border">
+              <p className="text-sm text-gray-600 mb-2">QR Code not available, showing text:</p>
               <textarea 
                 readOnly 
-                value={data.qr_text} 
+                value={data.qr_text || 'No QR data available'} 
                 className="w-full h-24 text-xs font-mono resize-none border-0 bg-transparent"
               />
             </div>
@@ -218,6 +224,36 @@ export function PayWithQPay({ courseId, priceMnt, courseTitle, onPaymentSuccess 
           <p className="text-xs text-blue-600">
             This page will automatically refresh once payment is confirmed
           </p>
+        </div>
+
+        {/* Test Payment Button (Mock Mode Only) */}
+        <div className="text-center">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={async () => {
+              try {
+                const res = await fetch('/api/pay/qpay/create', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ courseId, priceMnt, markAsPaid: true }),
+                })
+                const json = await res.json()
+                if (res.ok) {
+                  setPaymentStatus('paid')
+                  onPaymentSuccess?.()
+                  setTimeout(() => window.location.reload(), 1000)
+                } else {
+                  setError(json.error || 'Failed to mark as paid')
+                }
+              } catch (e: any) {
+                setError(e.message)
+              }
+            }}
+            className="text-xs"
+          >
+            🧪 Test: Mark as Paid (Mock Mode)
+          </Button>
         </div>
 
         {error && (

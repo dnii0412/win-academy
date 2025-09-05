@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, Lock, Play, BookOpen, Clock, CheckCircle, ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from "lucide-react"
-import { useLanguage } from "@/contexts/language-context"
 
 interface Course {
   _id: string
@@ -61,7 +60,6 @@ export default function CourseAccessPage() {
   const params = useParams()
   const router = useRouter()
   const { data: session } = useSession()
-  const { currentLanguage, t } = useLanguage()
   
   const [course, setCourse] = useState<Course | null>(null)
   const [hasAccess, setHasAccess] = useState<boolean | null>(null)
@@ -166,15 +164,15 @@ export default function CourseAccessPage() {
             setCurrentLessonIndex(0)
             setIsLearning(true)
           } else {
-            alert(currentLanguage === "mn" ? "Энэ сургалтад одоогоор хичээл байхгүй байна" : "No lessons available in this course yet")
+            alert("Энэ сургалтад одоогоор хичээл байхгүй байна")
           }
         } else {
-          alert(currentLanguage === "mn" ? "Энэ сургалтад одоогоор дэд сургалт байхгүй байна" : "No subcourses available in this course yet")
+          alert("Энэ сургалтад одоогоор дэд сургалт байхгүй байна")
         }
       }
     } catch (error) {
       console.error('Error fetching subcourses:', error)
-      alert(currentLanguage === "mn" ? "Дэд сургалт ачаалахад алдаа гарлаа" : "Error loading subcourses")
+      alert("Дэд сургалт ачаалахад алдаа гарлаа")
     }
   }
 
@@ -200,7 +198,7 @@ export default function CourseAccessPage() {
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
           <p className="text-gray-600">
-            {currentLanguage === "mn" ? "Хандах эрх шалгаж байна..." : "Checking access..."}
+            Хандах эрх шалгаж байна...
           </p>
         </div>
       </div>
@@ -214,7 +212,7 @@ export default function CourseAccessPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-red-600">
               <Lock className="w-5 h-5" />
-              {currentLanguage === "mn" ? "Алдаа" : "Error"}
+              Алдаа
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -224,14 +222,14 @@ export default function CourseAccessPage() {
                 onClick={() => router.push("/login")} 
                 className="w-full bg-[#E10600] hover:bg-[#C70500]"
               >
-                {currentLanguage === "mn" ? "Нэвтрэх" : "Login"}
+                Нэвтрэх
               </Button>
               <Button 
                 variant="outline" 
                 onClick={() => router.push("/courses")} 
                 className="w-full"
               >
-                {currentLanguage === "mn" ? "Сургалтууд руу буцах" : "Back to Courses"}
+                Сургалтууд руу буцах
               </Button>
             </div>
           </CardContent>
@@ -247,26 +245,23 @@ export default function CourseAccessPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Lock className="w-5 h-5 text-yellow-600" />
-              {currentLanguage === "mn" ? "Хандах эрх хэрэгтэй" : "Access Required"}
+              Хандах эрх хэрэгтэй
             </CardTitle>
           </CardHeader>
           <CardContent>
             <Alert className="mb-4">
               <AlertDescription>
-                {currentLanguage === "mn" 
-                  ? "Энэ сургалтад хандахын тулд эхлээд худалдаж авах шаардлагатай." 
-                  : "You need to purchase this course to access the content."
-                }
+                Энэ сургалтад хандахын тулд эхлээд худалдаж авах шаардлагатай.
               </AlertDescription>
             </Alert>
             
             {course && (
               <div className="mb-4">
                 <h3 className="font-semibold text-lg mb-2">
-                  {currentLanguage === "mn" ? course.titleMn : course.title}
+                  {course.titleMn || course.title}
                 </h3>
                 <p className="text-gray-600 text-sm mb-3">
-                  {currentLanguage === "mn" ? course.descriptionMn : course.description}
+                  {course.descriptionMn || course.description}
                 </p>
                 <p className="text-2xl font-bold text-[#E10600]">
                   ₮{course.price.toLocaleString()} MNT
@@ -279,14 +274,14 @@ export default function CourseAccessPage() {
                 onClick={() => router.push(`/checkout/${courseId}`)} 
                 className="w-full bg-[#E10600] hover:bg-[#C70500]"
               >
-                {currentLanguage === "mn" ? "Худалдаж авах" : "Purchase Course"}
+                Худалдаж авах
               </Button>
               <Button 
                 variant="outline" 
                 onClick={() => router.push("/courses")} 
                 className="w-full"
               >
-                {currentLanguage === "mn" ? "Сургалтууд руу буцах" : "Back to Courses"}
+                Сургалтууд руу буцах
               </Button>
             </div>
           </CardContent>
@@ -311,11 +306,11 @@ export default function CourseAccessPage() {
                 className="flex items-center gap-2"
               >
                 <ChevronLeft className="w-4 h-4" />
-                {currentLanguage === "mn" ? "Буцах" : "Back"}
+                Буцах
               </Button>
               <div>
                 <h1 className="text-xl font-semibold">
-                  {currentLanguage === "mn" ? course?.titleMn : course?.title}
+                  {course?.titleMn || course?.title}
                 </h1>
               </div>
             </div>
@@ -337,7 +332,7 @@ export default function CourseAccessPage() {
                         src={currentLesson.videoUrl}
                         className="w-full h-full rounded-lg"
                         allowFullScreen
-                        title={currentLanguage === "mn" ? currentLesson.titleMn : currentLesson.title}
+                        title={currentLesson.titleMn || currentLesson.title}
                       />
                     </div>
                   ) : (
@@ -345,7 +340,7 @@ export default function CourseAccessPage() {
                       <div className="text-center">
                         <Play className="w-12 h-12 text-gray-400 mx-auto mb-2" />
                         <p className="text-gray-500">
-                          {currentLanguage === "mn" ? "Видео бэлэн биш байна" : "Video not available"}
+                          Видео бэлэн биш байна
                         </p>
                       </div>
                     </div>
@@ -358,12 +353,12 @@ export default function CourseAccessPage() {
                 <Card className="mt-4">
                   <CardHeader>
                     <CardTitle className="text-lg">
-                      {currentLanguage === "mn" ? "Хичээлийн тайлбар" : "Lesson Description"}
+                      Хичээлийн тайлбар
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-gray-700">
-                      {currentLanguage === "mn" ? currentLesson.descriptionMn : currentLesson.description}
+                      {currentLesson.descriptionMn || currentLesson.description}
                     </p>
                   </CardContent>
                 </Card>
@@ -376,7 +371,7 @@ export default function CourseAccessPage() {
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
                     <BookOpen className="w-5 h-5" />
-                    {currentLanguage === "mn" ? "Дэд сургалтууд" : "Subcourses"}
+                    Дэд сургалтууд
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -397,11 +392,11 @@ export default function CourseAccessPage() {
                                 <ChevronRight className="w-4 h-4 text-gray-500" />
                               )}
                               <h4 className="font-semibold text-sm text-gray-700">
-                                {currentLanguage === "mn" ? subcourse.titleMn : subcourse.title}
+                                {subcourse.titleMn || subcourse.title}
                               </h4>
                             </div>
                             <span className="text-xs text-gray-500">
-                              {subcourse.lessons.length} {currentLanguage === "mn" ? "хичээл" : "lessons"}
+                              {subcourse.lessons.length} хичээл
                             </span>
                           </div>
                           
@@ -432,7 +427,7 @@ export default function CourseAccessPage() {
                                         <p className={`text-sm font-medium truncate ${
                                           globalIndex === currentLessonIndex ? 'text-white' : 'text-gray-900'
                                         }`}>
-                                          {currentLanguage === "mn" ? lesson.titleMn : lesson.title}
+                                          {lesson.titleMn || lesson.title}
                                         </p>
                                         <p className={`text-xs ${
                                           globalIndex === currentLessonIndex ? 'text-gray-200' : 'text-gray-500'

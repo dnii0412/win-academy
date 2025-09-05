@@ -11,7 +11,6 @@ import Logo from "@/components/logo"
 import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { Eye, EyeOff } from "lucide-react"
-import { useLanguage } from "@/contexts/language-context"
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -26,7 +25,6 @@ export default function RegisterPage() {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
-  const { t } = useLanguage()
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target
@@ -49,35 +47,35 @@ export default function RegisterPage() {
     const newErrors: Record<string, string> = {}
 
     if (!formData.fullName.trim()) {
-      newErrors.fullName = t('auth.register.fullNameRequired') || "Full name is required"
+      newErrors.fullName = "Бүтэн нэр оруулах шаардлагатай"
     }
 
     if (!formData.email.trim()) {
-      newErrors.email = t('auth.register.emailRequired') || "Email is required"
+      newErrors.email = "И-мэйл хаяг оруулах шаардлагатай"
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = t('auth.register.emailInvalid') || "Please enter a valid email address"
+      newErrors.email = "Зөв и-мэйл хаяг оруулна уу"
     }
 
     if (!formData.phone.trim()) {
-      newErrors.phone = t('auth.register.phoneRequired') || "Phone number is required"
+      newErrors.phone = "Утасны дугаар оруулах шаардлагатай"
     } else if (!/^\d{8,}$/.test(formData.phone.replace(/\s/g, ""))) {
-      newErrors.phone = t('auth.register.phoneInvalid') || "Please enter a valid phone number"
+      newErrors.phone = "Зөв утасны дугаар оруулна уу"
     }
 
     if (!formData.password) {
-      newErrors.password = t('auth.register.passwordRequired') || "Password is required"
+      newErrors.password = "Нууц үг оруулах шаардлагатай"
     } else if (formData.password.length < 6) {
-      newErrors.password = t('auth.register.passwordTooShort') || "Password must be at least 6 characters long"
+      newErrors.password = "Нууц үг дор хаяж 6 тэмдэгттэй байх ёстой"
     }
 
     if (!formData.confirmPassword) {
-      newErrors.confirmPassword = t('auth.register.confirmPasswordRequired') || "Please confirm your password"
+      newErrors.confirmPassword = "Нууц үгээ баталгаажуулна уу"
     } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = t('auth.register.passwordMismatch') || "Passwords do not match"
+      newErrors.confirmPassword = "Нууц үг таарахгүй байна"
     }
 
     if (!formData.agreeToTerms) {
-      newErrors.agreeToTerms = t('auth.register.agreeToTermsRequired') || "You must agree to the terms and conditions"
+      newErrors.agreeToTerms = "Үйлчилгээний нөхцөлд зөвшөөрөх шаардлагатай"
     }
 
     setErrors(newErrors)
@@ -118,21 +116,21 @@ export default function RegisterPage() {
         })
 
         if (result?.error) {
-          setErrors({ general: t('auth.register.loginAfterRegisterFailed') || "Registration successful but login failed. Please try logging in." })
+          setErrors({ general: "Бүртгэл амжилттай боловч нэвтрэх амжилтгүй. Нэвтрэхийг оролдоно уу." })
         } else {
           router.push('/dashboard')
         }
       } else {
         // Handle specific error cases
         if (response.status === 409 && data.error?.includes('already exists')) {
-          setErrors({ general: t('auth.register.emailAlreadyExists') || "This email address is already registered. Please use a different email or try logging in." })
+          setErrors({ general: "Энэ и-мэйл хаяг өмнө нь бүртгэгдсэн байна. Өөр и-мэйл хэрэглэх эсвэл нэвтрэхийг оролдоно уу." })
         } else {
-          setErrors({ general: data.message || data.error || t('auth.register.registrationFailed') || "Registration failed. Please try again." })
+          setErrors({ general: data.message || data.error || "Бүртгэл амжилтгүй. Дахин оролдоно уу." })
         }
       }
     } catch (error) {
       console.error('Registration error:', error)
-      setErrors({ general: t('auth.register.unexpectedError') || "An unexpected error occurred. Please try again." })
+      setErrors({ general: "Санаандгүй алдаа гарлаа. Дахин оролдоно уу." })
     } finally {
       setIsLoading(false)
     }
@@ -145,7 +143,7 @@ export default function RegisterPage() {
       })
     } catch (error) {
       console.error("Google sign-up error:", error)
-      setErrors({ general: t('auth.register.googleSignUpFailed') || "Google sign-up failed. Please try again." })
+      setErrors({ general: "Google-аар бүртгүүлэх амжилтгүй. Дахин оролдоно уу." })
     }
   }
 
@@ -156,21 +154,21 @@ export default function RegisterPage() {
           <div className="flex justify-center mb-4">
             <Logo size="lg" showText={false} />
           </div>
-          <CardTitle className="text-2xl font-bold text-foreground">{t('auth.register.title')}</CardTitle>
-          <p className="text-muted-foreground">{t('auth.register.subtitle')}</p>
+          <CardTitle className="text-2xl font-bold text-foreground">Бүртгэл үүсгэх</CardTitle>
+          <p className="text-muted-foreground">Өнөөдөр суралцаж эхлээрэй</p>
         </CardHeader>
         <CardContent className="space-y-6">
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="fullName" className="block text-sm font-medium text-foreground mb-1">
-                {t('auth.register.fullName')}
+                Бүтэн нэр
               </label>
               <Input
                 id="fullName"
                 name="fullName"
                 type="text"
-                placeholder={t('auth.register.fullNamePlaceholder') || "Enter your full name"}
+                placeholder="Бүтэн нэрээ оруулна уу"
                 className="w-full bg-background border-border text-foreground placeholder:text-muted-foreground"
                 value={formData.fullName}
                 onChange={handleInputChange}
@@ -181,13 +179,13 @@ export default function RegisterPage() {
 
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-foreground mb-1">
-                {t('auth.register.email')}
+                И-мэйл хаяг
               </label>
               <Input
                 id="email"
                 name="email"
                 type="email"
-                placeholder={t('auth.register.emailPlaceholder') || "Enter your email"}
+                placeholder="И-мэйл хаягаа оруулна уу"
                 className="w-full bg-background border-border text-foreground placeholder:text-muted-foreground"
                 value={formData.email}
                 onChange={handleInputChange}
@@ -198,13 +196,13 @@ export default function RegisterPage() {
 
             <div>
               <label htmlFor="phone" className="block text-sm font-medium text-foreground mb-1">
-                {t('auth.register.phone')}
+                Утасны дугаар
               </label>
               <Input
                 id="phone"
                 name="phone"
                 type="tel"
-                placeholder={t('auth.register.phonePlaceholder') || "Enter your phone number"}
+                placeholder="Утасны дугаараа оруулна уу"
                 className="w-full bg-background border-border text-foreground placeholder:text-muted-foreground"
                 value={formData.phone}
                 onChange={handleInputChange}
@@ -215,14 +213,14 @@ export default function RegisterPage() {
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-foreground mb-1">
-                {t('auth.register.password')}
+                Нууц үг
               </label>
               <div className="relative">
                 <Input
                   id="password"
                   name="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder={t('auth.register.passwordPlaceholder') || "Create a password"}
+                  placeholder="Нууц үг үүсгэнэ үү"
                   className="w-full bg-background border-border text-foreground placeholder:text-muted-foreground pr-10"
                   value={formData.password}
                   onChange={handleInputChange}
@@ -241,14 +239,14 @@ export default function RegisterPage() {
 
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-foreground mb-1">
-                {t('auth.register.confirmPassword')}
+                Нууц үг баталгаажуулах
               </label>
               <div className="relative">
                 <Input
                   id="confirmPassword"
                   name="confirmPassword"
                   type={showPassword ? "text" : "password"}
-                  placeholder={t('auth.register.confirmPasswordPlaceholder') || "Confirm your password"}
+                  placeholder="Нууц үгээ дахин оруулна уу"
                   className="w-full bg-background border-border text-foreground placeholder:text-muted-foreground pr-10"
                   value={formData.confirmPassword}
                   onChange={handleInputChange}
@@ -275,20 +273,20 @@ export default function RegisterPage() {
                 required
               />
               <span className="ml-2 text-sm text-muted-foreground">
-                {t('auth.register.agreeToTermsText') || 'I agree to the'}{" "}
+                Би зөвшөөрч байна{" "}
                 <Link href="/terms" className="text-[#E10600] hover:underline">
-                  {t('auth.register.terms')}
+                  Үйлчилгээний нөхцөл
                 </Link>{" "}
-                {t('auth.register.and') || 'and'}{" "}
+                ба{" "}
                 <Link href="/privacy" className="text-[#E10600] hover:underline">
-                  {t('auth.register.privacy')}
+                  Нууцлалын бодлого
                 </Link>
               </span>
               {errors.agreeToTerms && <p className="text-red-500 text-xs mt-1">{errors.agreeToTerms}</p>}
             </div>
 
             <Button type="submit" className="w-full bg-[#E10600] hover:bg-[#C70500] text-white" disabled={isLoading}>
-              {isLoading ? t('auth.register.creating') || 'Creating Account...' : t('auth.register.createAccount')}
+              {isLoading ? 'Бүртгэл үүсгэж байна...' : 'Бүртгэл үүсгэх'}
             </Button>
             {errors.general && <p className="text-red-500 text-center text-sm">{errors.general}</p>}
           </form>
@@ -298,7 +296,7 @@ export default function RegisterPage() {
               <div className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-card text-muted-foreground">{t('auth.register.or')}</span>
+              <span className="px-2 bg-card text-muted-foreground">эсвэл</span>
             </div>
           </div>
 
@@ -326,13 +324,13 @@ export default function RegisterPage() {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               />
             </svg>
-            <span>{t('auth.register.googleSignUp')}</span>
+            <span>Google-аар бүртгүүлэх</span>
           </Button>
 
           <p className="text-center text-sm text-muted-foreground">
-            {t('auth.register.haveAccount')}{" "}
+            Бүртгэл байгаа юу?{" "}
             <Link href="/login" className="text-[#E10600] hover:underline font-medium">
-              {t('auth.register.signIn')}
+              Нэвтрэх
             </Link>
           </p>
         </CardContent>

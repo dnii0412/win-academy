@@ -16,7 +16,6 @@ import {
   CheckCircle,
   AlertCircle
 } from "lucide-react"
-import { useLanguage } from "@/contexts/language-context"
 import { BUNNY_STREAM_CONFIG, getBunnyStreamUrl, getBunnyThumbnailUrl } from "@/lib/bunny-stream"
 
 interface BunnyVideo {
@@ -33,7 +32,6 @@ interface BunnyVideo {
 }
 
 export default function VideoLibrary() {
-  const { currentLanguage } = useLanguage()
   const [videos, setVideos] = useState<BunnyVideo[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
@@ -64,7 +62,7 @@ export default function VideoLibrary() {
   }
 
   const deleteVideo = async (videoId: string) => {
-    if (!confirm(currentLanguage === "mn" ? "Видеог устгахдаа итгэлтэй байна уу?" : "Are you sure you want to delete this video?")) {
+    if (!confirm("Видеог устгахдаа итгэлтэй байна уу?")) {
       return
     }
 
@@ -79,11 +77,11 @@ export default function VideoLibrary() {
 
       if (response.ok) {
         setVideos(prev => prev.filter(video => video.guid !== videoId))
-        alert(currentLanguage === "mn" ? "Видео амжилттай устгагдлаа" : "Video deleted successfully")
+        alert("Видео амжилттай устгагдлаа")
       }
     } catch (error) {
       console.error('Failed to delete video:', error)
-      alert(currentLanguage === "mn" ? "Видео устгахад алдаа гарлаа" : "Failed to delete video")
+      alert("Видео устгахад алдаа гарлаа")
     }
   }
 
@@ -101,7 +99,7 @@ export default function VideoLibrary() {
     try {
       const streamUrl = getBunnyStreamUrl(videoId)
       await navigator.clipboard.writeText(streamUrl)
-      alert(currentLanguage === "mn" ? "Стрим URL хуулж авлаа" : "Stream URL copied to clipboard")
+      alert("Стрим URL хуулж авлаа")
     } catch (error) {
       console.error('Failed to copy stream URL:', error)
     }
@@ -167,7 +165,7 @@ export default function VideoLibrary() {
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
         <Input
-          placeholder={currentLanguage === "mn" ? "Видео хайх..." : "Search videos..."}
+          placeholder="Видео хайх..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="pl-10"
@@ -177,10 +175,10 @@ export default function VideoLibrary() {
       {/* Video Count */}
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-          {currentLanguage === "mn" ? "Видео сан" : "Video Library"}
+          Видео сан
         </h3>
         <span className="text-sm text-gray-600 dark:text-gray-400">
-          {filteredVideos.length} {currentLanguage === "mn" ? "видео" : "videos"}
+          {filteredVideos.length} видео
         </span>
       </div>
 
@@ -249,12 +247,12 @@ export default function VideoLibrary() {
                   {copiedId === video.guid ? (
                     <>
                       <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
-                      {currentLanguage === "mn" ? "Хуулсан" : "Copied"}
+                      Хуулсан
                     </>
                   ) : (
                     <>
                       <Copy className="h-4 w-4 mr-2" />
-                      {currentLanguage === "mn" ? "ID хуулах" : "Copy ID"}
+                      ID хуулах
                     </>
                   )}
                 </Button>
@@ -265,7 +263,7 @@ export default function VideoLibrary() {
                   onClick={() => copyStreamUrl(video.guid)}
                 >
                   <Play className="h-4 w-4 mr-2" />
-                  {currentLanguage === "mn" ? "URL" : "URL"}
+                  URL
                 </Button>
 
                 <Button
@@ -289,15 +287,12 @@ export default function VideoLibrary() {
             <Video className="h-16 w-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
               {searchTerm 
-                ? (currentLanguage === "mn" ? "Хайлтад тохирох видео олдсонгүй" : "No videos found matching your search")
-                : (currentLanguage === "mn" ? "Видео байхгүй байна" : "No videos yet")
+                ? "Хайлтад тохирох видео олдсонгүй"
+                : "Видео байхгүй байна"
               }
             </h3>
             <p className="text-gray-500 dark:text-gray-400">
-              {currentLanguage === "mn" 
-                ? "Анхны видеог байршуулж эхлээрэй"
-                : "Start by uploading your first video"
-              }
+              Анхны видеог байршуулж эхлээрэй
             </p>
           </CardContent>
         </Card>

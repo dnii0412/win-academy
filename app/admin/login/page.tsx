@@ -8,7 +8,6 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Shield, Eye, EyeOff } from "lucide-react"
-import { useLanguage } from "@/contexts/language-context"
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState("")
@@ -18,7 +17,6 @@ export default function AdminLoginPage() {
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
   const router = useRouter()
-  const { currentLanguage } = useLanguage()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -66,13 +64,10 @@ export default function AdminLoginPage() {
             </div>
             <div>
               <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">
-                {currentLanguage === "mn" ? "Админ нэвтрэх" : "Admin Login"}
+                Админ нэвтрэх
               </CardTitle>
               <CardDescription className="text-gray-600 dark:text-gray-400">
-                {currentLanguage === "mn" 
-                  ? "Админ хэрэглэгчийн эрхээр нэвтэрнэ үү" 
-                  : "Sign in with your admin credentials"
-                }
+                Админ хэрэглэгчийн эрхээр нэвтэрнэ үү
               </CardDescription>
             </div>
           </CardHeader>
@@ -98,12 +93,12 @@ export default function AdminLoginPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  {currentLanguage === "mn" ? "Имэйл" : "Email"}
+                  Имэйл
                 </Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder={currentLanguage === "mn" ? "admin@example.com" : "admin@example.com"}
+                  placeholder="admin@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -113,13 +108,13 @@ export default function AdminLoginPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  {currentLanguage === "mn" ? "Нууц үг" : "Password"}
+                  Нууц үг
                 </Label>
                 <div className="relative">
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder={currentLanguage === "mn" ? "Нууц үгээ оруулна уу" : "Enter your password"}
+                    placeholder="Нууц үгээ оруулна уу"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
@@ -148,12 +143,12 @@ export default function AdminLoginPage() {
                   <div className="flex items-center space-x-2">
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                     <span>
-                      {currentLanguage === "mn" ? "Нэвтэрч байна..." : "Signing in..."}
+                      Нэвтэрч байна...
                     </span>
                   </div>
                 ) : (
                   <span>
-                    {currentLanguage === "mn" ? "Нэвтрэх" : "Sign In"}
+                    Нэвтрэх
                   </span>
                 )}
               </Button>
@@ -161,10 +156,7 @@ export default function AdminLoginPage() {
 
             <div className="text-center">
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                {currentLanguage === "mn" 
-                  ? "Админ эрх байгаа эсэхээ шалгана уу" 
-                  : "Contact system administrator for access"
-                }
+                Админ эрх байгаа эсэхээ шалгана уу
               </p>
             </div>
           </CardContent>
