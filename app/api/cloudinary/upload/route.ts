@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { v2 as cloudinary } from 'cloudinary'
+import jwt from 'jsonwebtoken'
 
 // Configure Cloudinary
 cloudinary.config({
@@ -33,23 +34,67 @@ export async function POST(request: NextRequest) {
       }, { status: 500 })
     }
 
-    // Check if user is authenticated (simplified for now)
+    // Check if user is authenticated (allow bypass in development)
     const authHeader = request.headers.get('authorization')
     console.log('Auth header present:', !!authHeader, 'starts with Bearer:', authHeader?.startsWith('Bearer '))
     
+    // Allow bypass in development mode for testing
+    const isDevelopment = process.env.NODE_ENV === 'development'
+    const allowBypass = isDevelopment && !authHeader
+    
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      console.log('Authentication failed - missing or invalid header')
-      return NextResponse.json({ 
-        error: 'Unauthorized - Missing or invalid authorization header',
-        details: 'Please provide a valid Bearer token in the Authorization header'
-      }, { status: 401 })
+      if (allowBypass) {
+        console.log('⚠️ Development mode: Bypassing authentication for testing')
+      } else {
+        console.log('Authentication failed - missing or invalid header')
+        return NextResponse.json({ 
+          error: 'Unauthorized - Missing or invalid authorization header',
+          details: 'Please provide a valid Bearer token in the Authorization header'
+        }, { status: 401 })
+      }
+    }
+
+    let decoded: any
+    
+    if (allowBypass) {
+      // Create a mock admin user for development
+      decoded = {
+        userId: 'dev-user',
+        email: 'dev@example.com',
+        role: 'admin'
+      }
+      console.log('⚠️ Development mode: Using mock admin user:', decoded)
+    } else {
+      const token = authHeader!.replace('Bearer ', '')
+      
+      try {
+        decoded = jwt.verify(token, process.env.JWT_SECRET || "your-secret-key")
+        console.log('✅ Cloudinary Upload - Token verified successfully:', {
+          userId: decoded.userId,
+          email: decoded.email,
+          role: decoded.role
+        })
+      } catch (jwtError) {
+        console.log('❌ Invalid JWT token:', jwtError)
+        return NextResponse.json({ 
+          error: 'Unauthorized - Invalid or expired token',
+          details: 'Please log in again'
+        }, { status: 401 })
+      }
+
+      if (!decoded || decoded.role !== "admin") {
+        console.log('❌ User is not admin:', decoded?.role)
+        return NextResponse.json({ 
+          error: 'Forbidden - Admin access required',
+          details: 'Only administrators can upload images'
+        }, { status: 403 })
+      }
     }
 
     console.log('Parsing form data...')
     const formData = await request.formData()
     const file = formData.get('file') as File
     const folder = formData.get('folder') as string || 'course-thumbnails'
-    const transformation = formData.get('transformation') as string || 'w_800,h_600,c_fill,q_auto,f_auto'
 
     console.log('Form data parsed:', {
       hasFile: !!file,
@@ -100,20 +145,31 @@ export async function POST(request: NextRequest) {
         {
           folder: folder,
           resource_type: 'image',
-          transformation: transformation,
+          width: 800,
+          height: 600,
+          crop: 'fill',
           quality: 'auto',
-          // Remove format: 'auto' as it's causing issues
+          fetch_format: 'auto'
         },
         (error, result) => {
           if (error) {
-            console.error('Cloudinary upload error details:', error)
+            console.error('❌ Cloudinary upload error details:', {
+              message: error.message,
+              http_code: error.http_code,
+              name: error.name,
+              fileSize: file.size,
+              fileType: file.type,
+              fileName: file.name,
+              folder: folder
+            })
             reject(error)
           } else {
-            console.log('Cloudinary upload successful:', {
+            console.log('✅ Cloudinary upload successful:', {
               public_id: result?.public_id,
               secure_url: result?.secure_url,
               width: result?.width,
-              height: result?.height
+              height: result?.height,
+              bytes: result?.bytes
             })
             resolve(result)
           }

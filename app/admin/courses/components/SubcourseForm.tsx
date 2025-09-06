@@ -79,51 +79,27 @@ export default function SubcourseForm({ isOpen, onClose, onSubmit, subcourse, mo
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Title */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="title">Title (English)</Label>
-                <Input
-                  id="title"
-                  value={formData.title}
-                  onChange={(e) => handleInputChange("title", e.target.value)}
-                  placeholder="Enter title in English"
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="titleMn">Title (Mongolian)</Label>
-                <Input
-                  id="titleMn"
-                  value={formData.titleMn}
-                  onChange={(e) => handleInputChange("titleMn", e.target.value)}
-                  placeholder="Монгол хэл дээр нэр оруулна уу"
-                  required
-                />
-              </div>
+            <div>
+              <Label htmlFor="titleMn">Нэр (Mongolian)</Label>
+              <Input
+                id="titleMn"
+                value={formData.titleMn}
+                onChange={(e) => handleInputChange("titleMn", e.target.value)}
+                placeholder="Монгол хэл дээр нэр оруулна уу"
+                required
+              />
             </div>
 
             {/* Description */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="description">Description (English)</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => handleInputChange("description", e.target.value)}
-                  placeholder="Enter description in English"
-                  rows={4}
-                />
-              </div>
-              <div>
-                <Label htmlFor="descriptionMn">Description (Mongolian)</Label>
-                <Textarea
-                  id="descriptionMn"
-                  value={formData.descriptionMn}
-                  onChange={(e) => handleInputChange("descriptionMn", e.target.value)}
-                  placeholder="Монгол хэл дээр тайлбар оруулна уу"
-                  rows={4}
-                />
-              </div>
+            <div>
+              <Label htmlFor="descriptionMn">Тайлбар (Mongolian)</Label>
+              <Textarea
+                id="descriptionMn"
+                value={formData.descriptionMn}
+                onChange={(e) => handleInputChange("descriptionMn", e.target.value)}
+                placeholder="Монгол хэл дээр тайлбар оруулна уу"
+                rows={4}
+              />
             </div>
 
 

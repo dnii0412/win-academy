@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import { X, Plus, Upload } from "lucide-react"
 import { useEffect } from "react"
 import ImageUpload from "@/components/ImageUpload"
+import { useLanguage } from "@/contexts/language-context"
 
 interface CourseFormProps {
   isOpen: boolean
@@ -21,6 +22,7 @@ interface CourseFormProps {
 }
 
 export default function CourseForm({ isOpen, onClose, onSubmit, course, mode }: CourseFormProps) {
+  const { currentLanguage } = useLanguage()
   const [formData, setFormData] = useState({
     title: course?.title || "",
     titleMn: course?.titleMn || "",
@@ -47,10 +49,10 @@ export default function CourseForm({ isOpen, onClose, onSubmit, course, mode }: 
   }
 
   const addTag = () => {
-    if (newTag.trim() && newTagMn.trim()) {
+    if (newTagMn.trim()) {
       setFormData(prev => ({
         ...prev,
-        tags: [...prev.tags, newTag.trim()],
+        tags: [...prev.tags, newTagMn.trim()], // Use Mongolian as both
         tagsMn: [...prev.tagsMn, newTagMn.trim()]
       }))
       setNewTag("")
@@ -135,52 +137,27 @@ export default function CourseForm({ isOpen, onClose, onSubmit, course, mode }: 
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="title">Title (English)</Label>
-                    <Input
-                      id="title"
-                      value={formData.title}
-                      onChange={(e) => handleInputChange("title", e.target.value)}
-                      placeholder="Course title in English"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="titleMn">Title (Mongolian)</Label>
-                    <Input
-                      id="titleMn"
-                      value={formData.titleMn}
-                      onChange={(e) => handleInputChange("titleMn", e.target.value)}
-                      placeholder="Сургалтын нэр"
-                      required
-                    />
-                  </div>
+                <div>
+                  <Label htmlFor="titleMn">Нэр (Mongolian)</Label>
+                  <Input
+                    id="titleMn"
+                    value={formData.titleMn}
+                    onChange={(e) => handleInputChange("titleMn", e.target.value)}
+                    placeholder="Сургалтын нэр"
+                    required
+                  />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="description">Description (English)</Label>
-                    <Textarea
-                      id="description"
-                      value={formData.description}
-                      onChange={(e) => handleInputChange("description", e.target.value)}
-                      placeholder="Course description in English"
-                      rows={3}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="descriptionMn">Description (Mongolian)</Label>
-                    <Textarea
-                      id="descriptionMn"
-                      value={formData.descriptionMn}
-                      onChange={(e) => handleInputChange("descriptionMn", e.target.value)}
-                      placeholder="Сургалтын тайлбар"
-                      rows={3}
-                      required
-                    />
-                  </div>
+                <div>
+                  <Label htmlFor="descriptionMn">Тайлбар (Mongolian)</Label>
+                  <Textarea
+                    id="descriptionMn"
+                    value={formData.descriptionMn}
+                    onChange={(e) => handleInputChange("descriptionMn", e.target.value)}
+                    placeholder="Сургалтын тайлбар"
+                    rows={3}
+                    required
+                  />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -254,23 +231,13 @@ export default function CourseForm({ isOpen, onClose, onSubmit, course, mode }: 
                 <CardTitle>Tags</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label>Tag (English)</Label>
-                    <Input
-                      value={newTag}
-                      onChange={(e) => setNewTag(e.target.value)}
-                      placeholder="Enter tag in English"
-                    />
-                  </div>
-                  <div>
-                    <Label>Tag (Mongolian)</Label>
-                    <Input
-                      value={newTagMn}
-                      onChange={(e) => setNewTagMn(e.target.value)}
-                      placeholder="Монгол хэл дээр бичнэ үү"
-                    />
-                  </div>
+                <div>
+                  <Label>Tag (Mongolian)</Label>
+                  <Input
+                    value={newTagMn}
+                    onChange={(e) => setNewTagMn(e.target.value)}
+                    placeholder="Монгол хэл дээр бичнэ үү"
+                  />
                 </div>
                 <Button type="button" onClick={addTag} variant="outline" size="sm">
                   <Plus className="h-4 w-4 mr-2" />
@@ -278,9 +245,9 @@ export default function CourseForm({ isOpen, onClose, onSubmit, course, mode }: 
                 </Button>
 
                 <div className="flex flex-wrap gap-2">
-                  {formData.tags.map((tag: string, index: number) => (
+                  {formData.tagsMn.map((tag: string, index: number) => (
                     <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                      {tag} / {formData.tagsMn[index]}
+                      {tag}
                       <Button
                         type="button"
                         variant="ghost"

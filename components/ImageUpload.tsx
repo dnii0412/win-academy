@@ -68,6 +68,54 @@ export default function ImageUpload({
     return null
   }
 
+  const uploadViaServerAPI = async (file: File, folder: string, adminToken: string) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('folder', folder)
+
+    // Simulate progress for better UX
+    const progressInterval = setInterval(() => {
+      setUploadProgress(prev => {
+        if (!prev) return null
+        const newPercentage = Math.min(prev.percentage + 10, 90)
+        return { ...prev, percentage: newPercentage }
+      })
+    }, 200)
+
+    try {
+      const headers: HeadersInit = {}
+      if (adminToken) {
+        headers['Authorization'] = `Bearer ${adminToken}`
+      }
+
+      const response = await fetch('/api/cloudinary/upload', {
+        method: 'POST',
+        headers,
+        body: formData,
+      })
+
+      clearInterval(progressInterval)
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || `Upload failed (${response.status})`)
+      }
+
+      const result = await response.json()
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Upload failed')
+      }
+
+      setPreviewUrl(result.data.secure_url)
+      onUploadSuccess(result.data.secure_url, result.data.public_id)
+      setUploadProgress({ loaded: file.size, total: file.size, percentage: 100 })
+    } catch (error) {
+      clearInterval(progressInterval)
+      throw error
+    }
+  }
+
   const uploadDirectToCloudinary = async (file: File, folder: string) => {
     // For client-side, we need NEXT_PUBLIC_ prefix, but let's check what's available
     const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
@@ -127,19 +175,23 @@ export default function ImageUpload({
       }
       reader.readAsDataURL(file)
 
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('folder', folder)
-
       // Get admin token for authentication
       const adminToken = localStorage.getItem("adminToken")
-      if (!adminToken) {
-        throw new Error("Нэвтэрч орох шаардлагатай")
+      const isDevelopment = process.env.NODE_ENV === 'development'
+      
+      if (!adminToken && !isDevelopment) {
+        throw new Error("Admin authentication required. Please log in as admin first.")
       }
 
-            // Try direct Cloudinary upload (simpler and more reliable)
-      console.log('Using direct Cloudinary upload...')
-      await uploadDirectToCloudinary(file, folder)
+      // Use server-side upload API (more reliable)
+      console.log('Using server-side upload API...')
+      if (adminToken) {
+        await uploadViaServerAPI(file, folder, adminToken)
+      } else {
+        // Try without token in development mode
+        console.log('⚠️ Development mode: Attempting upload without admin token')
+        await uploadViaServerAPI(file, folder, '')
+      }
 
     } catch (err) {
       let errorMessage = err instanceof Error ? err.message : 'Upload failed'
@@ -147,7 +199,7 @@ export default function ImageUpload({
       // Provide helpful error messages
       if (errorMessage.includes('not configured')) {
         errorMessage = "Cloudinary тохиргоо дутуу байна. .env.local файлд CLOUDINARY хувьсагчдыг нэмнэ үү"
-      } else if (errorMessage.includes('Authentication required')) {
+      } else if (errorMessage.includes('Authentication required') || errorMessage.includes('Unauthorized')) {
         errorMessage = "Админ эрхээр нэвтэрч орно уу"
       }
 
