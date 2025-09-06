@@ -194,10 +194,10 @@ export default function CourseAccessPage() {
 
   if (isLoading || session === undefined) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">
+          <p className="text-muted-foreground">
             Хандах эрх шалгаж байна...
           </p>
         </div>
@@ -216,7 +216,7 @@ export default function CourseAccessPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-600 mb-4">{error}</p>
+            <p className="text-muted-foreground mb-4">{error}</p>
             <div className="space-y-2">
               <Button 
                 onClick={() => router.push("/login")} 
@@ -260,7 +260,7 @@ export default function CourseAccessPage() {
                 <h3 className="font-semibold text-lg mb-2">
                   {course.titleMn || course.title}
                 </h3>
-                <p className="text-gray-600 text-sm mb-3">
+                <p className="text-muted-foreground text-sm mb-3">
                   {course.descriptionMn || course.description}
                 </p>
                 <p className="text-2xl font-bold text-[#E10600]">
@@ -295,14 +295,14 @@ export default function CourseAccessPage() {
     const currentLesson = allLessons[currentLessonIndex]
     
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         {/* Header */}
-        <div className="bg-white border-b border-gray-200 px-4 py-4">
+        <div className="bg-card border-b border-border px-4 py-4">
           <div className="max-w-6xl mx-auto flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Button 
                 variant="ghost" 
-                onClick={() => router.push("/dashboard")}
+                onClick={() => router.push("/courses")}
                 className="flex items-center gap-2"
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -336,10 +336,10 @@ export default function CourseAccessPage() {
                       />
                     </div>
                   ) : (
-                    <div className="aspect-video bg-gray-100 flex items-center justify-center rounded-lg">
+                    <div className="aspect-video bg-muted flex items-center justify-center rounded-lg">
                       <div className="text-center">
-                        <Play className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                        <p className="text-gray-500">
+                        <Play className="w-12 h-12 text-muted-foreground mx-auto mb-2" />
+                        <p className="text-muted-foreground">
                           Видео бэлэн биш байна
                         </p>
                       </div>
@@ -357,7 +357,7 @@ export default function CourseAccessPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-gray-700">
+                    <p className="text-muted-foreground">
                       {currentLesson.descriptionMn || currentLesson.description}
                     </p>
                   </CardContent>
@@ -383,19 +383,19 @@ export default function CourseAccessPage() {
                           {/* Subcourse Header - Clickable to expand/collapse */}
                           <div
                             onClick={() => toggleSubcourse(subcourse._id)}
-                            className="p-3 cursor-pointer hover:bg-gray-50 transition-colors flex items-center justify-between"
+                            className="p-3 cursor-pointer hover:bg-muted transition-colors flex items-center justify-between"
                           >
                             <div className="flex items-center gap-2">
                               {isExpanded ? (
-                                <ChevronDown className="w-4 h-4 text-gray-500" />
+                                <ChevronDown className="w-4 h-4 text-muted-foreground" />
                               ) : (
-                                <ChevronRight className="w-4 h-4 text-gray-500" />
+                                <ChevronRight className="w-4 h-4 text-muted-foreground" />
                               )}
-                              <h4 className="font-semibold text-sm text-gray-700">
+                              <h4 className="font-semibold text-sm text-foreground">
                                 {subcourse.titleMn || subcourse.title}
                               </h4>
                             </div>
-                            <span className="text-xs text-gray-500">
+                            <span className="text-xs text-muted-foreground">
                               {subcourse.lessons.length} хичээл
                             </span>
                           </div>
@@ -412,25 +412,25 @@ export default function CourseAccessPage() {
                                     className={`p-2 rounded cursor-pointer transition-colors ${
                                       globalIndex === currentLessonIndex
                                         ? 'bg-[#E10600] text-white'
-                                        : 'bg-gray-50 hover:bg-gray-100'
+                                        : 'bg-card hover:bg-muted'
                                     }`}
                                   >
                                     <div className="flex items-center gap-2">
                                       <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
                                         globalIndex === currentLessonIndex
                                           ? 'bg-white text-[#E10600]'
-                                          : 'bg-gray-200 text-gray-600'
+                                          : 'bg-muted-foreground/20 text-muted-foreground'
                                       }`}>
                                         {globalIndex + 1}
                                       </div>
                                       <div className="flex-1 min-w-0">
                                         <p className={`text-sm font-medium truncate ${
-                                          globalIndex === currentLessonIndex ? 'text-white' : 'text-gray-900'
+                                          globalIndex === currentLessonIndex ? 'text-white' : 'text-foreground'
                                         }`}>
                                           {lesson.titleMn || lesson.title}
                                         </p>
                                         <p className={`text-xs ${
-                                          globalIndex === currentLessonIndex ? 'text-gray-200' : 'text-gray-500'
+                                          globalIndex === currentLessonIndex ? 'text-gray-200' : 'text-muted-foreground'
                                         }`}>
                                           {lesson.duration > 0 ? `${Math.floor(lesson.duration / 60)}:${(lesson.duration % 60).toString().padStart(2, '0')}` : 'N/A'}
                                         </p>

@@ -30,12 +30,76 @@ export class QPayError extends Error {
         return 'Invalid payment amount. Please check your order.'
       case 'INVALID_INVOICE_CODE':
         return 'Invalid invoice configuration. Please contact support.'
+      case 'INVALID_SENDER_INVOICE_NO':
+        return 'Invalid invoice number. Please try again.'
+      case 'INVALID_SENDER_INVOICE_NO_LENGTH':
+        return 'Invoice number must be between 3 and 45 characters.'
+      case 'INVALID_DESCRIPTION_LENGTH':
+        return 'Description is too long. Please shorten it and try again.'
+      case 'INVALID_CALLBACK_URL':
+        return 'Invalid callback URL. Please contact support.'
+      case 'INVALID_EXPIRY_DATE':
+        return 'Invalid expiry date format. Please contact support.'
+      case 'INVALID_RECEIVER_CODE_LENGTH':
+        return 'Receiver code is too long. Please contact support.'
+      case 'INVALID_NOTE_LENGTH':
+        return 'Note is too long. Please shorten it and try again.'
+      case 'INVALID_LINE_DESCRIPTION':
+        return 'Invalid line item description. Please contact support.'
+      case 'INVALID_LINE_DESCRIPTION_LENGTH':
+        return 'Line item description is too long. Please shorten it.'
+      case 'INVALID_LINE_QUANTITY':
+        return 'Invalid quantity. Please enter a positive number.'
+      case 'INVALID_LINE_UNIT_PRICE':
+        return 'Invalid unit price. Please enter a positive number.'
+      case 'INVALID_PRODUCT_CODE_LENGTH':
+        return 'Product code is too long. Please contact support.'
+      case 'INVALID_TAX_PRODUCT_CODE_LENGTH':
+        return 'Tax product code is too long. Please contact support.'
+      case 'INVALID_DISCOUNT_DESCRIPTION':
+        return 'Invalid discount description. Please contact support.'
+      case 'INVALID_DISCOUNT_DESCRIPTION_LENGTH':
+        return 'Discount description is too long. Please shorten it.'
+      case 'INVALID_DISCOUNT_AMOUNT':
+        return 'Invalid discount amount. Please enter a positive number.'
+      case 'INVALID_DISCOUNT_CODE_LENGTH':
+        return 'Discount code is too long. Please contact support.'
+      case 'INVALID_SURCHARGE_DESCRIPTION':
+        return 'Invalid surcharge description. Please contact support.'
+      case 'INVALID_SURCHARGE_DESCRIPTION_LENGTH':
+        return 'Surcharge description is too long. Please shorten it.'
+      case 'INVALID_SURCHARGE_AMOUNT':
+        return 'Invalid surcharge amount. Please enter a positive number.'
+      case 'INVALID_SURCHARGE_CODE_LENGTH':
+        return 'Surcharge code is too long. Please contact support.'
+      case 'INVALID_TAX_DESCRIPTION':
+        return 'Invalid tax description. Please contact support.'
+      case 'INVALID_TAX_DESCRIPTION_LENGTH':
+        return 'Tax description is too long. Please shorten it.'
+      case 'INVALID_TAX_AMOUNT':
+        return 'Invalid tax amount. Please enter a positive number.'
+      case 'INVALID_TAX_CODE':
+        return 'Invalid tax code. Please use VAT or CITY_TAX.'
+      case 'INVALID_RECEIVER_REGISTER_LENGTH':
+        return 'Receiver register number is too long. Please contact support.'
+      case 'INVALID_RECEIVER_NAME_LENGTH':
+        return 'Receiver name is too long. Please shorten it.'
+      case 'INVALID_RECEIVER_EMAIL':
+        return 'Invalid receiver email address. Please check the format.'
+      case 'INVALID_RECEIVER_PHONE_LENGTH':
+        return 'Receiver phone number is too long. Please shorten it.'
       case 'NETWORK_ERROR':
         return 'Network error occurred. Please check your connection and try again.'
       case 'TIMEOUT':
         return 'Request timed out. Please try again.'
       case 'RATE_LIMITED':
         return 'Too many requests. Please wait a moment and try again.'
+      case 'QPAY_SERVICE_ERROR':
+        return 'Payment service is temporarily unavailable. Please try again later.'
+      case 'QPAY_INVALID_RESPONSE':
+        return 'Invalid response from payment service. Please try again.'
+      case 'QPAY_MISSING_QR_DATA':
+        return 'Payment QR code could not be generated. Please try again.'
       default:
         return 'Payment error occurred. Please try again or contact support.'
     }

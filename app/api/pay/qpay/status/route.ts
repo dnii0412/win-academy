@@ -21,8 +21,14 @@ export async function GET(req: NextRequest) {
     const order = await Order.findById(orderId)
     if (!order) return NextResponse.json({ error: 'Order not found' }, { status: 404 })
 
-    // Verify ownership
-    if (order.userId !== (session.user.id || session.user.email)) {
+    // Verify ownership - check both user ID formats
+    const sessionUserId = session.user.id || session.user.email
+    if (order.userId !== sessionUserId) {
+      console.log('User ID mismatch:', { 
+        orderUserId: order.userId, 
+        sessionUserId, 
+        sessionUser: session.user 
+      })
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
@@ -70,12 +76,21 @@ export async function GET(req: NextRequest) {
           if (updateResult.modifiedCount > 0) {
             console.log('qpay.status.poll.paid', { orderId: order._id, paidAmount, requiredAmount: order.amount })
             
-            await CourseAccess.grantAccess(
-              order.userId,
-              order.courseId,
-              order._id.toString(),
-              'purchase'
-            )
+            try {
+              const accessResult = await CourseAccess.grantAccess(
+                order.userId,
+                order.courseId,
+                order._id.toString(),
+                'purchase'
+              )
+              console.log('Course access granted:', { 
+                userId: order.userId, 
+                courseId: order.courseId, 
+                accessResult: accessResult?._id 
+              })
+            } catch (accessError) {
+              console.error('Failed to grant course access:', accessError)
+            }
           } else {
             console.log('qpay.status.poll.already_processed', { orderId: order._id })
           }

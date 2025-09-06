@@ -165,10 +165,10 @@ export default function CourseOverviewPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#E10600] mx-auto mb-4"></div>
-          <h1 className="text-2xl font-bold text-gray-900">Loading course...</h1>
+          <h1 className="text-2xl font-bold text-foreground">Loading course...</h1>
         </div>
       </div>
     )
@@ -176,9 +176,9 @@ export default function CourseOverviewPage() {
 
   if (error || !course) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+          <h1 className="text-2xl font-bold text-foreground mb-4">
             {error || "Course not found"}
           </h1>
           <Button onClick={() => router.push("/courses")}>
@@ -196,7 +196,7 @@ export default function CourseOverviewPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       {/* Breadcrumb */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
         <nav className="flex items-center space-x-2 text-sm text-muted-foreground mb-6">
@@ -221,18 +221,18 @@ export default function CourseOverviewPage() {
             </div>
             
             {/* Course ID/Number */}
-            <div className="text-4xl font-bold text-gray-900">
+            <div className="text-4xl font-bold text-foreground">
               {course._id.slice(-3)}
             </div>
           </div>
           
           {/* Course Title */}
-          <h1 className="text-2xl font-normal text-gray-900">
+          <h1 className="text-2xl font-normal text-foreground">
             {course.titleMn || course.title}
           </h1>
           
           {/* Course Metrics */}
-          <div className="flex items-center space-x-6 text-sm text-gray-600">
+          <div className="flex items-center space-x-6 text-sm text-muted-foreground">
             <div className="flex items-center space-x-2">
               <Star className="w-4 h-4 text-yellow-500 fill-current" />
               <span>4.8 үнэлгээ</span>
@@ -255,17 +255,17 @@ export default function CourseOverviewPage() {
           <div className="space-y-8">
             {/* About the Course */}
             <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-gray-900">
+              <h2 className="text-2xl font-bold text-foreground">
                 Хичээлийн тухай
               </h2>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-muted-foreground leading-relaxed">
                 {course.descriptionMn || course.description}
               </p>
             </div>
 
             {/* Course Content */}
             <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-gray-900">
+              <h2 className="text-2xl font-bold text-foreground">
                 Хичээлийн агуулга
               </h2>
               
@@ -274,17 +274,17 @@ export default function CourseOverviewPage() {
                   {subcourses
                     .sort((a, b) => a.order - b.order)
                     .map((subcourse, subcourseIndex) => (
-                      <div key={subcourse._id} className="border border-gray-200 rounded-lg p-4">
+                      <div key={subcourse._id} className="border border-border rounded-lg p-4 bg-card">
                         <div className="flex items-center space-x-3 mb-3">
-                          <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center text-sm font-semibold text-red-600">
+                          <div className="w-8 h-8 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center text-sm font-semibold text-red-600 dark:text-red-200">
                             {subcourseIndex + 1}
                           </div>
-                          <h3 className="font-semibold text-gray-900">
+                          <h3 className="font-semibold text-foreground">
                             {subcourse.titleMn || subcourse.title}
                           </h3>
                         </div>
                         {subcourse.description && (
-                          <p className="text-gray-600 text-sm mb-3">
+                          <p className="text-muted-foreground text-sm mb-3">
                             {subcourse.descriptionMn || subcourse.description}
                           </p>
                         )}
@@ -294,21 +294,21 @@ export default function CourseOverviewPage() {
                             {subcourse.lessons
                               .sort((a, b) => a.order - b.order)
                               .map((lesson, lessonIndex) => (
-                                <div key={lesson._id} className="flex items-center space-x-3 p-2 bg-gray-50 rounded">
-                                  <div className="w-5 h-5 bg-gray-300 rounded-full flex items-center justify-center text-xs font-semibold text-gray-700">
+                                <div key={lesson._id} className="flex items-center space-x-3 p-2 bg-muted rounded">
+                                  <div className="w-5 h-5 bg-muted-foreground/20 rounded-full flex items-center justify-center text-xs font-semibold text-muted-foreground">
                                     {lessonIndex + 1}
                                   </div>
                                   <div className="flex-1">
-                                    <h4 className="font-medium text-sm text-gray-900">
+                                    <h4 className="font-medium text-sm text-foreground">
                                       {lesson.titleMn || lesson.title}
                                     </h4>
                                     {lesson.description && (
-                                      <p className="text-xs text-gray-600 mt-1">
+                                      <p className="text-xs text-muted-foreground mt-1">
                                         {lesson.descriptionMn || lesson.description}
                                       </p>
                                     )}
                                   </div>
-                                  <div className="flex items-center space-x-2 text-xs text-gray-500">
+                                  <div className="flex items-center space-x-2 text-xs text-muted-foreground">
                                     {lesson.duration > 0 && (
                                       <span>{formatVideoDuration(lesson.duration)}</span>
                                     )}
@@ -321,7 +321,7 @@ export default function CourseOverviewPage() {
                               ))}
                           </div>
                         ) : (
-                          <div className="text-center py-8 text-gray-500">
+                          <div className="text-center py-8 text-muted-foreground">
                             <p className="text-sm">
                               Энэ дэд хэсэгт одоогоор хичээл байхгүй байна
                             </p>
@@ -331,14 +331,14 @@ export default function CourseOverviewPage() {
                     ))}
                 </div>
               ) : (
-                <div className="border border-gray-200 rounded-lg p-12 text-center">
-                  <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <Play className="h-12 w-12 text-gray-400" />
+                <div className="border border-border rounded-lg p-12 text-center bg-card">
+                  <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Play className="h-12 w-12 text-muted-foreground" />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-700 mb-4">
+                  <h3 className="text-xl font-semibold text-foreground mb-4">
                                         Хичээлийн агуулга удахгүй нэмэгдэх болно
                   </h3>
-                  <p className="text-gray-500 max-w-md mx-auto">
+                  <p className="text-muted-foreground max-w-md mx-auto">
                     Манай багш нар одоогоор хичээлийн агуулгыг бэлтгэж байна. Удахгүй шинэ хичээлүүд нэмэгдэх болно.
                   </p>
                 </div>
@@ -349,7 +349,7 @@ export default function CourseOverviewPage() {
           {/* Right Column - Video and Purchase */}
           <div className="space-y-6">
             {/* Course Video/Thumbnail */}
-            <div className="border border-gray-200 rounded-lg overflow-hidden">
+            <div className="border border-border rounded-lg overflow-hidden bg-card">
               {course.thumbnailUrl ? (
                 <div className="relative aspect-video">
                   <img
@@ -358,15 +358,15 @@ export default function CourseOverviewPage() {
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-                    <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center">
-                      <Play className="w-8 h-8 text-gray-800 ml-1" />
+                    <div className="w-16 h-16 bg-background/90 rounded-full flex items-center justify-center">
+                      <Play className="w-8 h-8 text-foreground ml-1" />
                     </div>
                   </div>
                 </div>
               ) : (
                 <div className="aspect-video bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                  <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center">
-                    <Play className="w-8 h-8 text-gray-800 ml-1" />
+                  <div className="w-16 h-16 bg-background/90 rounded-full flex items-center justify-center">
+                    <Play className="w-8 h-8 text-foreground ml-1" />
                   </div>
                 </div>
               )}

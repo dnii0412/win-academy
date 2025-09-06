@@ -78,6 +78,7 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="bg-background h-[90vh] flex items-center relative overflow-hidden pt-8">
         <div className="absolute inset-0 bg-gradient-to-br from-red-50/30 to-transparent animate-pulse dark:from-red-950/20" />
+        <div className="absolute inset-0 dark:bg-black/40" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative w-full">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
             <AnimatedSection animation="slideLeft">
@@ -132,8 +133,7 @@ export default function HomePage() {
       </section>
 
       {/* Featured Courses */}
-      <section className="py-20 bg-muted/50 relative">
-        <div className="absolute top-0 left-0 w-full h-12 bg-background transform -skew-y-1 origin-top-left"></div>
+      <section className="py-20 bg-muted/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <AnimatedSection className="text-center mb-12">
             <h2 className="text-4xl font-bold text-foreground mb-4">Боломжит сургалтууд</h2>

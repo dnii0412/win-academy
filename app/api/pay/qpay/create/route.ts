@@ -5,6 +5,7 @@ import Order from '@/lib/models/Order'
 import CourseAccess from '@/lib/models/CourseAccess'
 import Course from '@/lib/models/Course'
 import { qpayCreateInvoice } from '@/lib/qpay/api'
+import { createSimpleCourseInvoice, createReceiverData } from '@/lib/qpay/invoice-helpers'
 import crypto from 'node:crypto'
 
 function uid() {
@@ -19,7 +20,7 @@ export async function POST(req: NextRequest) {
     
     // Parse request body
     const body = await req.json()
-    const { courseId, priceMnt, markAsPaid } = body
+    const { courseId, priceMnt, markAsPaid, customerData } = body
     
     // Check if this is a manual "mark as paid" request for testing
     if (markAsPaid && process.env.QPAY_MOCK_MODE === 'true') {
@@ -40,15 +41,16 @@ export async function POST(req: NextRequest) {
       }).sort({ createdAt: -1 })
       
       if (order) {
-        // Mark order as completed
-        order.status = 'COMPLETED'
+        // Mark order as paid
+        order.status = 'PAID'
         await order.save()
         
-        // Grant course access
-        await CourseAccess.findOneAndUpdate(
-          { userId: session.user.id || session.user.email, courseId },
-          { hasAccess: true, grantedAt: new Date() },
-          { upsert: true }
+        // Grant course access using the static method
+        await CourseAccess.grantAccess(
+          session.user.id || session.user.email,
+          courseId,
+          order._id.toString(),
+          'purchase'
         )
         
         return NextResponse.json({ 
@@ -110,11 +112,22 @@ export async function POST(req: NextRequest) {
       if (!existingOrder.qpay?.qrImage && !existingOrder.qpay?.qrText) {
         console.log('Existing order missing QR data, generating now...')
         
-        const inv = await qpayCreateInvoice({
-          sender_invoice_no: existingOrder.qpay?.senderInvoiceNo || `WA-${courseId.slice(-8)}-${(session.user.id || session.user.email).slice(-8)}-${uid()}`,
-          amount: priceMnt,
-          description: `Win Academy — ${course.title}`,
+        // Create enhanced invoice with customer data and proper lines
+        const invoiceData = createSimpleCourseInvoice({
+          courseTitle: course.title,
+          price: priceMnt,
+          senderInvoiceNo: existingOrder.qpay?.senderInvoiceNo || `WA-${courseId.slice(-8)}-${(session.user.id || session.user.email).slice(-8)}-${uid()}`,
+          receiverCode: session.user.id || session.user.email,
+          receiverData: customerData ? createReceiverData({
+            name: customerData.name || session.user.name,
+            email: customerData.email || session.user.email,
+            phone: customerData.phone
+          }) : undefined,
+          callbackUrl: `${process.env.NEXTAUTH_URL}/api/payments/callback?payment_id=${existingOrder._id}`,
+          note: `Win Academy course payment - ${course.title}`
         })
+
+        const inv = await qpayCreateInvoice(invoiceData)
         
         console.log('Generated QR data for existing order:', { 
           invoiceId: inv.invoice_id, 
@@ -173,15 +186,26 @@ export async function POST(req: NextRequest) {
       qpay: { senderInvoiceNo: sender_invoice_no },
     })
 
-    // Create QPay invoice
+    // Create enhanced QPay invoice with customer data and proper lines
     console.log('Creating QPay invoice in mock mode:', process.env.QPAY_MOCK_MODE)
-    console.log('About to call qpayCreateInvoice with params:', { sender_invoice_no, amount: priceMnt, description: `Win Academy — ${course.title}` })
     
-    const inv = await qpayCreateInvoice({
-      sender_invoice_no,
-      amount: priceMnt,
-      description: `Win Academy — ${course.title}`,
+    const invoiceData = createSimpleCourseInvoice({
+      courseTitle: course.title,
+      price: priceMnt,
+      senderInvoiceNo: sender_invoice_no,
+      receiverCode: session.user.id || session.user.email,
+      receiverData: customerData ? createReceiverData({
+        name: customerData.name || session.user.name,
+        email: customerData.email || session.user.email,
+        phone: customerData.phone
+      }) : undefined,
+      callbackUrl: `${process.env.NEXTAUTH_URL}/api/payments/callback?payment_id=${order._id}`,
+      note: `Win Academy course payment - ${course.title}`
     })
+    
+    console.log('About to call qpayCreateInvoice with enhanced params:', invoiceData)
+    
+    const inv = await qpayCreateInvoice(invoiceData)
     
     console.log('QPay invoice response:', { 
       invoiceId: inv.invoice_id, 
@@ -224,6 +248,20 @@ export async function POST(req: NextRequest) {
     })
   } catch (e: any) {
     console.error('QPay create invoice error:', e)
-    return NextResponse.json({ error: e.message || 'Internal error' }, { status: 500 })
+    
+    // Handle QPay-specific errors
+    if (e.code && e.toUserMessage) {
+      return NextResponse.json({ 
+        error: e.toUserMessage(),
+        code: e.code,
+        details: process.env.NODE_ENV === 'development' ? e.detail : undefined
+      }, { status: e.status || 500 })
+    }
+    
+    // Handle other errors
+    return NextResponse.json({ 
+      error: e.message || 'Internal error',
+      details: process.env.NODE_ENV === 'development' ? e.stack : undefined
+    }, { status: 500 })
   }
 }

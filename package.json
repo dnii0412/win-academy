@@ -7,7 +7,12 @@
     "dev": "next dev -p 3000",
     "lint": "next lint",
     "start": "next start",
-    "create-admin": "node scripts/create-admin.js"
+    "create-admin": "node scripts/create-admin.js",
+    "qpay:test": "tsx scripts/qpay-real-test.ts",
+    "qpay:check": "tsx scripts/qpay-diagnostic.ts",
+    "qpay:smoke": "tsx scripts/qpay-smoke.ts",
+    "test:purchase": "tsx scripts/test-course-purchase.ts",
+    "test:purchase-simple": "tsx scripts/test-purchase-flow-simple.ts"
   },
   "dependencies": {
     "@auth/mongodb-adapter": "^3.10.0",
@@ -41,6 +46,7 @@
     "@radix-ui/react-tooltip": "1.1.6",
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.10",
+    "@types/qrcode": "^1.5.5",
     "autoprefixer": "^10.4.20",
     "bcryptjs": "^3.0.2",
     "class-variance-authority": "^0.7.1",
@@ -59,6 +65,7 @@
     "next": "^15.5.2",
     "next-auth": "^5.0.0-beta.29",
     "next-themes": "latest",
+    "qrcode": "^1.5.4",
     "react": "^19",
     "react-day-picker": "9.8.0",
     "react-dom": "^19",
@@ -80,6 +87,7 @@
     "@types/react-dom": "^19",
     "postcss": "^8.5",
     "tailwindcss": "^4.1.9",
+    "tsx": "^4.20.5",
     "tw-animate-css": "1.3.3",
     "typescript": "^5"
   }

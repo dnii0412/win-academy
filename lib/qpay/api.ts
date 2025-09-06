@@ -3,6 +3,16 @@ import { getQPayAccessToken } from './token'
 import { QPAY, validateQPayConfig } from './config'
 import { mockQPay } from './mock'
 import { createQPayError, handleQPayError, logQPayError } from './errors'
+import { validateQPayInvoiceParams } from './validation'
+import { 
+  QPayInvoiceCreateRequest, 
+  QPayInvoiceCreateResponse, 
+  QPayInvoiceParams,
+  QPayPaymentCheckRequest,
+  QPayPaymentCheckResponse,
+  QPayPaymentCancelRequest,
+  QPayPaymentRefundRequest
+} from '../../types/qpay'
 
 async function authed(path: string, init: RequestInit = {}) {
   const token = await getQPayAccessToken()
@@ -15,25 +25,11 @@ async function authed(path: string, init: RequestInit = {}) {
   })
 }
 
-export async function qpayCreateInvoice(params: {
-  sender_invoice_no: string
-  amount: number
-  description?: string
-  callback_url?: string // optional; we'll default to env
-  allow_partial?: boolean
-  expiry_date?: string // ISO
-}) {
+export async function qpayCreateInvoice(params: QPayInvoiceParams): Promise<QPayInvoiceCreateResponse> {
   const correlationId = `inv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
   
   validateQPayConfig() // Validate config at runtime
-
-  // Validate input
-  if (!Number.isInteger(params.amount) || params.amount <= 0) {
-    throw createQPayError('INVALID_AMOUNT', 400, { amount: params.amount }, correlationId)
-  }
-  if (!params.sender_invoice_no || params.sender_invoice_no.length < 3) {
-    throw createQPayError('INVALID_INVOICE_CODE', 400, { sender_invoice_no: params.sender_invoice_no }, correlationId)
-  }
+  validateQPayInvoiceParams(params, correlationId) // Validate input parameters
 
   // Use mock in development if no real credentials
   if (QPAY.mockMode) {
@@ -41,27 +37,72 @@ export async function qpayCreateInvoice(params: {
     return mockQPay.createInvoice(params)
   }
 
-  const payload: Record<string, any> = {
+  // Build the full QPay invoice request payload
+  const payload: QPayInvoiceCreateRequest = {
     invoice_code: QPAY.invoiceCode,
     sender_invoice_no: params.sender_invoice_no,
-    invoice_receiver_code: QPAY.invoiceCode, // Required field - using invoice_code as receiver
+    invoice_receiver_code: params.invoice_receiver_code || QPAY.invoiceCode,
     invoice_description: params.description || 'Win Academy course payment',
     amount: params.amount,
-    callback_url: params.callback_url || QPAY.webhookUrl, // Fixed typo: "callback_url" not "calback_url"
+    callback_url: params.callback_url || QPAY.webhookUrl,
     allow_partial: params.allow_partial ?? false,
+    note: params.note,
   }
-  if (params.expiry_date) payload.expiry_date = params.expiry_date
+
+  // Add optional fields if provided
+  if (params.expiry_date) {
+    payload.expiry_date = params.expiry_date
+    payload.enable_expiry = true
+  }
+
+  if (params.invoice_receiver_data) {
+    payload.invoice_receiver_data = params.invoice_receiver_data
+  }
+
+  if (params.lines && params.lines.length > 0) {
+    payload.lines = params.lines
+  }
+
+  // Add sender branch and terminal data if provided
+  if (params.sender_branch_code) {
+    payload.sender_branch_code = params.sender_branch_code
+  }
+
+  if (params.sender_branch_data) {
+    payload.sender_branch_data = params.sender_branch_data
+  }
+
+  if (params.sender_staff_code) {
+    payload.sender_staff_code = params.sender_staff_code
+  }
+
+  if (params.sender_staff_data) {
+    payload.sender_staff_data = params.sender_staff_data
+  }
+
+  if (params.sender_terminal_code) {
+    payload.sender_terminal_code = params.sender_terminal_code
+  }
+
+  if (params.sender_terminal_data) {
+    payload.sender_terminal_data = params.sender_terminal_data
+  }
 
   console.log('qpay.invoice.create.request', { 
     correlationId, 
     senderInvoiceNo: params.sender_invoice_no,
     amount: params.amount,
     invoiceCode: QPAY.invoiceCode,
-    callbackUrl: payload.callback_url
+    callbackUrl: payload.callback_url,
+    hasReceiverData: !!payload.invoice_receiver_data,
+    linesCount: payload.lines?.length || 0
   })
 
   try {
-    const result = await authed('/v2/invoice', { method: 'POST', body: JSON.stringify(payload) })
+    const result = await authed('/v2/invoice', { 
+      method: 'POST', 
+      body: JSON.stringify(payload) 
+    }) as QPayInvoiceCreateResponse
     
     console.log('qpay.invoice.create.success', { 
       correlationId, 
@@ -80,6 +121,15 @@ export async function qpayCreateInvoice(params: {
         response: result,
         message: 'QPay did not return QR code data'
       })
+      
+      // This is a warning, not an error - some QPay configurations might not return QR
+      // But we should log it for debugging
+    }
+    
+    // Validate response structure
+    if (!result.invoice_id) {
+      throw createQPayError('QPAY_INVALID_RESPONSE', 500, 
+        { response: result, message: 'QPay did not return invoice_id' }, correlationId)
     }
     
     return result
@@ -90,7 +140,7 @@ export async function qpayCreateInvoice(params: {
   }
 }
 
-export async function qpayPaymentCheckByInvoice(invoiceId: string) {
+export async function qpayPaymentCheckByInvoice(invoiceId: string): Promise<QPayPaymentCheckResponse> {
   const correlationId = `check_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
   
   validateQPayConfig() // Validate config at runtime
@@ -104,17 +154,19 @@ export async function qpayPaymentCheckByInvoice(invoiceId: string) {
   console.log('qpay.payment.check.request', { correlationId, invoiceId })
 
   try {
+    const request: QPayPaymentCheckRequest = {
+      object_type: 'INVOICE',
+      object_id: invoiceId,
+      offset: {
+        page_number: 1,
+        page_limit: 100
+      }
+    }
+
     const result = await authed('/v2/payment/check', {
       method: 'POST',
-      body: JSON.stringify({ 
-        object_type: 'INVOICE', 
-        object_id: invoiceId,
-        offset: {
-          page_number: 1,
-          page_limit: 100
-        }
-      }),
-    })
+      body: JSON.stringify(request),
+    }) as QPayPaymentCheckResponse
 
     console.log('qpay.payment.check.success', { 
       correlationId, 
@@ -123,12 +175,7 @@ export async function qpayPaymentCheckByInvoice(invoiceId: string) {
       rows: result.rows?.length || 0
     })
 
-    // Convert QPay response format to our expected format
-    return {
-      payments: result.rows || [],
-      count: result.count || 0,
-      paid_amount: result.paid_amount || 0
-    }
+    return result
   } catch (e: any) {
     const qpayError = handleQPayError(e, correlationId)
     logQPayError(qpayError, 'payment.check')
@@ -136,12 +183,37 @@ export async function qpayPaymentCheckByInvoice(invoiceId: string) {
   }
 }
 
-export async function qpayGetInvoice(invoiceId: string) {
+export async function qpayGetInvoice(invoiceId: string): Promise<any> {
   validateQPayConfig() // Validate config at runtime
   return authed(`/v2/invoice/${invoiceId}`)
 }
 
-export async function qpayCancelInvoice(invoiceId: string) {
+export async function qpayCancelInvoice(invoiceId: string): Promise<any> {
   validateQPayConfig() // Validate config at runtime
   return authed(`/v2/invoice/${invoiceId}`, { method: 'DELETE' })
+}
+
+export async function qpayGetPayment(paymentId: string): Promise<any> {
+  validateQPayConfig() // Validate config at runtime
+  return authed(`/v2/payment/${paymentId}`)
+}
+
+export async function qpayCancelPayment(paymentId: string, params?: QPayPaymentCancelRequest): Promise<any> {
+  validateQPayConfig() // Validate config at runtime
+  
+  const body = params ? JSON.stringify(params) : undefined
+  return authed(`/v2/payment/cancel/${paymentId}`, { 
+    method: 'DELETE',
+    body
+  })
+}
+
+export async function qpayRefundPayment(paymentId: string, params?: QPayPaymentRefundRequest): Promise<any> {
+  validateQPayConfig() // Validate config at runtime
+  
+  const body = params ? JSON.stringify(params) : undefined
+  return authed(`/v2/payment/refund/${paymentId}`, { 
+    method: 'DELETE',
+    body
+  })
 }

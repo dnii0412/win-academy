@@ -4,11 +4,17 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Loader2, QrCode, Smartphone, CheckCircle, AlertCircle } from 'lucide-react'
+import { QRCodeDisplay } from '@/components/QRCodeDisplay'
 
 interface PayWithQPayProps {
   courseId: string
   priceMnt: number
   courseTitle?: string
+  customerData?: {
+    name?: string
+    email?: string
+    phone?: string
+  }
   onPaymentSuccess?: () => void
 }
 
@@ -20,7 +26,7 @@ interface PaymentData {
   urls: { name: string; description?: string; link: string }[]
 }
 
-export function PayWithQPay({ courseId, priceMnt, courseTitle, onPaymentSuccess }: PayWithQPayProps) {
+export function PayWithQPay({ courseId, priceMnt, courseTitle, customerData, onPaymentSuccess }: PayWithQPayProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [data, setData] = useState<PaymentData | null>(null)
@@ -33,10 +39,13 @@ export function PayWithQPay({ courseId, priceMnt, courseTitle, onPaymentSuccess 
       const res = await fetch('/api/pay/qpay/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ courseId, priceMnt }),
+        body: JSON.stringify({ courseId, priceMnt, customerData }),
       })
       const json = await res.json()
       console.log('Payment response:', json)
+      console.log('QR Text:', json.qr_text)
+      console.log('QR Image:', json.qr_image ? 'Present' : 'Missing')
+      console.log('URLs:', json.urls?.length || 0)
       if (!res.ok) throw new Error(json.error || 'Failed to create invoice')
       setData(json)
       setPaymentStatus('pending')
@@ -139,7 +148,7 @@ export function PayWithQPay({ courseId, priceMnt, courseTitle, onPaymentSuccess 
   }
 
   return (
-    <Card className="w-full max-w-lg mx-auto">
+    <Card className="w-full max-w-lg mx-auto bg-card border-2 border-border/50">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <QrCode className="h-5 w-5" />
@@ -152,28 +161,12 @@ export function PayWithQPay({ courseId, priceMnt, courseTitle, onPaymentSuccess 
       <CardContent className="space-y-6">
         {/* QR Code */}
         <div className="text-center">
-          {data.qr_image ? (
-            <div className="inline-block p-4 bg-white rounded-lg border-2 border-gray-200">
-              <img 
-                src={data.qr_image.startsWith('data:') ? data.qr_image : `data:image/png;base64,${data.qr_image}`} 
-                alt="QPay QR Code" 
-                className="w-48 h-48 mx-auto"
-                onError={(e) => {
-                  console.error('QR image failed to load:', e)
-                  console.log('QR image src:', data.qr_image)
-                }}
-              />
-            </div>
-          ) : (
-            <div className="p-4 bg-gray-50 rounded-lg border">
-              <p className="text-sm text-gray-600 mb-2">QR Code not available, showing text:</p>
-              <textarea 
-                readOnly 
-                value={data.qr_text || 'No QR data available'} 
-                className="w-full h-24 text-xs font-mono resize-none border-0 bg-transparent"
-              />
-            </div>
-          )}
+          <QRCodeDisplay 
+            qrText={data.qr_text || ''}
+            qrImage={data.qr_image}
+            size={200}
+            className="mx-auto"
+          />
           <Badge variant="outline" className="mt-2">
             ₮{priceMnt.toLocaleString()}
           </Badge>
@@ -236,13 +229,16 @@ export function PayWithQPay({ courseId, priceMnt, courseTitle, onPaymentSuccess 
                 const res = await fetch('/api/pay/qpay/create', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ courseId, priceMnt, markAsPaid: true }),
+                  body: JSON.stringify({ courseId, priceMnt, markAsPaid: true, customerData }),
                 })
                 const json = await res.json()
                 if (res.ok) {
                   setPaymentStatus('paid')
                   onPaymentSuccess?.()
-                  setTimeout(() => window.location.reload(), 1000)
+                  // Redirect to course page after successful payment
+                  setTimeout(() => {
+                    window.location.href = `/courses/${courseId}`
+                  }, 1000)
                 } else {
                   setError(json.error || 'Failed to mark as paid')
                 }

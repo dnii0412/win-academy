@@ -113,75 +113,13 @@ export default function CheckoutPage() {
         setError(null)
 
         try {
-            const orderId = `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-
-            // First create the order in our database
-            const orderResponse = await fetch("/api/orders", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    courseId: course._id,
-                    courseTitle: course.title,
-                    courseTitleMn: course.titleMn,
-                    amount: course.price,
-                    currency: "MNT",
-                    paymentMethod: formData.paymentMethod,
-                    customerEmail: formData.email,
-                    customerPhone: formData.phone,
-                    customerName: `${formData.firstName} ${formData.lastName}`,
-                    orderId
-                }),
-            })
-
-            if (!orderResponse.ok) {
-                const orderError = await orderResponse.json()
-                console.error('Order creation error:', orderError)
-
-                // Handle specific error cases
-                if (orderResponse.status === 409 && orderError.existingUser) {
-                    throw new Error(t('checkout.emailAlreadyRegistered'))
-                }
-
-                throw new Error(orderError.message || orderError.error || "Failed to create order")
-            }
-
-            const orderData = await orderResponse.json()
-
-            const paymentRequest = {
-                provider: formData.paymentMethod,
-                amount: course.price,
-                currency: "MNT",
-                description: `Enrollment for ${course.title}`,
-                orderId,
-                customerEmail: formData.email,
-                customerPhone: formData.phone,
-                returnUrl: `${window.location.origin}/payment/success?orderId=${orderId}&courseId=${course._id}`,
-                callbackUrl: `${window.location.origin}/api/payments/callback`,
-            }
-
-            const response = await fetch("/api/payments", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(paymentRequest),
-            })
-
-            const result = await response.json()
-
-            if (!response.ok || !result.success) {
-                console.error('Payment API error:', result)
-                throw new Error(result.error || `Payment creation failed (${response.status})`)
-            }
-
-            // Redirect to payment URL
-            if (result.paymentUrl) {
-                window.location.href = result.paymentUrl
-            } else {
-                throw new Error("No payment URL received")
-            }
+            // For QPay, we don't need to create a separate order
+            // The PayWithQPay component handles the order creation and payment flow
+            console.log('Checkout form submitted, QPay component will handle the payment')
+            
+            // The actual payment is handled by the PayWithQPay component
+            // This form is mainly for collecting customer information and terms agreement
+            
         } catch (err) {
             console.error('Checkout error:', err)
             const errorMessage = err instanceof Error ? err.message : "Payment failed"
@@ -224,11 +162,11 @@ export default function CheckoutPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 py-8">
+        <div className="min-h-screen bg-muted/30 py-8">
             <div className="max-w-4xl mx-auto px-4">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* Course Summary */}
-                    <Card>
+                    <Card className="bg-card border-2 border-border/50">
                         <CardHeader>
                             <CardTitle>Order Summary</CardTitle>
                         </CardHeader>
@@ -269,8 +207,13 @@ export default function CheckoutPage() {
                             courseId={courseId}
                             priceMnt={course.price}
                             courseTitle={course.title}
+                            customerData={{
+                                name: `${formData.firstName} ${formData.lastName}`,
+                                email: formData.email,
+                                phone: formData.phone
+                            }}
                             onPaymentSuccess={() => {
-                                // Optional: Show success message or redirect
+                                // Payment success callback - redirect handled by PayWithQPay component
                                 console.log('Payment successful!')
                             }}
                         />
