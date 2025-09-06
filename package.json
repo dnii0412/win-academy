@@ -13,7 +13,8 @@
     "qpay:smoke": "tsx scripts/qpay-smoke.ts",
     "test:purchase": "tsx scripts/test-course-purchase.ts",
     "test:purchase-simple": "tsx scripts/test-purchase-flow-simple.ts",
-    "test:cloudinary": "tsx scripts/test-cloudinary-upload.ts"
+    "test:cloudinary": "tsx scripts/test-cloudinary-upload.ts",
+    "test:qpay": "tsx scripts/test-qpay-integration.ts"
   },
   "dependencies": {
     "@auth/mongodb-adapter": "^3.10.0",

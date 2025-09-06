@@ -11,7 +11,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, CreditCard, Smartphone, BookOpen } from "lucide-react"
-import { PayWithQPay } from "@/components/PayWithQPay"
+import QPayPayment from "@/components/QPayPayment"
 import CourseImage from "@/components/course-image"
 import type { CheckoutFormData } from "@/types/payment"
 import type { Course } from "@/types/course"
@@ -203,18 +203,18 @@ export default function CheckoutPage() {
 
                     {/* QPay Payment */}
                     <div>
-                        <PayWithQPay
+                        <QPayPayment
                             courseId={courseId}
-                            priceMnt={course.price}
-                            courseTitle={course.title}
-                            customerData={{
-                                name: `${formData.firstName} ${formData.lastName}`,
-                                email: formData.email,
-                                phone: formData.phone
+                            amount={course.price}
+                            description={course.titleMn || course.title}
+                            onPaymentSuccess={(invoiceId) => {
+                                console.log('Payment successful!', { invoiceId })
+                                // Redirect to course page after successful payment
+                                router.push(`/courses/${courseId}`)
                             }}
-                            onPaymentSuccess={() => {
-                                // Payment success callback - redirect handled by PayWithQPay component
-                                console.log('Payment successful!')
+                            onPaymentError={(error) => {
+                                console.error('Payment error:', error)
+                                setError(`Payment Error: ${error}`)
                             }}
                         />
                     </div>
