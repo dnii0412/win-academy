@@ -84,8 +84,13 @@ export default function CourseForm({ isOpen, onClose, onSubmit, course, mode }: 
     const transformedData = {
       ...formData,
       title: formData.titleMn, // Use Mongolian title as English title
+      titleMn: formData.titleMn, // Keep Mongolian title
       description: formData.descriptionMn, // Use Mongolian description as English description
+      descriptionMn: formData.descriptionMn, // Keep Mongolian description
       shortDescription: formData.shortDescriptionMn || formData.descriptionMn, // Use Mongolian short description or fallback to description
+      shortDescriptionMn: formData.shortDescriptionMn || formData.descriptionMn, // Keep Mongolian short description
+      tags: formData.tagsMn, // Use Mongolian tags as English tags
+      tagsMn: formData.tagsMn, // Keep Mongolian tags
       price: Number(formData.price) || 0
     }
 

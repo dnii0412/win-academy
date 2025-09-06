@@ -101,10 +101,17 @@ export async function POST(request: NextRequest) {
       language
     } = body
 
-    // Validate required fields
-    if (!title || !titleMn || !description || !descriptionMn || !price) {
+    // Validate required fields - prioritize Mongolian fields, fallback to English if needed
+    const finalTitle = titleMn || title
+    const finalDescription = descriptionMn || description
+    
+    if (!finalTitle || !finalDescription || !price) {
       return NextResponse.json(
-        { message: "Missing required fields" },
+        { 
+          message: "Missing required fields",
+          required: ["titleMn (or title)", "descriptionMn (or description)", "price"],
+          received: { title, titleMn, description, descriptionMn, price }
+        },
         { status: 400 }
       )
     }
@@ -112,14 +119,14 @@ export async function POST(request: NextRequest) {
     // Connect to database
     await dbConnect()
 
-    // Create new course
+    // Create new course - use final values with fallbacks
     const newCourse = new Course({
-      title,
-      titleMn,
-      description,
-      descriptionMn,
-      shortDescription: shortDescription || description.substring(0, 150),
-      shortDescriptionMn: shortDescriptionMn || descriptionMn.substring(0, 150),
+      title: title || finalTitle,
+      titleMn: titleMn || finalTitle,
+      description: description || finalDescription,
+      descriptionMn: descriptionMn || finalDescription,
+      shortDescription: shortDescription || (description || finalDescription).substring(0, 150),
+      shortDescriptionMn: shortDescriptionMn || (descriptionMn || finalDescription).substring(0, 150),
       price: parseFloat(price),
       status: status || "inactive",
       category,
@@ -128,8 +135,8 @@ export async function POST(request: NextRequest) {
       levelMn: levelMn || "Эхлэгч",
       instructor: instructor || "WIN Academy",
       instructorMn: instructorMn || "WIN Academy",
-      tags: tags || [],
-      tagsMn: tagsMn || [],
+      tags: tags || tagsMn || [],
+      tagsMn: tagsMn || tags || [],
       featured: featured || false,
       certificate: certificate || false,
       language: language || "both",
