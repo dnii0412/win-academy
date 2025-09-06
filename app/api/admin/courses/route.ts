@@ -98,7 +98,9 @@ export async function POST(request: NextRequest) {
       tagsMn,
       featured,
       certificate,
-      language
+      language,
+      thumbnailUrl,
+      thumbnailPublicId
     } = body
 
     // Validate required fields - prioritize Mongolian fields, fallback to English if needed
@@ -140,6 +142,8 @@ export async function POST(request: NextRequest) {
       featured: featured || false,
       certificate: certificate || false,
       language: language || "both",
+      thumbnailUrl: thumbnailUrl || "",
+      thumbnailPublicId: thumbnailPublicId || "",
       modules: []
     })
 

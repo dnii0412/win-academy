@@ -74,6 +74,15 @@ export function getCourseThumbnailUrl(
         return '/images/course-placeholder.jpg' // We'll create this fallback
     }
 
+    // Debug logging for development
+    if (process.env.NODE_ENV === 'development') {
+        console.log('getCourseThumbnailUrl called with:', {
+            thumbnailUrl,
+            size,
+            isCloudinary: thumbnailUrl.includes('cloudinary.com')
+        })
+    }
+
     const sizeConfig = {
         small: { width: 400, height: 225 },   // 16:9 ratio
         medium: { width: 800, height: 450 },  // 16:9 ratio  
@@ -82,7 +91,7 @@ export function getCourseThumbnailUrl(
 
     const { width, height } = sizeConfig[size]
 
-    return optimizeCloudinaryUrl(thumbnailUrl, {
+    const optimizedUrl = optimizeCloudinaryUrl(thumbnailUrl, {
         width,
         height,
         quality: 'auto',
@@ -90,6 +99,13 @@ export function getCourseThumbnailUrl(
         crop: 'fill',
         gravity: 'auto'
     })
+
+    // Debug logging for development
+    if (process.env.NODE_ENV === 'development') {
+        console.log('Optimized URL:', optimizedUrl)
+    }
+
+    return optimizedUrl
 }
 
 /**
