@@ -63,6 +63,8 @@ interface SubcourseAccordionProps {
   onEditLesson: (lesson: Lesson) => void
   onDuplicateLesson: (lesson: Lesson) => void
   onDeleteLesson: (lesson: Lesson) => void
+  onToggleLessonStatus: (lesson: Lesson) => void
+  onToggleSubcourseStatus: (subcourse: Subcourse) => void
   expandedSubcourses: string[]
   onToggleExpanded: (subcourseId: string) => void
   selectedItems: string[]
@@ -197,13 +199,10 @@ export default function SubcourseAccordion({
         <CardContent className="text-center py-12">
           <BookOpen className="h-16 w-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-            {currentLanguage === "mn" ? "Дэд сургалт байхгүй" : "No subcourses yet"}
+            No subcourses yet
           </h3>
           <p className="text-gray-500 dark:text-gray-400 mb-6">
-            {currentLanguage === "mn" 
-              ? "Эхний дэд сургалтаа үүсгэж эхлээрэй"
-              : "Create your first subcourse to get started"
-            }
+            Create your first subcourse to get started
           </p>
         </CardContent>
       </Card>
@@ -255,12 +254,12 @@ export default function SubcourseAccordion({
 
                   <div className="flex-1 min-w-0">
                     <h3 className="text-lg font-medium text-gray-900 dark:text-white truncate">
-                      {currentLanguage === "mn" ? subcourse.titleMn : subcourse.title}
+                      {subcourse.title}
                     </h3>
                     
                     {subcourse.description && (
                       <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
-                        {currentLanguage === "mn" ? subcourse.descriptionMn : subcourse.description}
+                        {subcourse.description}
                       </p>
                     )}
                   </div>
@@ -313,13 +312,13 @@ export default function SubcourseAccordion({
                     className="h-8 px-3"
                   >
                     <Plus className="w-4 h-4 mr-1" />
-                    {currentLanguage === "mn" ? "Хичээл нэмэх" : "Add Lesson"}
+                    Add Lesson
                   </Button>
                 </div>
                 <div className="space-y-2">
                   {subcourseLessons.length === 0 ? (
                     <div className="text-center py-6 text-gray-500 dark:text-gray-400">
-                      {currentLanguage === "mn" ? "Хичээл байхгүй" : "No lessons yet"}
+                      No lessons yet
                     </div>
                   ) : (
                     subcourseLessons.map((lesson, lessonIndex) => (
@@ -339,7 +338,7 @@ export default function SubcourseAccordion({
                         <div className="flex items-center gap-3">
                           <GripVertical className="w-4 h-4 text-gray-400" />
                           <span className="font-medium">
-                            {currentLanguage === "mn" ? lesson.titleMn : lesson.title}
+                            {lesson.title}
                           </span>
                         </div>
                         <div className="flex items-center gap-2">

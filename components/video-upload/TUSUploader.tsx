@@ -8,8 +8,6 @@ import { Progress } from "@/components/ui/progress"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Upload, Video, X, CheckCircle, AlertCircle } from "lucide-react"
 
-
-
 import { BUNNY_STREAM_CONFIG, getBunnyVideoUrl } from "@/lib/bunny-stream"
 
 
@@ -43,12 +41,12 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
     const file = event.target.files?.[0]
     if (file) {
       if (!file.type.startsWith('video/')) {
-        setErrorMessage(currentLanguage === "mn" ? "Зөвхөн видео файл сонгоно уу" : "Please select a video file")
+        setErrorMessage("Please select a video file")
         return
       }
       
       if (file.size > 10 * 1024 * 1024 * 1024) { // 2GB limit
-        setErrorMessage(currentLanguage === "mn" ? "Файлын хэмжээ 2GB-аас бага байх ёстой" : "File size must be less than 2GB")
+        setErrorMessage("File size must be less than 2GB")
         return
       }
       
@@ -59,7 +57,7 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
         percentage: 0
       })
     }
-  }, [currentLanguage])
+  }, [])
 
   // REMOVED: Duplicate video creation - now handled by TUS API
 
@@ -197,7 +195,7 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
   const startUpload = async () => {
     const file = fileInputRef.current?.files?.[0]
     if (!file || !videoTitle.trim()) {
-      setErrorMessage(currentLanguage === "mn" ? "Файл болон нэр оруулна уу" : "Please select a file and enter a title")
+      setErrorMessage("Please select a file and enter a title")
       return
     }
 
@@ -370,7 +368,7 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
       // Get admin token for authentication
       const adminToken = localStorage.getItem("adminToken")
       if (!adminToken) {
-        alert(currentLanguage === "mn" ? "Админ токен олдсонгүй. Дахин нэвтэрнэ үү." : "No admin token found. Please log in again.")
+        alert("No admin token found. Please log in again.")
         return
       }
 
@@ -385,15 +383,15 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
       if (response.ok) {
         const data = await response.json()
         console.log('Bunny API test successful:', data)
-        alert(currentLanguage === "mn" ? "Bunny API холболт амжилттай!" : "Bunny API connection successful!")
+        alert("Bunny API connection successful!")
       } else {
         const errorText = await response.text()
         console.error('Bunny API test failed:', response.status, errorText)
-        alert(currentLanguage === "mn" ? `Bunny API алдаа: ${response.status}` : `Bunny API error: ${response.status}`)
+        alert(`Bunny API error: ${response.status}`)
       }
     } catch (error) {
       console.error('Bunny API test error:', error)
-      alert(currentLanguage === "mn" ? "Bunny API холболтод алдаа гарлаа" : "Bunny API connection error")
+      alert("Bunny API connection error")
     }
   }
 
@@ -404,7 +402,7 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
       // Get admin token for authentication
       const adminToken = localStorage.getItem("adminToken")
       if (!adminToken) {
-        alert(currentLanguage === "mn" ? "Админ токен олдсонгүй. Дахин нэвтэрнэ үү." : "No admin token found. Please log in again.")
+        alert("No admin token found. Please log in again.")
         return
       }
 
@@ -429,15 +427,15 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
           uploadUrl: data.uploadUrl,
           tusHeaders: data.tusHeaders
         })
-        alert(currentLanguage === "mn" ? "TUS загварууд амжилттай!" : "TUS headers generated successfully!")
+        alert("TUS headers generated successfully!")
       } else {
         const errorText = await response.text()
         console.error('TUS headers test failed:', response.status, errorText)
-        alert(currentLanguage === "mn" ? `TUS загварууд алдаа: ${response.status}` : `TUS headers error: ${response.status}`)
+        alert(`TUS headers error: ${response.status}`)
       }
     } catch (error) {
       console.error('TUS headers test error:', error)
-      alert(currentLanguage === "mn" ? "TUS загварууд тест алдаа" : "TUS headers test error")
+      alert("TUS headers test error")
     }
   }
 
@@ -447,7 +445,7 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-              {currentLanguage === "mn" ? "Видео байршуулах" : "Upload Video"}
+              Upload Video
             </h2>
             <Button variant="ghost" size="sm" onClick={onClose}>
               <X className="h-5 w-5" />
@@ -460,31 +458,31 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Video className="h-5 w-5" />
-                  {currentLanguage === "mn" ? "Видео мэдээлэл" : "Video Information"}
+                  Video Information
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
                   <Label htmlFor="videoTitle">
-                    {currentLanguage === "mn" ? "Видео нэр" : "Video Title"}
+                    Video Title
                   </Label>
                   <Input
                     id="videoTitle"
                     value={videoTitle}
                     onChange={(e) => setVideoTitle(e.target.value)}
-                    placeholder={currentLanguage === "mn" ? "Видео нэр оруулна уу" : "Enter video title"}
+                    placeholder="Enter video title"
                     required
                   />
                 </div>
                 <div>
                   <Label htmlFor="videoDescription">
-                    {currentLanguage === "mn" ? "Тайлбар" : "Description"}
+                    Description
                   </Label>
                   <Input
                     id="videoDescription"
                     value={videoDescription}
                     onChange={(e) => setVideoDescription(e.target.value)}
-                    placeholder={currentLanguage === "mn" ? "Видео тайлбар (сонгох)" : "Video description (optional)"}
+                    placeholder="Video description (optional)"
                   />
                 </div>
               </CardContent>
@@ -495,7 +493,7 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Upload className="h-5 w-5" />
-                  {currentLanguage === "mn" ? "Файл сонгох" : "Select File"}
+                  Select File
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -508,10 +506,7 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
                     disabled={isUploading}
                   />
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {currentLanguage === "mn" 
-                      ? "Дэмжигдэх формат: MP4, MOV, AVI, MKV. Хамгийн их хэмжээ: 2GB"
-                      : "Supported formats: MP4, MOV, AVI, MKV. Maximum size: 2GB"
-                    }
+                    Supported formats: MP4, MOV, AVI, MKV. Maximum size: 2GB
                   </p>
                 </div>
               </CardContent>
@@ -523,7 +518,7 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Upload className="h-5 w-5 animate-pulse" />
-                    {currentLanguage === "mn" ? "Байршуулж байна..." : "Uploading..."}
+                    Uploading...
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -534,7 +529,7 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
                     <span>{formatFileSize(uploadProgress.bytesTotal)}</span>
                   </div>
                   <Button onClick={cancelUpload} variant="outline" className="w-full">
-                    {currentLanguage === "mn" ? "Цуцлах" : "Cancel Upload"}
+                    Cancel Upload
                   </Button>
                 </CardContent>
               </Card>
@@ -547,7 +542,7 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
                   <div className="flex items-center gap-3 text-green-800 dark:text-green-200">
                     <CheckCircle className="h-6 w-6" />
                     <span className="font-medium">
-                      {currentLanguage === "mn" ? "Видео амжилттай байршигдлаа!" : "Video uploaded successfully!"}
+                      Video uploaded successfully!
                     </span>
                   </div>
                 </CardContent>
@@ -570,15 +565,15 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
             <div className="flex justify-between items-center">
               <div className="flex space-x-2">
                 <Button type="button" variant="outline" onClick={testBunnyAPI}>
-                  {currentLanguage === "mn" ? "API Тест" : "Test API"}
+                  Test API
                 </Button>
                 <Button type="button" variant="outline" onClick={testTusHeaders}>
-                  {currentLanguage === "mn" ? "TUS Тест" : "Test TUS"}
+                  Test TUS
                 </Button>
               </div>
               <div className="flex space-x-3">
                 <Button type="button" variant="outline" onClick={onClose}>
-                  {currentLanguage === "mn" ? "Цуцлах" : "Cancel"}
+                  Cancel
                 </Button>
                 <Button
                   onClick={startUpload}
@@ -588,12 +583,12 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
                   {isUploading ? (
                     <>
                       <Upload className="h-4 w-4 mr-2 animate-spin" />
-                      {currentLanguage === "mn" ? "Байршуулж байна..." : "Uploading..."}
+                      Uploading...
                     </>
                   ) : (
                     <>
                       <Upload className="h-4 w-4 mr-2" />
-                      {currentLanguage === "mn" ? "Байршуулах" : "Upload"}
+                      Upload
                     </>
                   )}
                 </Button>

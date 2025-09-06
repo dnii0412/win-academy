@@ -38,7 +38,7 @@ export default function DashboardSidebar() {
               }`}
           >
             <span className="text-lg">{item.icon}</span>
-            <span>{currentLanguage === "mn" ? item.nameMn : item.name}</span>
+            <span>{item.name}</span>
           </Link>
         ))}
       </nav>
@@ -49,7 +49,7 @@ export default function DashboardSidebar() {
           className="w-full text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 bg-transparent dark:bg-transparent"
           onClick={handleLogout}
         >
-          {currentLanguage === "mn" ? "Гарах" : "Logout"}
+          Logout
         </Button>
       </div>
     </div>

@@ -39,6 +39,7 @@ interface LessonListProps {
   onDuplicate: (lesson: Lesson) => void
   onDelete: (lesson: Lesson) => void
   onReorder: (lessonIds: string[]) => void
+  onToggleStatus: (lesson: Lesson) => void
   selectedItems: string[]
   onSelectItem: (itemId: string, type: 'subcourse' | 'lesson') => void
   isDragging: boolean
@@ -84,11 +85,11 @@ export default function LessonList({
   const getTypeLabel = (type: string) => {
     switch (type) {
       case 'video':
-        return currentLanguage === "mn" ? "Видео" : "Video"
+        return "Video"
       case 'article':
-        return currentLanguage === "mn" ? "Нийтлэл" : "Article"
+        return "Article"
       case 'quiz':
-        return currentLanguage === "mn" ? "Тест" : "Quiz"
+        return "Quiz"
       default:
         return type
     }
@@ -107,13 +108,10 @@ export default function LessonList({
       <div className="text-center py-8">
         <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
         <h4 className="text-md font-medium text-gray-900 dark:text-white mb-2">
-          {currentLanguage === "mn" ? "Хичээл байхгүй" : "No lessons yet"}
+          No lessons yet
         </h4>
         <p className="text-sm text-gray-500 dark:text-gray-400">
-          {currentLanguage === "mn" 
-            ? "Эхний хичээлээ нэмж эхлээрэй"
-            : "Add your first lesson to get started"
-          }
+          Add your first lesson to get started
         </p>
       </div>
     )
@@ -159,10 +157,10 @@ export default function LessonList({
 
             <div className="flex-1 min-w-0">
               <InlineEditableText
-                value={currentLanguage === "mn" ? lesson.titleMn : lesson.title}
+                value={lesson.title}
                 onSave={(newTitle) => handleTitleSave(lesson._id, newTitle)}
                 className="font-medium text-gray-900 dark:text-white"
-                placeholder={currentLanguage === "mn" ? "Хичээлийн нэр" : "Lesson title"}
+                placeholder="Lesson title"
               />
             </div>
 

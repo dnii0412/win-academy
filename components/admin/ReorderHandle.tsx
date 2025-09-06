@@ -7,12 +7,16 @@ interface ReorderHandleProps {
   className?: string
   disabled?: boolean
   "aria-label"?: string
+  onMouseDown?: () => void
+  onMouseUp?: () => void
 }
 
 export default function ReorderHandle({ 
   className, 
   disabled = false,
-  "aria-label": ariaLabel = "Reorder item"
+  "aria-label": ariaLabel = "Reorder item",
+  onMouseDown,
+  onMouseUp
 }: ReorderHandleProps) {
   return (
     <div
@@ -27,6 +31,8 @@ export default function ReorderHandle({
       role="button"
       aria-label={ariaLabel}
       aria-disabled={disabled}
+      onMouseDown={onMouseDown}
+      onMouseUp={onMouseUp}
     >
       <GripVertical className="w-4 h-4" />
     </div>

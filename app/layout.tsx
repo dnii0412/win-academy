@@ -2,7 +2,6 @@ import type React from "react"
 import { Inter } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 import AuthSessionProvider from "@/components/session-provider"
-import { LanguageProvider } from "@/contexts/language-context"
 import Navbar from "@/components/navbar"
 import Footer from "@/components/footer"
 import "./globals.css"
@@ -33,17 +32,15 @@ export default function RootLayout({
 
       <body className="font-sans">
         <AuthSessionProvider>
-          <LanguageProvider>
-            <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-              <div className="min-h-screen flex flex-col">
-                <Navbar />
-                <main className="flex-1">
-                  {children}
-                </main>
-                <Footer />
-              </div>
-            </ThemeProvider>
-          </LanguageProvider>
+          <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+            <div className="min-h-screen flex flex-col">
+              <Navbar />
+              <main className="flex-1">
+                {children}
+              </main>
+              <Footer />
+            </div>
+          </ThemeProvider>
         </AuthSessionProvider>
       </body>
     </html>
