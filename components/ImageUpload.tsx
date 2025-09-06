@@ -120,39 +120,52 @@ export default function ImageUpload({
     // For client-side, we need NEXT_PUBLIC_ prefix, but let's check what's available
     const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
     if (!cloudName) {
-      throw new Error('Cloudinary cloud name not configured. Please add NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME to .env.local')
+      throw new Error('Cloudinary cloud name not configured. Please add NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME to environment variables')
     }
 
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('upload_preset', 'win-academy-uploads') // Use our custom preset
-    formData.append('folder', folder)
+    // Try different upload presets in order of preference
+    const uploadPresets = [
+      'win-academy-uploads',  // Custom preset
+      'ml_default',           // Default Cloudinary preset
+      'unsigned'              // Fallback
+    ]
 
-    const response = await fetch(
-      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-      {
-        method: 'POST',
-        body: formData,
-      }
-    )
+    let lastError: Error | null = null
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      
-      // If preset not found, try with a different approach
-      if (response.status === 400 && errorData.error?.message?.includes('preset')) {
-        console.log('Upload preset not found, trying alternative method...')
-        throw new Error('Upload preset not configured. Please check Cloudinary setup or contact admin.')
+    for (const preset of uploadPresets) {
+      try {
+        const formData = new FormData()
+        formData.append('file', file)
+        formData.append('upload_preset', preset)
+        formData.append('folder', folder)
+
+        const response = await fetch(
+          `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+          {
+            method: 'POST',
+            body: formData,
+          }
+        )
+
+        if (response.ok) {
+          const result = await response.json()
+          setPreviewUrl(result.secure_url)
+          onUploadSuccess(result.secure_url, result.public_id)
+          setUploadProgress({ loaded: file.size, total: file.size, percentage: 100 })
+          return // Success, exit the loop
+        } else {
+          const errorData = await response.json().catch(() => ({}))
+          lastError = new Error(errorData.error?.message || `Upload failed with preset ${preset} (${response.status})`)
+          console.log(`Upload preset ${preset} failed, trying next...`)
+        }
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error('Upload failed')
+        console.log(`Upload preset ${preset} error:`, error)
       }
-      
-      throw new Error(errorData.error?.message || `Direct upload failed (${response.status})`)
     }
 
-    const result = await response.json()
-
-    setPreviewUrl(result.secure_url)
-    onUploadSuccess(result.secure_url, result.public_id)
-    setUploadProgress({ loaded: file.size, total: file.size, percentage: 100 })
+    // If all presets failed, throw the last error
+    throw lastError || new Error('All upload methods failed. Please check Cloudinary configuration.')
   }
 
   const uploadFile = async (file: File) => {
@@ -198,9 +211,13 @@ export default function ImageUpload({
 
       // Provide helpful error messages
       if (errorMessage.includes('not configured')) {
-        errorMessage = "Cloudinary тохиргоо дутуу байна. .env.local файлд CLOUDINARY хувьсагчдыг нэмнэ үү"
+        errorMessage = "Cloudinary тохиргоо дутуу байна. Environment хувьсагчдыг шалгана уу"
       } else if (errorMessage.includes('Authentication required') || errorMessage.includes('Unauthorized')) {
         errorMessage = "Админ эрхээр нэвтэрч орно уу"
+      } else if (errorMessage.includes('preset')) {
+        errorMessage = "Cloudinary upload preset тохиргоо дутуу байна. Админтай холбоо барина уу"
+      } else if (errorMessage.includes('All upload methods failed')) {
+        errorMessage = "Зураг илгээх боломжгүй байна. Cloudinary тохиргоог шалгана уу"
       }
 
       setError(errorMessage)

@@ -19,7 +19,9 @@ export async function POST(request: NextRequest) {
       hasCloudName: !!cloudName,
       hasApiKey: !!process.env.CLOUDINARY_API_KEY,
       hasApiSecret: !!process.env.CLOUDINARY_API_SECRET,
-      cloudName: cloudName?.substring(0, 10) + '...'
+      hasUploadPreset: !!process.env.CLOUDINARY_UPLOAD_PRESET,
+      cloudName: cloudName?.substring(0, 10) + '...',
+      nodeEnv: process.env.NODE_ENV
     }
     
     console.log('Cloudinary config status:', configStatus)
@@ -30,7 +32,8 @@ export async function POST(request: NextRequest) {
       console.error('Missing Cloudinary environment variables')
       return NextResponse.json({ 
         error: 'Cloudinary not configured. Please check environment variables.',
-        details: 'Missing required environment variables: NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, or CLOUDINARY_API_SECRET'
+        details: 'Missing required environment variables: NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, or CLOUDINARY_API_SECRET',
+        configStatus
       }, { status: 500 })
     }
 
