@@ -128,22 +128,15 @@ export default function AdminOrdersPage() {
       if (response.ok) {
         const data = await response.json()
         setOrders(prev => [data.order, ...prev])
-        alert(currentLanguage === "mn" 
-          ? "Жишээ захиалга үүслээ!" 
-          : "Sample order created!"
+        alert("Жишээ захиалга үүслээ!"
         )
       } else {
         const errorData = await response.json()
-        alert(currentLanguage === "mn" 
-          ? `Алдаа: ${errorData.message}` 
-          : `Error: ${errorData.message}`
-        )
+        alert(`Алдаа: ${errorData.message}`)
       }
     } catch (error) {
       console.error("Failed to create sample order:", error)
-      alert(currentLanguage === "mn" 
-        ? "Жишээ захиалга үүсгэхэд алдаа гарлаа" 
-        : "Failed to create sample order"
+      alert("Жишээ захиалга үүсгэхэд алдаа гарлаа"
       )
     }
   }
@@ -167,22 +160,15 @@ export default function AdminOrdersPage() {
         setOrders(prev => prev.map(order => 
           order._id === orderId ? data.order : order
         ))
-        alert(currentLanguage === "mn" 
-          ? "Захиалгын төлөв шинэчлэгдлээ!" 
-          : "Order status updated!"
+        alert("Захиалгын төлөв шинэчлэгдлээ!"
         )
       } else {
         const errorData = await response.json()
-        alert(currentLanguage === "mn" 
-          ? `Алдаа: ${errorData.message}` 
-          : `Error: ${errorData.message}`
-        )
+        alert(`Алдаа: ${errorData.message}`)
       }
     } catch (error) {
       console.error("Failed to update order status:", error)
-      alert(currentLanguage === "mn" 
-        ? "Захиалгын төлөв шинэчлэхэд алдаа гарлаа" 
-        : "Failed to update order status"
+      alert("Захиалгын төлөв шинэчлэхэд алдаа гарлаа"
       )
     }
   }
@@ -214,7 +200,7 @@ export default function AdminOrdersPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                {currentLanguage === "mn" ? "Нийт захиалга" : "Total Orders"}
+                {"Нийт захиалга"}
               </CardTitle>
               <FileText className="h-4 w-4 text-blue-600" />
             </CardHeader>
@@ -223,7 +209,7 @@ export default function AdminOrdersPage() {
                 {getTotalOrders()}
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                {currentLanguage === "mn" ? "Бүх захиалгууд" : "All orders"}
+                {"Бүх захиалгууд"}
               </p>
             </CardContent>
           </Card>
@@ -231,7 +217,7 @@ export default function AdminOrdersPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                {currentLanguage === "mn" ? "Дууссан захиалга" : "Completed Orders"}
+                {"Дууссан захиалга"}
               </CardTitle>
               <CheckCircle className="h-4 w-4 text-green-600" />
             </CardHeader>
@@ -240,7 +226,7 @@ export default function AdminOrdersPage() {
                 {getCompletedOrders()}
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                {currentLanguage === "mn" ? "Амжилттай" : "Successful"}
+                {"Амжилттай"}
               </p>
             </CardContent>
           </Card>
@@ -248,7 +234,7 @@ export default function AdminOrdersPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                {currentLanguage === "mn" ? "Нийт орлого" : "Total Revenue"}
+                {"Нийт орлого"}
               </CardTitle>
               <DollarSign className="h-4 w-4 text-green-600" />
             </CardHeader>
@@ -257,7 +243,7 @@ export default function AdminOrdersPage() {
                 ${getTotalRevenue()}
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                {currentLanguage === "mn" ? "Нийт орлого" : "Total revenue"}
+                {"Нийт орлого"}
               </p>
             </CardContent>
           </Card>
@@ -268,7 +254,7 @@ export default function AdminOrdersPage() {
           <div className="relative max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
-              placeholder={currentLanguage === "mn" ? "Захиалга хайх..." : "Search orders..."}
+              placeholder={"Захиалга хайх..."}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -280,7 +266,7 @@ export default function AdminOrdersPage() {
             className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
           >
             <FileText className="h-4 w-4 mr-2" />
-            {currentLanguage === "mn" ? "Жишээ захиалга" : "Sample Order"}
+            {"Жишээ захиалга"}
           </Button>
         </div>
 
@@ -292,7 +278,7 @@ export default function AdminOrdersPage() {
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <CardTitle className="text-lg line-clamp-2">
-                      {currentLanguage === "mn" ? order.courseTitleMn || order.courseTitle : order.courseTitle}
+                      {order.courseTitleMn || order.courseTitle}
                     </CardTitle>
                     <CardDescription className="line-clamp-2 mt-2">
                       {order.userName} ({order.userEmail})
@@ -315,7 +301,7 @@ export default function AdminOrdersPage() {
                   </div>
                   <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
                     <BookOpen className="h-4 w-4 mr-2" />
-                    <span>{currentLanguage === "mn" ? order.courseTitleMn || order.courseTitle : order.courseTitle}</span>
+                    <span>{order.courseTitleMn || order.courseTitle}</span>
                   </div>
                   <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
                     <DollarSign className="h-4 w-4 mr-2" />
@@ -333,7 +319,7 @@ export default function AdminOrdersPage() {
                     size="sm"
                     className="flex-1"
                   >
-                    {currentLanguage === "mn" ? "Дэлгэрэнгүй" : "Details"}
+                    {"Дэлгэрэнгүй"}
                   </Button>
                   {order.status === "pending" && (
                     <Button
@@ -341,7 +327,7 @@ export default function AdminOrdersPage() {
                       className="bg-green-600 hover:bg-green-700"
                       onClick={() => updateOrderStatus(order._id, "completed")}
                     >
-                      {currentLanguage === "mn" ? "Зөвшөөрөх" : "Approve"}
+                      {"Зөвшөөрөх"}
                     </Button>
                   )}
                 </div>
@@ -354,12 +340,10 @@ export default function AdminOrdersPage() {
           <div className="text-center py-12">
             <FileText className="h-16 w-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-              {currentLanguage === "mn" ? "Захиалга олдсонгүй" : "No orders found"}
+              {"Захиалга олдсонгүй"}
             </h3>
             <p className="text-gray-500 dark:text-gray-400">
-              {currentLanguage === "mn" 
-                ? "Хайлтын үр дүнд тохирох захиалга байхгүй байна" 
-                : "No orders match your search criteria"
+              {"Хайлтын үр дүнд тохирох захиалга байхгүй байна"
               }
             </p>
           </div>

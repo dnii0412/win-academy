@@ -131,14 +131,14 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
         setEnrollments(prev => [data.enrollment, ...prev])
         setShowGrantForm(false)
         setGrantForm({ courseId: "", status: "completed", expiresAt: "", notes: "" })
-        alert(currentLanguage === "mn" ? "Курс хандалт амжилттай олгогдлоо!" : "Course access granted successfully!")
+        alert("Курс хандалт амжилттай олгогдлоо!")
       } else {
         const errorData = await response.json()
-        alert(currentLanguage === "mn" ? `Алдаа: ${errorData.error}` : `Error: ${errorData.error}`)
+        alert(`Алдаа: ${errorData.error}`)
       }
     } catch (error) {
       console.error("Failed to grant access:", error)
-      alert(currentLanguage === "mn" ? "Курс хандалт олгоход алдаа гарлаа" : "Failed to grant course access")
+      alert("Курс хандалт олгоход алдаа гарлаа")
     }
   }
 
@@ -168,19 +168,19 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
         ))
         setEditingEnrollment(null)
         setEditForm({ status: "completed", expiresAt: "", notes: "" })
-        alert(currentLanguage === "mn" ? "Курс хандалт амжилттай шинэчлэгдлээ!" : "Course access updated successfully!")
+        alert("Курс хандалт амжилттай шинэчлэгдлээ!")
       } else {
         const errorData = await response.json()
-        alert(currentLanguage === "mn" ? `Алдаа: ${errorData.error}` : `Error: ${errorData.error}`)
+        alert(`Алдаа: ${errorData.error}`)
       }
     } catch (error) {
       console.error("Failed to update access:", error)
-      alert(currentLanguage === "mn" ? "Курс хандалт шинэчлэхэд алдаа гарлаа" : "Failed to update course access")
+      alert("Курс хандалт шинэчлэхэд алдаа гарлаа")
     }
   }
 
   const handleRevokeAccess = async (enrollmentId: string) => {
-    if (!confirm(currentLanguage === "mn" ? "Курс хандалтыг цуцлахдаа итгэлтэй байна уу?" : "Are you sure you want to revoke this course access?")) {
+    if (!confirm("Курс хандалтыг цуцлахдаа итгэлтэй байна уу?")) {
       return
     }
 
@@ -195,14 +195,14 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
 
       if (response.ok) {
         setEnrollments(prev => prev.filter(enrollment => enrollment._id !== enrollmentId))
-        alert(currentLanguage === "mn" ? "Курс хандалт амжилттай цуцлагдлаа" : "Course access revoked successfully!")
+        alert("Курс хандалт амжилттай цуцлагдлаа")
       } else {
         const errorData = await response.json()
-        alert(currentLanguage === "mn" ? `Алдаа: ${errorData.error}` : `Error: ${errorData.error}`)
+        alert(`Алдаа: ${errorData.error}`)
       }
     } catch (error) {
       console.error("Failed to revoke access:", error)
-      alert(currentLanguage === "mn" ? "Курс хандалт цуцлахад алдаа гарлаа" : "Failed to revoke course access")
+      alert("Курс хандалт цуцлахад алдаа гарлаа")
     }
   }
 
@@ -229,7 +229,7 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
         <div className="bg-white dark:bg-gray-800 rounded-lg p-6">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
-            {currentLanguage === "mn" ? "Уншиж байна..." : "Loading..."}
+            {"Уншиж байна..."}
           </p>
         </div>
       </div>
@@ -243,10 +243,10 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
           <div className="flex justify-between items-center mb-6">
             <div>
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                {currentLanguage === "mn" ? "Курс хандалтын удирдлага" : "Course Access Management"}
+                {"Курс хандалтын удирдлага"}
               </h2>
               <p className="text-gray-600 dark:text-gray-400 mt-1">
-                {currentLanguage === "mn" ? "Хэрэглэгч:" : "User:"} {userName}
+                {"Хэрэглэгч:"} {userName}
               </p>
             </div>
             <Button variant="ghost" size="sm" onClick={onClose}>
@@ -258,14 +258,14 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
           <div className="mb-6">
             <Button onClick={() => setShowGrantForm(true)}>
               <Plus className="h-4 w-4 mr-2" />
-              {currentLanguage === "mn" ? "Курс хандалт олгох" : "Grant Course Access"}
+              {"Курс хандалт олгох"}
             </Button>
           </div>
 
           {/* Current Enrollments */}
           <div className="space-y-4">
             <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-              {currentLanguage === "mn" ? "Одоогийн курс хандалтууд" : "Current Course Access"}
+              {"Одоогийн курс хандалтууд"}
             </h3>
             
             {enrollments.length === 0 ? (
@@ -273,9 +273,7 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
                 <CardContent className="text-center py-8">
                   <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <p className="text-gray-500 dark:text-gray-400">
-                    {currentLanguage === "mn" 
-                      ? "Энэ хэрэглэгчид одоогоор курс хандалт байхгүй байна"
-                      : "This user doesn't have access to any courses yet"
+                    {"Энэ хэрэглэгчид одоогоор курс хандалт байхгүй байна"
                     }
                   </p>
                 </CardContent>
@@ -287,16 +285,10 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
                     <div className="flex items-center justify-between">
                       <div>
                         <CardTitle className="text-lg">
-                          {currentLanguage === "mn" 
-                            ? enrollment.courseId.titleMn || enrollment.courseId.title
-                            : enrollment.courseId.title
-                          }
+                          {enrollment.courseId.titleMn || enrollment.courseId.title}
                         </CardTitle>
                         <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                          {currentLanguage === "mn" 
-                            ? enrollment.courseId.descriptionMn || enrollment.courseId.description
-                            : enrollment.courseId.description
-                          }
+                          {enrollment.courseId.descriptionMn || enrollment.courseId.description}
                         </p>
                       </div>
                       <div className="flex items-center space-x-2">
@@ -330,25 +322,25 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                       <div>
                         <Label className="text-gray-600 dark:text-gray-400">
-                          {currentLanguage === "mn" ? "Элссэн огноо" : "Enrolled"}
+                          {"Элссэн огноо"}
                         </Label>
                         <p>{formatDate(enrollment.enrolledAt)}</p>
                       </div>
                       <div>
                         <Label className="text-gray-600 dark:text-gray-400">
-                          {currentLanguage === "mn" ? "Сүүлд хандалт" : "Last Access"}
+                          {"Сүүлд хандалт"}
                         </Label>
                         <p>{formatDate(enrollment.lastAccessedAt)}</p>
                       </div>
                       <div>
                         <Label className="text-gray-600 dark:text-gray-400">
-                          {currentLanguage === "mn" ? "Явц" : "Progress"}
+                          {"Явц"}
                         </Label>
                         <p>{enrollment.progress}%</p>
                       </div>
                       <div>
                         <Label className="text-gray-600 dark:text-gray-400">
-                          {currentLanguage === "mn" ? "Олгосон" : "Granted By"}
+                          {"Олгосон"}
                         </Label>
                         <p>{enrollment.accessGrantedBy.firstName} {enrollment.accessGrantedBy.lastName}</p>
                       </div>
@@ -356,7 +348,7 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
                     {enrollment.notes && (
                       <div className="mt-4">
                         <Label className="text-gray-600 dark:text-gray-400">
-                          {currentLanguage === "mn" ? "Тэмдэглэл" : "Notes"}
+                          {"Тэмдэглэл"}
                         </Label>
                         <p className="text-sm mt-1">{enrollment.notes}</p>
                       </div>
@@ -375,7 +367,7 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
           <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-md">
             <div className="p-6">
               <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-                {currentLanguage === "mn" ? "Курс хандалт олгох" : "Grant Course Access"}
+                {"Курс хандалт олгох"}
               </h3>
               
               <form onSubmit={handleGrantAccess} className="space-y-4">
@@ -388,7 +380,7 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
                     <SelectContent>
                       {availableCourses.map((course) => (
                         <SelectItem key={course._id} value={course._id}>
-                          {currentLanguage === "mn" ? course.titleMn || course.title : course.title}
+                          {course.titleMn || course.title}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -429,10 +421,10 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
 
                 <div className="flex justify-end space-x-3">
                   <Button type="button" variant="outline" onClick={() => setShowGrantForm(false)}>
-                    {currentLanguage === "mn" ? "Цуцлах" : "Cancel"}
+                    {"Цуцлах"}
                   </Button>
                   <Button type="submit">
-                    {currentLanguage === "mn" ? "Хандалт олгох" : "Grant Access"}
+                    {"Хандалт олгох"}
                   </Button>
                 </div>
               </form>
@@ -447,7 +439,7 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
           <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-md">
             <div className="p-6">
               <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-                {currentLanguage === "mn" ? "Курс хандалт засах" : "Edit Course Access"}
+                {"Курс хандалт засах"}
               </h3>
               
               <form onSubmit={handleUpdateAccess} className="space-y-4">
@@ -487,10 +479,10 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
 
                 <div className="flex justify-end space-x-3">
                   <Button type="button" variant="outline" onClick={() => setEditingEnrollment(null)}>
-                    {currentLanguage === "mn" ? "Цуцлах" : "Cancel"}
+                    {"Цуцлах"}
                   </Button>
                   <Button type="submit">
-                    {currentLanguage === "mn" ? "Хадгалах" : "Save Changes"}
+                    {"Хадгалах"}
                   </Button>
                 </div>
               </form>

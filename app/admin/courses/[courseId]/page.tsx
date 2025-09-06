@@ -622,16 +622,14 @@ export default function CourseTreePage() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-              {currentLanguage === "mn" ? "Сургалт олдсонгүй" : "Course not found"}
+              {"Сургалт олдсонгүй"}
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mb-6">
-              {currentLanguage === "mn"
-                ? "Энэ ID-тай сургалт байхгүй байна"
-                : "No course found with this ID"
+              {"Энэ ID-тай сургалт байхгүй байна"
               }
             </p>
             <Button onClick={() => router.push("/admin/courses")}>
-              {currentLanguage === "mn" ? "Сургалтын жагсаалт" : "Back to Courses"}
+              {"Сургалтын жагсаалт"}
             </Button>
           </div>
         </div>
@@ -653,11 +651,11 @@ export default function CourseTreePage() {
               className="h-8 px-2"
             >
               <ArrowLeft className="w-4 h-4 mr-1" />
-              {currentLanguage === "mn" ? "Сургалтууд" : "Courses"}
+              {"Сургалтууд"}
             </Button>
             <span>›</span>
             <span className="font-medium text-gray-900 dark:text-white">
-              {currentLanguage === "mn" ? course.titleMn : course.title}
+              {course.titleMn || course.title}
             </span>
           </div>
 
@@ -665,17 +663,17 @@ export default function CourseTreePage() {
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                {currentLanguage === "mn" ? course.titleMn : course.title}
+                {course.titleMn || course.title}
               </h1>
               <p className="text-gray-600 dark:text-gray-400 mb-4 max-w-3xl">
-                {currentLanguage === "mn" ? course.descriptionMn : course.description}
+                {course.descriptionMn || course.description}
               </p>
               
               {/* Course Stats */}
               <div className="flex items-center gap-6 text-sm text-gray-600 dark:text-gray-400">
                 <div className="flex items-center gap-2">
                   <BookOpen className="w-4 h-4" />
-                  <span>{course.totalLessons} {currentLanguage === "mn" ? "хичээл" : "lessons"}</span>
+                  <span>{course.totalLessons} {"хичээл"}</span>
                 </div>
                 {course.duration > 0 && (
                   <div className="flex items-center gap-2">
@@ -685,7 +683,7 @@ export default function CourseTreePage() {
                 )}
                 <div className="flex items-center gap-2">
                   <Users className="w-4 h-4" />
-                  <span>{course.enrolledUsers} {currentLanguage === "mn" ? "сурагч" : "students"}</span>
+                  <span>{course.enrolledUsers} {"сурагч"}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <DollarSign className="w-4 h-4" />
@@ -711,7 +709,7 @@ export default function CourseTreePage() {
             <div className="relative max-w-md">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
-                placeholder={currentLanguage === "mn" ? "Хайх..." : "Search subcourses and lessons..."}
+                placeholder={"Хайх..."}
                 value={searchTerm}
                 onChange={(e) => handleSearch(e.target.value)}
                 className="pl-10"
@@ -719,7 +717,7 @@ export default function CourseTreePage() {
             </div>
             <Button onClick={handleAddSubcourse}>
               <Plus className="w-4 h-4 mr-2" />
-              {currentLanguage === "mn" ? "Дэд сургалт нэмэх" : "Add Subcourse"}
+              {"Дэд сургалт нэмэх"}
             </Button>
           </div>
         </div>
@@ -765,24 +763,18 @@ export default function CourseTreePage() {
         isLoading={isDeleting}
         title={
           confirmAction?.type === 'delete-subcourse' 
-            ? (currentLanguage === "mn" ? "Дэд сургалт устгах" : "Delete Subcourse")
-            : (currentLanguage === "mn" ? "Хичээл устгах" : "Delete Lesson")
+            ? ("Дэд сургалт устгах")
+            : ("Хичээл устгах")
         }
         message={
           confirmAction && confirmAction.type === 'delete-subcourse'
-            ? (currentLanguage === "mn" 
-                ? `"${(confirmAction.item as Subcourse).titleMn || (confirmAction.item as Subcourse).title || 'Untitled'}" дэд сургалтыг устгахдаа итгэлтэй байна уу?`
-                : `Are you sure you want to delete the subcourse "${(confirmAction.item as Subcourse).title || 'Untitled'}"?`
-              )
+            ? `"${(confirmAction.item as Subcourse).titleMn || (confirmAction.item as Subcourse).title || 'Untitled'}" дэд сургалтыг устгахдаа итгэлтэй байна уу?`
             : confirmAction && confirmAction.type === 'delete-lesson'
-            ? (currentLanguage === "mn"
-                ? `"${(confirmAction.item as Lesson).titleMn || (confirmAction.item as Lesson).title || 'Untitled'}" хичээлийг устгахдаа итгэлтэй байна уу?`
-                : `Are you sure you want to delete the lesson "${(confirmAction.item as Lesson).title || 'Untitled'}"?`
-              )
+            ? `"${(confirmAction.item as Lesson).titleMn || (confirmAction.item as Lesson).title || 'Untitled'}" хичээлийг устгахдаа итгэлтэй байна уу?`
             : "Are you sure you want to delete this item?"
         }
         variant="danger"
-        confirmText={currentLanguage === "mn" ? "Устгах" : "Delete"}
+        confirmText={"Устгах"}
       />
 
       {/* Toast Container */}

@@ -26,18 +26,16 @@ export default function AdminVideosPage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                {currentLanguage === "mn" ? "Видео удирдлага" : "Video Management"}
+                {"Видео удирдлага"}
               </h1>
               <p className="mt-2 text-gray-600 dark:text-gray-400">
-                {currentLanguage === "mn" 
-                  ? "Bunny Stream ашиглан видео байршуулах, удирдах"
-                  : "Upload and manage videos using Bunny Stream"
+                {"Bunny Stream ашиглан видео байршуулах, удирдах"
                 }
               </p>
             </div>
             <Button onClick={() => setShowUploader(true)} size="lg">
               <Plus className="h-5 w-5 mr-2" />
-              {currentLanguage === "mn" ? "Видео байршуулах" : "Upload Video"}
+              {"Видео байршуулах"}
             </Button>
           </div>
         </div>
@@ -47,14 +45,14 @@ export default function AdminVideosPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                {currentLanguage === "mn" ? "Нийт видео" : "Total Videos"}
+                {"Нийт видео"}
               </CardTitle>
               <Video className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">0</div>
               <p className="text-xs text-muted-foreground">
-                {currentLanguage === "mn" ? "Бүх байршуулсан видео" : "All uploaded videos"}
+                {"Бүх байршуулсан видео"}
               </p>
             </CardContent>
           </Card>
@@ -62,14 +60,14 @@ export default function AdminVideosPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                {currentLanguage === "mn" ? "Бэлэн видео" : "Ready Videos"}
+                {"Бэлэн видео"}
               </CardTitle>
               <Settings className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">0</div>
               <p className="text-xs text-muted-foreground">
-                {currentLanguage === "mn" ? "Стрим хийхэд бэлэн" : "Ready for streaming"}
+                {"Стрим хийхэд бэлэн"}
               </p>
             </CardContent>
           </Card>
@@ -77,14 +75,14 @@ export default function AdminVideosPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                {currentLanguage === "mn" ? "Нийт хэмжээ" : "Total Size"}
+                {"Нийт хэмжээ"}
               </CardTitle>
               <Upload className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">0 GB</div>
               <p className="text-xs text-muted-foreground">
-                {currentLanguage === "mn" ? "Бүх видеоны хэмжээ" : "Size of all videos"}
+                {"Бүх видеоны хэмжээ"}
               </p>
             </CardContent>
           </Card>
@@ -95,7 +93,7 @@ export default function AdminVideosPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Video className="h-5 w-5" />
-              {currentLanguage === "mn" ? "Видео сан" : "Video Library"}
+              {"Видео сан"}
             </CardTitle>
           </CardHeader>
           <CardContent>

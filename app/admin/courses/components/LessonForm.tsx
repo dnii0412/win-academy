@@ -19,7 +19,6 @@ interface LessonFormProps {
 }
 
 export default function LessonForm({ isOpen, onClose, onSubmit, lesson, mode, courseId, subcourseId }: LessonFormProps) {
-  
   const [formData, setFormData] = useState({
     title: "",
     titleMn: "",
@@ -388,9 +387,11 @@ export default function LessonForm({ isOpen, onClose, onSubmit, lesson, mode, co
     setIsSubmitting(true)
     
     try {
-      // Prepare lesson data
+      // Prepare lesson data - auto-fill English fields with Mongolian content
       const lessonData = {
         ...formData,
+        title: formData.titleMn, // Use Mongolian title as English title
+        description: formData.descriptionMn, // Use Mongolian description as English description
         type: "video",
         durationSec: 0,
         content: "",
@@ -443,10 +444,7 @@ export default function LessonForm({ isOpen, onClose, onSubmit, lesson, mode, co
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-              {mode === "create" 
-                ? (currentLanguage === "mn" ? "Хичээл үүсгэх" : "Create Lesson")
-                : (currentLanguage === "mn" ? "Хичээл засах" : "Edit Lesson")
-              }
+              {mode === "create" ? "Хичээл үүсгэх" : "Хичээл засах"}
             </h2>
             <Button variant="ghost" size="sm" onClick={onClose} disabled={isSubmitting}>
               <X className="h-5 w-5" />
@@ -558,7 +556,7 @@ export default function LessonForm({ isOpen, onClose, onSubmit, lesson, mode, co
                 onClick={onClose}
                 disabled={isSubmitting}
               >
-                {currentLanguage === "mn" ? "Цуцлах" : "Cancel"}
+                Цуцлах
               </Button>
               <Button 
                 type="submit"
@@ -570,9 +568,7 @@ export default function LessonForm({ isOpen, onClose, onSubmit, lesson, mode, co
                     {uploadStatus === 'uploading' ? 'Uploading...' : 'Creating...'}
                   </>
                 ) : (
-                  mode === "create" 
-                    ? (currentLanguage === "mn" ? "Үүсгэх" : "Create")
-                    : (currentLanguage === "mn" ? "Хадгалах" : "Save Changes")
+                  mode === "create" ? "Үүсгэх" : "Хадгалах"
                 )}
               </Button>
             </div>

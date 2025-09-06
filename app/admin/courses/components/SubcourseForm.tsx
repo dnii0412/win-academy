@@ -52,8 +52,11 @@ export default function SubcourseForm({ isOpen, onClose, onSubmit, subcourse, mo
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     
+    // Auto-fill English fields with Mongolian content
     const subcourseData = {
-      ...formData
+      ...formData,
+      title: formData.titleMn, // Use Mongolian title as English title
+      description: formData.descriptionMn // Use Mongolian description as English description
     }
     
     onSubmit(subcourseData)
@@ -67,10 +70,7 @@ export default function SubcourseForm({ isOpen, onClose, onSubmit, subcourse, mo
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-              {mode === "create" 
-                ? (currentLanguage === "mn" ? "Дэд сургалт үүсгэх" : "Create Subcourse")
-                : (currentLanguage === "mn" ? "Дэд сургалт засах" : "Edit Subcourse")
-              }
+              {mode === "create" ? "Дэд сургалт үүсгэх" : "Дэд сургалт засах"}
             </h2>
             <Button variant="ghost" size="sm" onClick={onClose}>
               <X className="h-5 w-5" />
@@ -109,13 +109,10 @@ export default function SubcourseForm({ isOpen, onClose, onSubmit, subcourse, mo
             {/* Submit Buttons */}
             <div className="flex justify-end gap-3 pt-4">
               <Button type="button" variant="outline" onClick={onClose}>
-                {currentLanguage === "mn" ? "Цуцлах" : "Cancel"}
+                Цуцлах
               </Button>
               <Button type="submit">
-                {mode === "create" 
-                  ? (currentLanguage === "mn" ? "Үүсгэх" : "Create")
-                  : (currentLanguage === "mn" ? "Хадгалах" : "Save Changes")
-                }
+                {mode === "create" ? "Үүсгэх" : "Хадгалах"}
               </Button>
             </div>
           </form>

@@ -11,7 +11,6 @@ import { Badge } from "@/components/ui/badge"
 import { X, Plus, Upload } from "lucide-react"
 import { useEffect } from "react"
 import ImageUpload from "@/components/ImageUpload"
-import { useLanguage } from "@/contexts/language-context"
 
 interface CourseFormProps {
   isOpen: boolean
@@ -22,7 +21,6 @@ interface CourseFormProps {
 }
 
 export default function CourseForm({ isOpen, onClose, onSubmit, course, mode }: CourseFormProps) {
-  const { currentLanguage } = useLanguage()
   const [formData, setFormData] = useState({
     title: course?.title || "",
     titleMn: course?.titleMn || "",
@@ -71,8 +69,8 @@ export default function CourseForm({ isOpen, onClose, onSubmit, course, mode }: 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
-    // Client-side validation
-    if (!formData.title.trim() || !formData.titleMn.trim() || !formData.description.trim() || !formData.descriptionMn.trim()) {
+    // Client-side validation - only check Mongolian fields since English fields are hidden
+    if (!formData.titleMn.trim() || !formData.descriptionMn.trim()) {
       alert("Бүх талбарыг бөглөнө үү!")
       return
     }
@@ -82,9 +80,12 @@ export default function CourseForm({ isOpen, onClose, onSubmit, course, mode }: 
       return
     }
 
-    // Transform data before submitting
+    // Transform data before submitting - auto-fill English fields with Mongolian content
     const transformedData = {
       ...formData,
+      title: formData.titleMn, // Use Mongolian title as English title
+      description: formData.descriptionMn, // Use Mongolian description as English description
+      shortDescription: formData.shortDescriptionMn || formData.descriptionMn, // Use Mongolian short description or fallback to description
       price: Number(formData.price) || 0
     }
 
@@ -118,10 +119,7 @@ export default function CourseForm({ isOpen, onClose, onSubmit, course, mode }: 
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-              {mode === "create"
-                ? (currentLanguage === "mn" ? "Сургалт үүсгэх" : "Create Course")
-                : (currentLanguage === "mn" ? "Сургалт засах" : "Edit Course")
-              }
+              {mode === "create" ? "Сургалт үүсгэх" : "Сургалт засах"}
             </h2>
             <Button variant="ghost" size="sm" onClick={onClose}>
               <X className="h-5 w-5" />
@@ -133,7 +131,7 @@ export default function CourseForm({ isOpen, onClose, onSubmit, course, mode }: 
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  {currentLanguage === "mn" ? "Үндсэн мэдээлэл" : "Basic Information"}
+                  Үндсэн мэдээлэл
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -199,7 +197,7 @@ export default function CourseForm({ isOpen, onClose, onSubmit, course, mode }: 
                 {/* Thumbnail Upload */}
                 <div>
                   <Label className="text-base font-medium mb-3 block">
-                    {currentLanguage === "mn" ? "Сургалтын зураг" : "Course Thumbnail"}
+                    Сургалтын зураг
                   </Label>
                   <ImageUpload
                     onUploadSuccess={(url, publicId) => {
@@ -268,13 +266,10 @@ export default function CourseForm({ isOpen, onClose, onSubmit, course, mode }: 
             {/* Form Actions */}
             <div className="flex justify-end space-x-3">
               <Button type="button" variant="outline" onClick={onClose}>
-                {currentLanguage === "mn" ? "Цуцлах" : "Cancel"}
+                Цуцлах
               </Button>
               <Button type="submit">
-                {mode === "create"
-                  ? (currentLanguage === "mn" ? "Үүсгэх" : "Create Course")
-                  : (currentLanguage === "mn" ? "Хадгалах" : "Save Changes")
-                }
+                {mode === "create" ? "Үүсгэх" : "Хадгалах"}
               </Button>
             </div>
           </form>
