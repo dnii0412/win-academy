@@ -182,7 +182,7 @@ export async function PATCH(
           
           // Upload the file in chunks using TUS protocol
           let uploadedBytes = 0
-          const chunkSize = 4 * 1024 * 1024 // 4MB chunks for TUS upload
+          const chunkSize = 16 * 1024 * 1024 // 16MB chunks for TUS upload
           
           for (let i = 0; i < uploadInfo.chunks.length; i++) {
             const chunk = uploadInfo.chunks[i]

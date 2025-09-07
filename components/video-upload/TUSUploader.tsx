@@ -107,6 +107,14 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
           console.error('❌ No Location header in TUS creation response')
           return null
         }
+      } else if (response.status === 409) {
+        const errorText = await response.text()
+        console.error('❌ TUS creation failed: Conflict (409)', errorText)
+        throw new Error(`Upload conflict: Another upload session may be active for this video. Please wait a moment and try again.`)
+      } else if (response.status === 423) {
+        const errorText = await response.text()
+        console.error('❌ TUS creation failed: Locked (423)', errorText)
+        throw new Error(`Upload locked: The video file is currently being processed. Please wait a moment and try again.`)
       } else {
         const errorText = await response.text()
         console.error('❌ TUS creation failed:', response.status, errorText)
@@ -192,6 +200,30 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
     }
   }
 
+  const checkForExistingUploads = async (videoId: string): Promise<boolean> => {
+    try {
+      const adminToken = localStorage.getItem("adminToken")
+      if (!adminToken) return false
+
+      // Check if there are any existing upload sessions for this video
+      const response = await fetch(`/api/admin/videos/${videoId}/status`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${adminToken}`
+        }
+      })
+
+      if (response.ok) {
+        const status = await response.json()
+        // If video is in uploading or processing state, there might be a conflict
+        return status.status === 'uploading' || status.status === 'processing'
+      }
+    } catch (error) {
+      console.warn('Could not check for existing uploads:', error)
+    }
+    return false
+  }
+
   const startUpload = async () => {
     const file = fileInputRef.current?.files?.[0]
     if (!file || !videoTitle.trim()) {
@@ -245,6 +277,15 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
           authorizationSignature: tusHeaders?.authorizationSignature?.substring(0, 16) + '...'
         }
       })
+
+      // Check for existing uploads to prevent conflicts
+      const hasExistingUpload = await checkForExistingUploads(videoId)
+      if (hasExistingUpload) {
+        console.warn('⚠️ Existing upload detected, waiting before proceeding...')
+        setErrorMessage('Another upload may be in progress. Please wait a moment...')
+        await new Promise(resolve => setTimeout(resolve, 5000)) // Wait 5 seconds
+        setErrorMessage('')
+      }
       
       // Upload directly to Bunny TUS endpoint
       await uploadFileWithTUS(file, uploadUrl, videoId, tusHeaders)
@@ -261,7 +302,7 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
     chunkBuffer: ArrayBuffer, 
     offset: number, 
     tusHeaders: any, 
-    maxRetries: number = 3
+    maxRetries: number = 5
   ): Promise<void> => {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
@@ -275,8 +316,14 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
               console.log(`✅ Chunk uploaded successfully: ${offset}-${offset + chunkBuffer.byteLength}`)
               resolve()
             } else if (xhr.status === 423) {
-              console.warn(`⚠️ Chunk upload attempt ${attempt} failed: signal timed out`)
+              console.warn(`⚠️ Chunk upload attempt ${attempt} failed: File is locked (423)`)
               reject(new Error(`423 File is currently being updated. Please try again later`))
+            } else if (xhr.status === 409) {
+              console.warn(`⚠️ Chunk upload attempt ${attempt} failed: Conflict (409)`)
+              reject(new Error(`409 Upload conflict detected`))
+            } else if (xhr.status === 410) {
+              console.warn(`⚠️ Chunk upload attempt ${attempt} failed: Gone (410)`)
+              reject(new Error(`410 Upload session expired`))
             } else {
               console.error(`❌ Chunk upload failed: ${xhr.status} ${xhr.statusText}`)
               reject(new Error(`Chunk upload failed: ${xhr.status}`))
@@ -293,8 +340,8 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
             reject(new Error('Chunk upload timeout'))
           })
           
-          // Set timeout to 30 seconds per chunk
-          xhr.timeout = 30000
+          // Set timeout to 60 seconds per chunk for large files
+          xhr.timeout = 60000
           
           // Send chunk to the TUS location URL
           xhr.open('PATCH', tusLocation)
@@ -323,27 +370,50 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
           throw error // Re-throw on final attempt
         }
         
-        // Wait before retrying with exponential backoff
-        const delay = Math.min(1000 * Math.pow(2, attempt - 1), 10000) // Max 10 seconds
-        console.log(`⏳ Retrying in ${delay}ms...`)
+        // Special handling for 423 errors - wait longer
+        let delay = 1000 * Math.pow(2, attempt - 1) // Exponential backoff
+        
+        if (error.message.includes('423')) {
+          // For 423 errors, wait longer and add jitter
+          delay = Math.min(5000 + (Math.random() * 5000), 30000) // 5-10 seconds with jitter
+          console.log(`⏳ File is locked, waiting ${delay}ms before retry...`)
+        } else if (error.message.includes('409')) {
+          // For 409 conflicts, wait a bit longer
+          delay = Math.min(3000 + (Math.random() * 2000), 15000) // 3-5 seconds
+          console.log(`⏳ Upload conflict detected, waiting ${delay}ms before retry...`)
+        } else if (error.message.includes('410')) {
+          // For 410 errors, session expired - this might need a new session
+          console.log(`⏳ Upload session expired, waiting ${delay}ms before retry...`)
+        } else {
+          console.log(`⏳ Retrying in ${delay}ms...`)
+        }
+        
         await new Promise(resolve => setTimeout(resolve, delay))
       }
     }
   }
 
   const uploadFileWithTUS = async (file: File, uploadUrl: string, videoId: string, tusHeaders: any) => {
+    let tusLocation: string | null = null
+    
     try {
       console.log('🚀 Starting TUS file upload...', { fileSize: file.size, uploadUrl })
       
       // Step 1: Create TUS upload session with Bunny
-      const tusLocation = await createTusUpload(file, tusHeaders)
+      tusLocation = await createTusUpload(file, tusHeaders)
       if (!tusLocation) {
         throw new Error('Failed to create TUS upload session')
       }
       
       console.log('✅ TUS session created:', tusLocation)
       
-      const chunkSize = 4 * 1024 * 1024 // 4MB chunks
+      // Check if TUS headers are still valid (not expired)
+      const now = Math.floor(Date.now() / 1000)
+      if (tusHeaders.authorizationExpire <= now) {
+        throw new Error('TUS authorization expired. Please try again.')
+      }
+      
+      const chunkSize = 16 * 1024 * 1024 // 16MB chunks
       let offset = 0
       
       while (offset < file.size) {
@@ -352,30 +422,21 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
         
         console.log(`📦 Uploading chunk: ${offset}-${offset + chunk.size} (${chunk.size} bytes) to ${tusLocation}`)
         
-        const xhr = new XMLHttpRequest()
-        
-        // Set up progress tracking for this chunk
-        xhr.upload.addEventListener('progress', (event) => {
-          if (event.lengthComputable) {
-            const chunkProgress = (event.loaded / event.total) * 100
-            const totalProgress = ((offset + (event.loaded / event.total) * chunk.size) / file.size) * 100
-            
-            setUploadProgress({
-              bytesUploaded: offset + (event.loaded / event.total) * chunk.size,
-              bytesTotal: file.size,
-              percentage: Math.round(totalProgress)
-            })
-          }
-        })
-        
         // Wait for chunk upload to complete with retry logic
-        await uploadChunkWithRetry(tusLocation, chunkBuffer, offset, tusHeaders, 3)
+        await uploadChunkWithRetry(tusLocation, chunkBuffer, offset, tusHeaders, 5)
         
         offset += chunk.size
         
+        // Update progress
+        setUploadProgress({
+          bytesUploaded: offset,
+          bytesTotal: file.size,
+          percentage: Math.round((offset / file.size) * 100)
+        })
+        
         // Small delay between chunks to avoid overwhelming the server
         if (offset < file.size) {
-          await new Promise(resolve => setTimeout(resolve, 100))
+          await new Promise(resolve => setTimeout(resolve, 200))
         }
       }
       
@@ -386,6 +447,18 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
       
     } catch (error) {
       console.error('❌ TUS file upload failed:', error)
+      
+      // Clean up failed upload session if possible
+      if (tusLocation) {
+        try {
+          console.log('🧹 Attempting to clean up failed upload session...')
+          // Note: TUS doesn't have a standard cleanup endpoint, but we can try to abort
+          // This is more of a best-effort cleanup
+        } catch (cleanupError) {
+          console.warn('⚠️ Failed to clean up upload session:', cleanupError)
+        }
+      }
+      
       setUploadStatus('error')
       setErrorMessage(error instanceof Error ? error.message : 'File upload failed')
       setIsUploading(false)
@@ -398,6 +471,22 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
       setIsUploading(false)
       setUploadStatus('idle')
     }
+  }
+
+  const resetUpload = () => {
+    setIsUploading(false)
+    setUploadStatus('idle')
+    setErrorMessage('')
+    setUploadProgress({
+      bytesUploaded: 0,
+      bytesTotal: 0,
+      percentage: 0
+    })
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+    setVideoTitle('')
+    setVideoDescription('')
   }
 
 
@@ -606,6 +695,25 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
                     <AlertCircle className="h-6 w-6" />
                     <span className="font-medium">{errorMessage}</span>
                   </div>
+                  {uploadStatus === 'error' && (
+                    <div className="mt-4 flex gap-2">
+                      <Button 
+                        onClick={startUpload} 
+                        variant="outline" 
+                        size="sm"
+                        disabled={isUploading}
+                      >
+                        Retry Upload
+                      </Button>
+                      <Button 
+                        onClick={resetUpload} 
+                        variant="ghost" 
+                        size="sm"
+                      >
+                        Start Over
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}

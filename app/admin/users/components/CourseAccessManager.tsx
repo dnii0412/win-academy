@@ -46,6 +46,19 @@ interface CourseEnrollment {
   notes: string
 }
 
+interface CourseAccess {
+  _id: string
+  courseId: Course
+  hasAccess: boolean
+  accessType: 'purchase' | 'enrollment' | 'admin_grant' | 'free'
+  grantedAt: string
+  expiresAt?: string
+  orderId?: {
+    orderNumber: string
+    status: string
+  }
+}
+
 interface CourseAccessManagerProps {
   userId: string
   userName: string
@@ -54,6 +67,7 @@ interface CourseAccessManagerProps {
 
 export default function CourseAccessManager({ userId, userName, onClose }: CourseAccessManagerProps) {
   const [enrollments, setEnrollments] = useState<CourseEnrollment[]>([])
+  const [courseAccess, setCourseAccess] = useState<CourseAccess[]>([])
   const [availableCourses, setAvailableCourses] = useState<Course[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [showGrantForm, setShowGrantForm] = useState(false)
@@ -89,7 +103,8 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
 
       if (enrollmentsResponse.ok) {
         const data = await enrollmentsResponse.json()
-        setEnrollments(data.enrollments)
+        setEnrollments(data.enrollments || [])
+        setCourseAccess(data.courseAccess || [])
       }
 
       // Fetch available courses
@@ -216,6 +231,21 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
         return <Badge variant="outline">Expired</Badge>
       default:
         return <Badge variant="outline">{status}</Badge>
+    }
+  }
+
+  const getAccessTypeBadge = (accessType: string) => {
+    switch (accessType) {
+      case 'admin_grant':
+        return <Badge variant="default" className="bg-blue-100 text-blue-800">Admin Grant</Badge>
+      case 'purchase':
+        return <Badge variant="secondary" className="bg-purple-100 text-purple-800">Purchase</Badge>
+      case 'enrollment':
+        return <Badge variant="outline" className="bg-gray-100 text-gray-800">Enrollment</Badge>
+      case 'free':
+        return <Badge variant="destructive" className="bg-orange-100 text-orange-800">Free</Badge>
+      default:
+        return <Badge variant="outline">{accessType}</Badge>
     }
   }
 
@@ -358,6 +388,76 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
               ))
             )}
           </div>
+
+          {/* Course Access Section (New System) */}
+          {courseAccess.length > 0 && (
+            <div className="mt-8">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                <BookOpen className="w-5 h-5" />
+                Course Access (New System)
+              </h3>
+              <div className="space-y-4">
+                {courseAccess.map((access) => (
+                  <Card key={access._id}>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <CardTitle className="text-lg">
+                            {access.courseId.titleMn || access.courseId.title}
+                          </CardTitle>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            {access.courseId.descriptionMn || access.courseId.description}
+                          </p>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          {getAccessTypeBadge(access.accessType)}
+                          {access.hasAccess ? (
+                            <Badge variant="default" className="bg-green-100 text-green-800">
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Active
+                            </Badge>
+                          ) : (
+                            <Badge variant="destructive">
+                              <XCircle className="w-3 h-3 mr-1" />
+                              Inactive
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        <div>
+                          <Label className="text-gray-600 dark:text-gray-400">
+                            Granted At
+                          </Label>
+                          <p>{formatDate(access.grantedAt)}</p>
+                        </div>
+                        <div>
+                          <Label className="text-gray-600 dark:text-gray-400">
+                            Access Type
+                          </Label>
+                          <p className="capitalize">{access.accessType.replace('_', ' ')}</p>
+                        </div>
+                        <div>
+                          <Label className="text-gray-600 dark:text-gray-400">
+                            Expires At
+                          </Label>
+                          <p>{access.expiresAt ? formatDate(access.expiresAt) : 'Never'}</p>
+                        </div>
+                        <div>
+                          <Label className="text-gray-600 dark:text-gray-400">
+                            Order
+                          </Label>
+                          <p>{access.orderId ? access.orderId.orderNumber : 'N/A'}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

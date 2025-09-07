@@ -64,12 +64,39 @@ export default function CourseAccessPage() {
   const [course, setCourse] = useState<Course | null>(null)
   const [hasAccess, setHasAccess] = useState<boolean | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [loadingStep, setLoadingStep] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [subcourses, setSubcourses] = useState<Subcourse[]>([])
+  const [isCheckingAccess, setIsCheckingAccess] = useState(false)
   const [allLessons, setAllLessons] = useState<Lesson[]>([])
   const [currentLessonIndex, setCurrentLessonIndex] = useState(0)
   const [isLearning, setIsLearning] = useState(false)
   const [expandedSubcourses, setExpandedSubcourses] = useState<Set<string>>(new Set())
+
+  const recheckAccess = async () => {
+    if (!session?.user?.email) return false
+    
+    setIsCheckingAccess(true)
+    try {
+      const accessResponse = await fetch(`/api/courses/${courseId}/access`)
+      if (accessResponse.ok) {
+        const accessData = await accessResponse.json()
+        setHasAccess(accessData.hasAccess)
+        console.log('Access re-check result:', {
+          courseId,
+          hasAccess: accessData.hasAccess,
+          accessSource: accessData.accessSource,
+          accessDetails: accessData.accessDetails
+        })
+        return accessData.hasAccess
+      }
+    } catch (error) {
+      console.error('Error re-checking access:', error)
+    } finally {
+      setIsCheckingAccess(false)
+    }
+    return false
+  }
   
   const courseId = params.courseId as string
 
@@ -87,50 +114,67 @@ export default function CourseAccessPage() {
       }
 
       try {
-        // Check if user has access to this course using the new access API
-        const accessResponse = await fetch(`/api/courses/${courseId}/access`)
+        setLoadingStep('Loading course data...')
+        // Make all API calls in parallel for faster loading
+        const [accessResponse, courseResponse, subcoursesResponse] = await Promise.all([
+          fetch(`/api/courses/${courseId}/access`),
+          fetch(`/api/courses/${courseId}`),
+          fetch(`/api/courses/${courseId}/subcourses`)
+        ])
+
+        // Process access check
+        let hasAccessResult = false
         if (accessResponse.ok) {
           const accessData = await accessResponse.json()
-          setHasAccess(accessData.hasAccess)
-          console.log('Course access check result:', accessData)
+          hasAccessResult = accessData.hasAccess
+          setHasAccess(hasAccessResult)
+          console.log('Course access check result:', {
+            courseId,
+            hasAccess: accessData.hasAccess,
+            accessSource: accessData.accessSource,
+            accessDetails: accessData.accessDetails
+          })
         } else {
-          console.error('Failed to check course access')
+          console.error('Failed to check course access:', {
+            status: accessResponse.status,
+            statusText: accessResponse.statusText
+          })
           setHasAccess(false)
         }
 
-        // Fetch course details
-        const courseResponse = await fetch(`/api/courses/${courseId}`)
+        // Process course data
         if (!courseResponse.ok) {
           throw new Error("Course not found")
         }
-
         const courseData = await courseResponse.json()
+        console.log('Course data loaded:', courseData)
         setCourse(courseData.course)
 
-        // If user has access, automatically load subcourses and lessons
-        if (hasAccess) {
-          try {
-            const subcoursesResponse = await fetch(`/api/courses/${courseId}/subcourses`)
-            if (subcoursesResponse.ok) {
-              const subcoursesData = await subcoursesResponse.json()
-              const fetchedSubcourses = subcoursesData.subcourses || []
-              if (fetchedSubcourses.length > 0) {
-                setSubcourses(fetchedSubcourses)
-                
-                // Flatten all lessons from all subcourses
-                const allLessonsFromSubcourses = fetchedSubcourses.flatMap((subcourse: Subcourse) => subcourse.lessons)
-                setAllLessons(allLessonsFromSubcourses)
-                
-                if (allLessonsFromSubcourses.length > 0) {
-                  setCurrentLessonIndex(0)
-                  setIsLearning(true)
-                }
-              }
+        // Process subcourses if user has access
+        if (hasAccessResult && subcoursesResponse.ok) {
+          setLoadingStep('Loading lessons...')
+          const subcoursesData = await subcoursesResponse.json()
+          const fetchedSubcourses = subcoursesData.subcourses || []
+          if (fetchedSubcourses.length > 0) {
+            setSubcourses(fetchedSubcourses)
+            
+            // Flatten all lessons from all subcourses
+            const allLessonsFromSubcourses = fetchedSubcourses.flatMap((subcourse: Subcourse) => subcourse.lessons)
+            setAllLessons(allLessonsFromSubcourses)
+            
+            if (allLessonsFromSubcourses.length > 0) {
+              setLoadingStep('Starting learning mode...')
+              // Always start learning immediately when user has access
+              console.log('Auto-starting learning mode')
+              setCurrentLessonIndex(0)
+              setIsLearning(true)
             }
-          } catch (subcourseError) {
-            console.error('Error loading subcourses:', subcourseError)
-            // Don't fail the whole page if subcourses fail to load
           }
+        } else if (hasAccessResult) {
+          console.error('Failed to load subcourses:', {
+            status: subcoursesResponse.status,
+            statusText: subcoursesResponse.statusText
+          })
         }
 
       } catch (err) {
@@ -142,7 +186,7 @@ export default function CourseAccessPage() {
     }
 
     checkAccess()
-  }, [courseId, session])
+  }, [courseId, session?.user?.email])
 
   const startCourse = async () => {
     if (!course) return
@@ -162,7 +206,13 @@ export default function CourseAccessPage() {
           setAllLessons(allLessonsFromSubcourses)
           
           if (allLessonsFromSubcourses.length > 0) {
-            setCurrentLessonIndex(0)
+            // Only reset to lesson 0 if we haven't started learning yet
+            if (!isLearning) {
+              console.log('startCourse: Setting lesson index to 0 - starting fresh')
+              setCurrentLessonIndex(0)
+            } else {
+              console.log('startCourse: Keeping current lesson index:', currentLessonIndex)
+            }
             setIsLearning(true)
           } else {
             alert("Энэ сургалтад одоогоор хичээл байхгүй байна")
@@ -199,7 +249,7 @@ export default function CourseAccessPage() {
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
           <p className="text-muted-foreground">
-            Хандах эрх шалгаж байна...
+            {loadingStep || 'Хандах эрх шалгаж байна...'}
           </p>
         </div>
       </div>
@@ -239,7 +289,21 @@ export default function CourseAccessPage() {
     )
   }
 
-  if (!hasAccess) {
+  // If access check is still in progress, show loading
+  if (hasAccess === null) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">
+            Хандах эрх шалгаж байна...
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  if (hasAccess === false) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
@@ -278,6 +342,21 @@ export default function CourseAccessPage() {
                 Худалдаж авах
               </Button>
               <Button 
+                onClick={recheckAccess}
+                disabled={isCheckingAccess}
+                variant="outline"
+                className="w-full"
+              >
+                {isCheckingAccess ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Хандах эрх шалгаж байна...
+                  </>
+                ) : (
+                  'Хандах эрх дахин шалгах'
+                )}
+              </Button>
+              <Button 
                 variant="outline" 
                 onClick={() => router.push("/courses")} 
                 className="w-full"
@@ -285,6 +364,9 @@ export default function CourseAccessPage() {
                 Сургалтууд руу буцах
               </Button>
             </div>
+            <p className="text-xs text-gray-500 text-center mt-2">
+              Хэрэв та төлбөр төлсөн бол "Хандах эрх дахин шалгах" товчийг дарж дахин шалгана уу.
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -455,8 +537,20 @@ export default function CourseAccessPage() {
     )
   }
 
-      // User has access - show simple course overview (only if not in learning mode)
- 
-  // This should never be reached since we handle learning mode above
+  // If user has access but no lessons loaded yet, show loading
+  if (hasAccess === true && allLessons.length === 0) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">
+            {loadingStep || 'Хичээл ачаалаж байна...'}
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  // This should never be reached since we handle all cases above
   return null
 }

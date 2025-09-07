@@ -4,6 +4,7 @@ import dbConnect from "@/lib/mongoose"
 import User from "@/lib/models/User"
 import Course from "@/lib/models/Course"
 import CourseEnrollment from "@/lib/models/CourseEnrollment"
+import CourseAccess from "@/lib/models/CourseAccess"
 
 export async function GET(
   request: NextRequest,
@@ -28,13 +29,23 @@ export async function GET(
     // Connect to database
     await dbConnect()
 
-    // Get user's course enrollments
+    // Get user's course enrollments (legacy system)
     const enrollments = await CourseEnrollment.find({ userId })
       .populate('courseId', 'title titleMn description descriptionMn price status')
       .populate('accessGrantedBy', 'firstName lastName email')
       .sort({ enrolledAt: -1 })
 
-    return NextResponse.json({ enrollments })
+    // Get user's course access (new system)
+    const courseAccess = await CourseAccess.find({ userId })
+      .populate('courseId', 'title titleMn description descriptionMn price status')
+      .populate('orderId', 'orderNumber status')
+      .sort({ grantedAt: -1 })
+
+    return NextResponse.json({ 
+      enrollments,
+      courseAccess,
+      totalAccess: enrollments.length + courseAccess.length
+    })
 
   } catch (error) {
     console.error("Error fetching course access:", error)
@@ -95,7 +106,21 @@ export async function POST(
       return NextResponse.json({ error: "User already has access to this course" }, { status: 400 })
     }
 
-    // Create new enrollment
+    // Create new CourseAccess record (new system)
+    const courseAccess = await CourseAccess.grantAccess(
+      userId,
+      body.courseId,
+      undefined, // No orderId for admin grants
+      'admin_grant'
+    )
+
+    // Set expiry if provided
+    if (body.expiresAt) {
+      courseAccess.expiresAt = new Date(body.expiresAt)
+      await courseAccess.save()
+    }
+
+    // Also create legacy enrollment for backward compatibility
     const enrollment = new CourseEnrollment({
       userId,
       courseId: body.courseId,
@@ -107,13 +132,16 @@ export async function POST(
 
     await enrollment.save()
 
-    // Populate course and admin info for response
+    // Populate course info for response
+    await courseAccess.populate('courseId', 'title titleMn')
     await enrollment.populate('courseId', 'title titleMn')
     await enrollment.populate('accessGrantedBy', 'firstName lastName')
 
     return NextResponse.json({
       message: "Course access granted successfully",
-      enrollment
+      courseAccess,
+      enrollment,
+      accessType: 'admin_grant'
     }, { status: 201 })
 
   } catch (error) {
@@ -209,8 +237,8 @@ export async function DELETE(
     // Connect to database
     await dbConnect()
 
-    // Delete enrollment
-    const enrollment = await CourseEnrollment.findOneAndDelete({
+    // Find enrollment to get courseId
+    const enrollment = await CourseEnrollment.findOne({
       _id: enrollmentId,
       userId
     })
@@ -218,6 +246,15 @@ export async function DELETE(
     if (!enrollment) {
       return NextResponse.json({ error: "Enrollment not found" }, { status: 404 })
     }
+
+    // Revoke access from both systems
+    await CourseEnrollment.findOneAndDelete({
+      _id: enrollmentId,
+      userId
+    })
+
+    // Also revoke from CourseAccess system
+    await CourseAccess.revokeAccess(userId, enrollment.courseId.toString())
 
     return NextResponse.json({ message: "Course access revoked successfully" })
 

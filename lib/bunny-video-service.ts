@@ -152,11 +152,14 @@ class BunnyVideoService {
    * Generate Bunny TUS presigned headers
    */
   generateTusHeaders(videoId: string): { authorizationSignature: string; authorizationExpire: number; libraryId: string; videoId: string } {
-    const expiration = Math.floor(Date.now() / 1000) + 3600 // 1 hour from now
+    // Generate headers with 2-hour expiration for large file uploads
+    const expiration = Math.floor(Date.now() / 1000) + 7200 // 2 hours from now
     const signature = crypto
       .createHash('sha256')
       .update(BUNNY_STREAM_CONFIG.libraryId + BUNNY_STREAM_CONFIG.apiKey + expiration + videoId)
       .digest('hex')
+    
+    console.log(`🔐 Generated TUS headers for video ${videoId}, expires in 2 hours`)
     
     return {
       authorizationSignature: signature,

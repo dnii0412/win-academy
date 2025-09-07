@@ -253,10 +253,8 @@ export default function LessonForm({ isOpen, onClose, onSubmit, lesson, mode, co
       console.log('✅ TUS session created:', tusLocation)
 
       // Step 3: Upload the file using TUS protocol
-      // Use smaller chunks for very large files to prevent network suspension
-      const chunkSize = selectedFile.size > 500 * 1024 * 1024 // > 500MB
-        ? 2 * 1024 * 1024 // 2MB chunks for large files
-        : 4 * 1024 * 1024 // 4MB chunks for smaller files
+      // Use 16MB chunks for optimal performance
+      const chunkSize = 16 * 1024 * 1024 // 16MB chunks
       let offset = 0
       
       while (offset < selectedFile.size) {
@@ -264,9 +262,9 @@ export default function LessonForm({ isOpen, onClose, onSubmit, lesson, mode, co
         
         console.log(`📦 Uploading chunk: ${offset}-${offset + chunk.size} (${chunk.size} bytes) to ${tusLocation}`)
         
-        // Retry logic for network issues
+        // Enhanced retry logic with 423 error handling
         let retryCount = 0
-        const maxRetries = 3
+        const maxRetries = 5
         let chunkResponse: Response | null = null
         
         while (retryCount < maxRetries) {
@@ -283,10 +281,25 @@ export default function LessonForm({ isOpen, onClose, onSubmit, lesson, mode, co
                 'VideoId': tusInitResult.tusHeaders.videoId
               },
               body: chunk,
-              // Add timeout and keepalive for large uploads
-              signal: AbortSignal.timeout(30000) // 30 second timeout per chunk
+              // Extended timeout for large chunks
+              signal: AbortSignal.timeout(60000) // 60 second timeout per chunk
             })
-            break // Success, exit retry loop
+
+            if (chunkResponse.ok) {
+              break // Success, exit retry loop
+            } else if (chunkResponse.status === 423) {
+              console.warn(`⚠️ Chunk upload attempt ${retryCount + 1} failed: File is locked (423)`)
+              throw new Error(`423 File is currently being updated. Please try again later`)
+            } else if (chunkResponse.status === 409) {
+              console.warn(`⚠️ Chunk upload attempt ${retryCount + 1} failed: Conflict (409)`)
+              throw new Error(`409 Upload conflict detected`)
+            } else if (chunkResponse.status === 410) {
+              console.warn(`⚠️ Chunk upload attempt ${retryCount + 1} failed: Gone (410)`)
+              throw new Error(`410 Upload session expired`)
+            } else {
+              const errorText = await chunkResponse.text()
+              throw new Error(`Chunk upload failed: ${chunkResponse.status} ${errorText}`)
+            }
           } catch (error: any) {
             retryCount++
             console.warn(`⚠️ Chunk upload attempt ${retryCount} failed:`, error.message)
@@ -295,9 +308,24 @@ export default function LessonForm({ isOpen, onClose, onSubmit, lesson, mode, co
               throw new Error(`Failed to upload chunk after ${maxRetries} attempts: ${error.message}`)
             }
             
-            // Wait before retry (exponential backoff)
-            const delay = Math.min(1000 * Math.pow(2, retryCount - 1), 10000)
-            console.log(`⏳ Retrying in ${delay}ms...`)
+            // Special handling for different error types
+            let delay = 1000 * Math.pow(2, retryCount - 1) // Exponential backoff
+            
+            if (error.message.includes('423')) {
+              // For 423 errors, wait longer and add jitter
+              delay = Math.min(5000 + (Math.random() * 5000), 30000) // 5-10 seconds with jitter
+              console.log(`⏳ File is locked, waiting ${delay}ms before retry...`)
+            } else if (error.message.includes('409')) {
+              // For 409 conflicts, wait a bit longer
+              delay = Math.min(3000 + (Math.random() * 2000), 15000) // 3-5 seconds
+              console.log(`⏳ Upload conflict detected, waiting ${delay}ms before retry...`)
+            } else if (error.message.includes('410')) {
+              // For 410 errors, session expired
+              console.log(`⏳ Upload session expired, waiting ${delay}ms before retry...`)
+            } else {
+              console.log(`⏳ Retrying in ${delay}ms...`)
+            }
+            
             await new Promise(resolve => setTimeout(resolve, delay))
           }
         }
@@ -327,7 +355,7 @@ export default function LessonForm({ isOpen, onClose, onSubmit, lesson, mode, co
         
         // Small delay between chunks to prevent overwhelming the server
         if (offset < selectedFile.size) {
-          await new Promise(resolve => setTimeout(resolve, 100))
+          await new Promise(resolve => setTimeout(resolve, 200))
         }
       }
 
