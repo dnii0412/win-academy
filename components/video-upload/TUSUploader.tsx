@@ -256,6 +256,81 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
     }
   }
 
+  const uploadChunkWithRetry = async (
+    tusLocation: string, 
+    chunkBuffer: ArrayBuffer, 
+    offset: number, 
+    tusHeaders: any, 
+    maxRetries: number = 3
+  ): Promise<void> => {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`📦 Uploading chunk: ${offset}-${offset + chunkBuffer.byteLength} (attempt ${attempt}/${maxRetries})`)
+        
+        const xhr = new XMLHttpRequest()
+        
+        await new Promise<void>((resolve, reject) => {
+          xhr.addEventListener('load', () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+              console.log(`✅ Chunk uploaded successfully: ${offset}-${offset + chunkBuffer.byteLength}`)
+              resolve()
+            } else if (xhr.status === 423) {
+              console.warn(`⚠️ Chunk upload attempt ${attempt} failed: signal timed out`)
+              reject(new Error(`423 File is currently being updated. Please try again later`))
+            } else {
+              console.error(`❌ Chunk upload failed: ${xhr.status} ${xhr.statusText}`)
+              reject(new Error(`Chunk upload failed: ${xhr.status}`))
+            }
+          })
+          
+          xhr.addEventListener('error', () => {
+            console.error('❌ Chunk upload error')
+            reject(new Error('Chunk upload error'))
+          })
+          
+          xhr.addEventListener('timeout', () => {
+            console.warn(`⚠️ Chunk upload attempt ${attempt} failed: signal timed out`)
+            reject(new Error('Chunk upload timeout'))
+          })
+          
+          // Set timeout to 30 seconds per chunk
+          xhr.timeout = 30000
+          
+          // Send chunk to the TUS location URL
+          xhr.open('PATCH', tusLocation)
+          xhr.setRequestHeader('Content-Type', 'application/offset+octet-stream')
+          xhr.setRequestHeader('Upload-Offset', offset.toString())
+          xhr.setRequestHeader('Tus-Resumable', '1.0.0')
+          
+          // Bunny TUS requires these specific headers
+          if (tusHeaders) {
+            xhr.setRequestHeader('AuthorizationSignature', tusHeaders.authorizationSignature)
+            xhr.setRequestHeader('AuthorizationExpire', tusHeaders.authorizationExpire.toString())
+            xhr.setRequestHeader('LibraryId', tusHeaders.libraryId)
+            xhr.setRequestHeader('VideoId', tusHeaders.videoId)
+          }
+          
+          xhr.send(chunkBuffer)
+        })
+        
+        // If we get here, the upload was successful
+        return
+        
+      } catch (error: any) {
+        console.error(`❌ Chunk upload attempt ${attempt} failed:`, error.message)
+        
+        if (attempt === maxRetries) {
+          throw error // Re-throw on final attempt
+        }
+        
+        // Wait before retrying with exponential backoff
+        const delay = Math.min(1000 * Math.pow(2, attempt - 1), 10000) // Max 10 seconds
+        console.log(`⏳ Retrying in ${delay}ms...`)
+        await new Promise(resolve => setTimeout(resolve, delay))
+      }
+    }
+  }
+
   const uploadFileWithTUS = async (file: File, uploadUrl: string, videoId: string, tusHeaders: any) => {
     try {
       console.log('🚀 Starting TUS file upload...', { fileSize: file.size, uploadUrl })
@@ -293,41 +368,15 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
           }
         })
         
-        // Wait for chunk upload to complete
-        await new Promise((resolve, reject) => {
-          xhr.addEventListener('load', () => {
-            if (xhr.status >= 200 && xhr.status < 300) {
-              console.log(`✅ Chunk uploaded successfully: ${offset}-${offset + chunk.size}`)
-              resolve(true)
-            } else {
-              console.error(`❌ Chunk upload failed: ${xhr.status} ${xhr.statusText}`)
-              reject(new Error(`Chunk upload failed: ${xhr.status}`))
-            }
-          })
-          
-          xhr.addEventListener('error', () => {
-            console.error('❌ Chunk upload error')
-            reject(new Error('Chunk upload error'))
-          })
-          
-          // Send chunk to the TUS location URL (not the base URL)
-          xhr.open('PATCH', tusLocation)
-          xhr.setRequestHeader('Content-Type', 'application/offset+octet-stream')
-          xhr.setRequestHeader('Upload-Offset', offset.toString())
-          xhr.setRequestHeader('Tus-Resumable', '1.0.0')
-          
-          // Bunny TUS requires these specific headers
-          if (tusHeaders) {
-            xhr.setRequestHeader('AuthorizationSignature', tusHeaders.authorizationSignature)
-            xhr.setRequestHeader('AuthorizationExpire', tusHeaders.authorizationExpire.toString())
-            xhr.setRequestHeader('LibraryId', tusHeaders.libraryId)
-            xhr.setRequestHeader('VideoId', tusHeaders.videoId)
-          }
-          
-          xhr.send(chunkBuffer)
-        })
+        // Wait for chunk upload to complete with retry logic
+        await uploadChunkWithRetry(tusLocation, chunkBuffer, offset, tusHeaders, 3)
         
         offset += chunk.size
+        
+        // Small delay between chunks to avoid overwhelming the server
+        if (offset < file.size) {
+          await new Promise(resolve => setTimeout(resolve, 100))
+        }
       }
       
       console.log('🎉 File upload completed! Starting status polling...')
