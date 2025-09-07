@@ -169,6 +169,7 @@ export default function LessonForm({ isOpen, onClose, onSubmit, lesson, mode, co
     }
 
     try {
+      console.log('🚀 TUS Uploader v2.0 - With proper offset re-sync')
       setUploadStatus('uploading')
       setUploadProgress(0)
 
@@ -251,23 +252,70 @@ export default function LessonForm({ isOpen, onClose, onSubmit, lesson, mode, co
       }
 
       console.log('✅ TUS session created:', tusLocation)
+      console.log('🔄 Using NEW TUS implementation with offset re-sync')
 
-      // Step 3: Upload the file using TUS protocol
-      // Use 16MB chunks for optimal performance
-      const chunkSize = 16 * 1024 * 1024 // 16MB chunks
+      // Step 3: Upload the file using TUS protocol with proper offset re-sync
+      // Use 8MB chunks as per Bunny Stream documentation
+      const chunkSize = 8 * 1024 * 1024 // 8MB chunks (Bunny Stream recommended)
       let offset = 0
       
+      // Helper function to get authoritative offset from server
+      const getServerOffset = async (): Promise<number> => {
+        try {
+          const headResponse = await fetch(tusLocation, {
+            method: 'HEAD',
+            headers: {
+              'Tus-Resumable': '1.0.0',
+              'AuthorizationSignature': tusInitResult.tusHeaders.authorizationSignature,
+              'AuthorizationExpire': tusInitResult.tusHeaders.authorizationExpire.toString(),
+              'LibraryId': tusInitResult.tusHeaders.libraryId,
+              'VideoId': tusInitResult.tusHeaders.videoId
+            }
+          })
+          
+          if (headResponse.ok) {
+            const serverOffset = headResponse.headers.get('Upload-Offset')
+            const uploadLength = headResponse.headers.get('Upload-Length')
+            console.log(`📡 Server offset: ${serverOffset}, Upload length: ${uploadLength}`)
+            return serverOffset ? parseInt(serverOffset) : 0
+          } else {
+            console.warn(`⚠️ HEAD request failed: ${headResponse.status}`)
+            return offset // Fallback to local offset
+          }
+        } catch (error) {
+          console.warn(`⚠️ HEAD request error:`, error)
+          return offset // Fallback to local offset
+        }
+      }
+      
+      // Initial sync with server
+      offset = await getServerOffset()
+      console.log(`🔄 Starting upload from offset: ${offset}`)
+      
       while (offset < selectedFile.size) {
+        // Always re-sync offset before each chunk
+        const serverOffset = await getServerOffset()
+        if (serverOffset > offset) {
+          console.log(`🔄 Server offset ahead: ${serverOffset} > ${offset}, syncing...`)
+          offset = serverOffset
+        }
+        
+        if (offset >= selectedFile.size) {
+          console.log(`✅ Upload already complete at offset ${offset}`)
+          break
+        }
+        
         const chunk = selectedFile.slice(offset, offset + chunkSize)
         
         console.log(`📦 Uploading chunk: ${offset}-${offset + chunk.size} (${chunk.size} bytes) to ${tusLocation}`)
         
-        // Enhanced retry logic with 423 error handling
+        // Enhanced retry logic with proper 423 handling and offset re-sync
         let retryCount = 0
         const maxRetries = 5
         let chunkResponse: Response | null = null
+        let chunkUploaded = false
         
-        while (retryCount < maxRetries) {
+        while (retryCount < maxRetries && !chunkUploaded) {
           try {
             chunkResponse = await fetch(tusLocation, {
               method: 'PATCH',
@@ -282,13 +330,50 @@ export default function LessonForm({ isOpen, onClose, onSubmit, lesson, mode, co
               },
               body: chunk,
               // Extended timeout for large chunks
-              signal: AbortSignal.timeout(60000) // 60 second timeout per chunk
+              signal: AbortSignal.timeout(120000) // 2 minutes timeout per chunk
             })
 
             if (chunkResponse.ok) {
-              break // Success, exit retry loop
+              // Read the response offset to see how much was actually uploaded
+              const responseOffset = chunkResponse.headers.get('Upload-Offset')
+              if (responseOffset) {
+                const actualOffset = parseInt(responseOffset)
+                console.log(`✅ Chunk uploaded successfully. Server offset: ${actualOffset}`)
+                offset = actualOffset
+              } else {
+                offset += chunk.size
+              }
+              chunkUploaded = true
+              break
             } else if (chunkResponse.status === 423) {
               console.warn(`⚠️ Chunk upload attempt ${retryCount + 1} failed: File is locked (423)`)
+              
+              // Check for Retry-After header
+              const retryAfter = chunkResponse.headers.get('Retry-After')
+              let delay = retryAfter ? parseInt(retryAfter) * 1000 : 0
+              
+              if (!delay) {
+                // Exponential backoff: 2s → 4s → 8s → 16s → 32s (capped at 60s)
+                delay = Math.min(2000 * Math.pow(2, retryCount), 60000)
+              }
+              
+              console.log(`⏳ File is locked, waiting ${delay}ms before retry...`)
+              
+              // Wait and then re-sync with server
+              await new Promise(resolve => setTimeout(resolve, delay))
+              
+              // Re-sync offset after 423 error
+              const newServerOffset = await getServerOffset()
+              if (newServerOffset > offset) {
+                console.log(`🔄 Server offset advanced to ${newServerOffset} during wait`)
+                offset = newServerOffset
+                if (offset >= selectedFile.size) {
+                  console.log(`✅ Upload completed during wait`)
+                  chunkUploaded = true
+                  break
+                }
+              }
+              
               throw new Error(`423 File is currently being updated. Please try again later`)
             } else if (chunkResponse.status === 409) {
               console.warn(`⚠️ Chunk upload attempt ${retryCount + 1} failed: Conflict (409)`)
@@ -308,29 +393,16 @@ export default function LessonForm({ isOpen, onClose, onSubmit, lesson, mode, co
               throw new Error(`Failed to upload chunk after ${maxRetries} attempts: ${error.message}`)
             }
             
-            // Special handling for different error types
-            let delay = 1000 * Math.pow(2, retryCount - 1) // Exponential backoff
-            
-            if (error.message.includes('423')) {
-              // For 423 errors, wait longer and add jitter
-              delay = Math.min(5000 + (Math.random() * 5000), 30000) // 5-10 seconds with jitter
-              console.log(`⏳ File is locked, waiting ${delay}ms before retry...`)
-            } else if (error.message.includes('409')) {
-              // For 409 conflicts, wait a bit longer
-              delay = Math.min(3000 + (Math.random() * 2000), 15000) // 3-5 seconds
-              console.log(`⏳ Upload conflict detected, waiting ${delay}ms before retry...`)
-            } else if (error.message.includes('410')) {
-              // For 410 errors, session expired
-              console.log(`⏳ Upload session expired, waiting ${delay}ms before retry...`)
-            } else {
+            // For non-423 errors, use exponential backoff
+            if (!error.message.includes('423')) {
+              const delay = Math.min(1000 * Math.pow(2, retryCount - 1), 30000)
               console.log(`⏳ Retrying in ${delay}ms...`)
+              await new Promise(resolve => setTimeout(resolve, delay))
             }
-            
-            await new Promise(resolve => setTimeout(resolve, delay))
           }
         }
 
-        if (!chunkResponse || !chunkResponse.ok) {
+        if (!chunkUploaded) {
           const errorText = chunkResponse ? await chunkResponse.text() : 'No response'
           
           // Handle expired token during chunk upload
@@ -344,7 +416,6 @@ export default function LessonForm({ isOpen, onClose, onSubmit, lesson, mode, co
           throw new Error(`Failed to upload chunk: ${chunkResponse?.status || 'Network Error'} ${errorText}`)
         }
 
-        offset += chunk.size
         const progress = (offset / selectedFile.size) * 100
         setUploadProgress(Math.round(progress))
         
