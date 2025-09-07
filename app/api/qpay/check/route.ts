@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Find the invoice in our database
-    const invoice = await QPayInvoice.findByQPayInvoiceId(invoice_id)
+    const invoice = await QPayInvoice.findOne({ qpayInvoiceId: invoice_id })
     if (!invoice) {
       return NextResponse.json({ 
         error: 'Invoice not found',
