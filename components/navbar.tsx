@@ -9,7 +9,6 @@ import { usePathname, useRouter } from "next/navigation"
 import { useSession, signOut } from "next-auth/react"
 import { useLanguage } from "@/contexts/language-context"
 import Logo from "./logo"
-import LanguageSwitcher from "./language-switcher"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -97,7 +96,7 @@ export default function Navbar() {
 
           {/* Right - User Controls - more gathered and left-sided */}
           <div className="hidden md:flex items-center space-x-3">
-            <LanguageSwitcher />
+            {/* Language toggle removed - Mongolian is now default */}
 
             <Button
               variant="ghost"
@@ -192,9 +191,7 @@ export default function Navbar() {
               </div>
 
               <div className="space-y-4 pt-6 border-t border-border">
-                <div className="flex justify-center">
-                  <LanguageSwitcher />
-                </div>
+                {/* Language toggle removed - Mongolian is now default */}
 
                 <Button
                   variant="ghost"

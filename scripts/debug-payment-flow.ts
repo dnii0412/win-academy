@@ -8,7 +8,6 @@
 import dbConnect from '../lib/mongoose'
 import QPayInvoice from '../lib/models/QPayInvoice'
 import CourseAccess from '../lib/models/CourseAccess'
-import CourseEnrollment from '../lib/models/CourseEnrollment'
 import Order from '../lib/models/Order'
 
 async function debugPaymentFlow(userId: string, courseId: string) {
@@ -49,7 +48,7 @@ async function debugPaymentFlow(userId: string, courseId: string) {
 
     // Check Course Enrollments
     console.log('3. Course Enrollments:')
-    const enrollments = await CourseEnrollment.find({ userId, courseId })
+    const enrollments = await CourseAccess.find({ userId, courseId })
     enrollments.forEach((enrollment, index) => {
       console.log(`  ${index + 1}. Enrollment:`)
       console.log(`     Status: ${enrollment.status}`)

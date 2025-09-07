@@ -106,7 +106,7 @@ async function handleQPayCallback(data: any) {
         // Import required models
         const dbConnect = require('@/lib/mongoose').default
         const Order = require('@/lib/models/Order').default
-        const CourseEnrollment = require('@/lib/models/CourseEnrollment').default
+        const CourseAccess = require('@/lib/models/CourseAccess').default
         
         await dbConnect()
 
@@ -138,13 +138,13 @@ async function handleQPayCallback(data: any) {
 
             // Create course enrollment
             try {
-                const existingEnrollment = await CourseEnrollment.findOne({
+                const existingEnrollment = await CourseAccess.findOne({
                     userId: order.userId,
                     courseId: order.courseId
                 })
 
                 if (!existingEnrollment) {
-                    const enrollment = new CourseEnrollment({
+                    const enrollment = new CourseAccess({
                         userId: order.userId,
                         courseId: order.courseId,
                         status: 'completed',

@@ -13,7 +13,7 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined)
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [currentLanguage, setCurrentLanguage] = useState<Language>("en")
+  const [currentLanguage, setCurrentLanguage] = useState<Language>("mn")
 
   useEffect(() => {
     // Load saved language from localStorage
@@ -36,8 +36,8 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       if (value && typeof value === "object" && k in value) {
         value = value[k]
       } else {
-        // Fallback to English if translation not found
-        value = translations.en
+        // Fallback to Mongolian if translation not found
+        value = translations.mn
         for (const fallbackKey of keys) {
           if (value && typeof value === "object" && fallbackKey in value) {
             value = value[fallbackKey]
