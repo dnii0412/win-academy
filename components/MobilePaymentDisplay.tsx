@@ -168,17 +168,23 @@ export function MobilePaymentDisplay({
 
   // Filter and match bank apps from QPay URLs
   const availableBankApps = urls
-    .filter(url => url.link && (url.link.startsWith('qpaywallet://') || url.link.includes('://')))
+    .filter(url => url.link && url.link.includes('://'))
     .map(url => {
       const bankApp = BANK_APPS.find(app => url.link?.startsWith(app.identifier))
       return bankApp ? { ...bankApp, url: url.link } : null
     })
     .filter((app): app is NonNullable<typeof app> => app !== null)
 
-  // If no bank apps found, try to extract from qrText
+  // If no bank apps found from URLs, try to extract from qrText
   const qrBankApps = qrText ? BANK_APPS.filter(app => qrText.includes(app.identifier)) : []
 
-  const allBankApps = [...availableBankApps, ...qrBankApps.map(app => ({ ...app, url: qrText }))]
+  // Combine both sources and remove duplicates
+  const allBankApps = [
+    ...availableBankApps,
+    ...qrBankApps.map(app => ({ ...app, url: qrText }))
+  ].filter((app, index, self) => 
+    index === self.findIndex(a => a.identifier === app.identifier)
+  )
 
   if (isMobile && allBankApps.length > 0) {
     return (
