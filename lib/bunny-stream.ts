@@ -24,8 +24,8 @@ interface StreamResponse {
 }
 
 export const BUNNY_STREAM_CONFIG = {
-  libraryId: '488255',
-  apiKey: '4c28cdf8-f836-423a-9cfee09414d0-1f41-4b3a',
+  libraryId: '486981',
+  apiKey: 'ddd7543e-9a27-419e-b5347544bd92-12f7-4baf',
   baseUrl: 'https://video.bunnycdn.com',
   streamUrl: 'https://iframe.mediadelivery.net',
   uploadUrl: 'https://video.bunnycdn.com',

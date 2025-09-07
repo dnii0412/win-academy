@@ -160,8 +160,8 @@ export const BUNNY_STREAM_CONFIG = {
 ### **Environment Variables**
 ```bash
 # Bunny Stream Configuration
-BUNNY_LIBRARY_ID=488255
-BUNNY_API_KEY=4c28cdf8-f836-423a-9cfee09414d0-1f41-4b3a
+BUNNY_LIBRARY_ID=486981
+BUNNY_API_KEY=ddd7543e-9a27-419e-b5347544bd92-12f7-4baf
 
 # JWT Configuration
 JWT_SECRET=your-secret-key
