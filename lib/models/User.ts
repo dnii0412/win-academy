@@ -97,17 +97,22 @@ userSchema.virtual('displayName').get(function() {
 
 // Pre-save middleware to handle name fields
 userSchema.pre('save', function(next) {
-  // If firstName and lastName are provided, update fullName
-  if (this.firstName && this.lastName) {
-    this.fullName = `${this.firstName} ${this.lastName}`.trim()
-  }
-  
-  // If fullName is provided but firstName/lastName are not, try to split
-  if (this.fullName && (!this.firstName || !this.lastName)) {
-    const nameParts = this.fullName.split(' ')
-    if (nameParts.length >= 2) {
-      this.firstName = nameParts[0]
-      this.lastName = nameParts.slice(1).join(' ')
+  // Only run this middleware if this is a new document or if fullName is being set
+  if (this.isNew || this.isModified('fullName')) {
+    // If fullName is provided, split it into firstName and lastName
+    if (this.fullName) {
+      const nameParts = this.fullName.trim().split(' ')
+      if (nameParts.length >= 2) {
+        this.firstName = nameParts[0]
+        this.lastName = nameParts.slice(1).join(' ')
+      } else if (nameParts.length === 1) {
+        this.firstName = nameParts[0]
+        this.lastName = ""
+      }
+    }
+    // If firstName and lastName are provided but no fullName, create fullName
+    else if (this.firstName && this.lastName) {
+      this.fullName = `${this.firstName} ${this.lastName}`.trim()
     }
   }
 

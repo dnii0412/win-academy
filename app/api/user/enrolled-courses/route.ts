@@ -1,100 +1,84 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/auth'
-import dbConnect from '@/lib/mongoose'
-import User from '@/lib/models/User'
-import Course from '@/lib/models/Course'
-import CourseAccess from '@/lib/models/CourseAccess'
-import mongoose from 'mongoose'
+import { NextRequest, NextResponse } from "next/server"
+import { auth } from "@/auth"
+import dbConnect from "@/lib/mongoose"
+import User from "@/lib/models/User"
+import CourseAccess from "@/lib/models/CourseAccess"
+import CourseModel from "@/lib/models/Course"
+import Lesson from "@/lib/models/Lesson"
 
-// GET /api/user/enrolled-courses - Get courses enrolled by the current user
 export async function GET(request: NextRequest) {
   try {
     const session = await auth()
-
+    
     if (!session?.user?.email) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
-
-    const { searchParams } = new URL(request.url)
-    const email = searchParams.get('email')
-
-    if (!email) {
-      return NextResponse.json(
-        { error: 'Email parameter is required' },
-        { status: 400 }
-      )
-    }
-
-    // Ensure user can only access their own enrolled courses
-    if (email !== session.user.email) {
-      return NextResponse.json(
-        { error: 'Forbidden' },
-        { status: 403 }
-      )
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     await dbConnect()
 
-    // Find user to verify they exist
-    const user = await User.findOne({ email })
-
+    // Find user by email
+    const user = await User.findOne({ email: session.user.email })
     if (!user) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
-    // Get all courses user has access to from unified CourseAccess schema
-    const accessRecords = await CourseAccess.find({
+    // Get enrolled courses
+    const courseAccesses = await CourseAccess.find({
       userId: user._id.toString(),
       hasAccess: true
-    })
+    }).lean()
 
-    // Manually populate course data to avoid schema registration issues
-    const courses = []
-    for (const access of accessRecords) {
-      if (access.courseId) {
-        const course = await Course.findById(access.courseId)
-        if (course) {
-          courses.push({
-            _id: course._id,
-            title: course.title,
-            titleMn: course.titleMn,
-            description: course.description,
-            descriptionMn: course.descriptionMn,
-            thumbnailUrl: course.thumbnailUrl,
-            price: course.price,
-            enrolledAt: access.grantedAt,
-            progress: access.progress || 0,
-            lastAccessedAt: access.lastAccessedAt,
-            accessType: access.accessType || 'purchase',
-            status: access.status || 'active',
-            notes: access.notes
-          })
+    const courseIds = courseAccesses.map(access => access.courseId)
+
+    // Fetch course details
+    const courses = await CourseModel.find({
+      _id: { $in: courseIds }
+    }).select({
+      _id: 1,
+      title: 1,
+      titleMn: 1,
+      description: 1,
+      descriptionMn: 1,
+      thumbnailUrl: 1,
+      instructor: 1,
+      instructorMn: 1,
+      totalLessons: 1,
+      enrolledUsers: 1,
+      createdAt: 1
+    }).lean()
+
+    // Get lesson counts and progress for each course
+    const coursesWithStats = await Promise.all(
+      courses.map(async (course) => {
+        // Get total lessons for this course
+        const totalLessons = await Lesson.countDocuments({
+          courseId: course._id
+        })
+
+        // Get completed lessons (this would need to be tracked in a separate collection)
+        // For now, we'll use a mock value
+        const completedLessons = 0
+        const progress = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0
+
+        return {
+          ...course,
+          _id: (course._id as any).toString(),
+          totalLessons,
+          completedLessons,
+          progress
         }
-      }
-    }
-
-    console.log('Enrolled courses debug:', {
-      userId: user._id,
-      userEmail: user.email,
-      accessRecordsCount: accessRecords.length,
-      coursesCount: courses.length
-    })
-
+      })
+    )
 
     return NextResponse.json({
-      courses
+      courses: coursesWithStats,
+      total: coursesWithStats.length
     })
 
-  } catch (error: any) {
-    console.error('Error fetching enrolled courses:', error)
+  } catch (error) {
+    console.error("Error fetching enrolled courses:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Failed to fetch enrolled courses" },
       { status: 500 }
     )
   }

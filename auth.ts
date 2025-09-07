@@ -155,14 +155,29 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
       return true
     },
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account, trigger }) {
       if (user) {
         token.id = user.id
         token.email = user.email
         token.name = user.name
         token.image = user.image
-        token.role = user.role
+        token.role = (user as any).role
       }
+      
+      // If this is a session update trigger, fetch fresh user data
+      if (trigger === "update" && token.email) {
+        try {
+          await dbConnect()
+          const freshUser = await User.findOne({ email: token.email })
+          if (freshUser) {
+            token.name = freshUser.fullName || `${freshUser.firstName} ${freshUser.lastName}`.trim()
+            token.image = freshUser.avatar || freshUser.image
+          }
+        } catch (error) {
+          console.error("Error fetching fresh user data for JWT update:", error)
+        }
+      }
+      
       return token
     },
     async session({ session, token }) {
@@ -171,7 +186,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.email = token.email as string
         session.user.name = token.name as string
         session.user.image = token.image as string | null
-        session.user.role = token.role as string
+        (session.user as any).role = (token as any).role as string
       }
       return session
     }

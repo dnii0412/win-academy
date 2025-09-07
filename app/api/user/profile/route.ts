@@ -1,137 +1,113 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/auth'
-import dbConnect from '@/lib/mongoose'
-import User from '@/lib/models/User'
+import { NextRequest, NextResponse } from "next/server"
+import { auth } from "@/auth"
+import dbConnect from "@/lib/mongoose"
+import User from "@/lib/models/User"
 
-// GET /api/user/profile - Get user profile by email
 export async function GET(request: NextRequest) {
   try {
     const session = await auth()
     
     if (!session?.user?.email) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
-
-    const { searchParams } = new URL(request.url)
-    const email = searchParams.get('email')
-
-    if (!email) {
-      return NextResponse.json(
-        { error: 'Email parameter is required' },
-        { status: 400 }
-      )
-    }
-
-    // Ensure user can only access their own profile
-    if (email !== session.user.email) {
-      return NextResponse.json(
-        { error: 'Forbidden' },
-        { status: 403 }
-      )
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     await dbConnect()
 
-    const user = await User.findOne({ email })
-    
+    // Find user by email
+    const user = await User.findOne({ email: session.user.email })
     if (!user) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
-    return NextResponse.json({
-      profile: {
-        firstName: user.firstName || '',
-        lastName: user.lastName || '',
-        email: user.email,
-        phoneNumber: user.phoneNumber || '',
-        avatar: user.avatar || ''
-      }
-    })
+    // Return user profile data
+    const profile = {
+      _id: user._id.toString(),
+      firstName: user.firstName || "",
+      lastName: user.lastName || "",
+      fullName: user.fullName || `${user.firstName} ${user.lastName}`.trim(),
+      email: user.email,
+      phoneNumber: user.phoneNumber || "",
+      avatar: user.avatar || "",
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt
+    }
 
-  } catch (error: any) {
-    console.error('Error fetching user profile:', error)
+    return NextResponse.json(profile)
+
+  } catch (error) {
+    console.error("Error fetching user profile:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Failed to fetch profile" },
       { status: 500 }
     )
   }
 }
 
-// PUT /api/user/profile - Update user profile
 export async function PUT(request: NextRequest) {
   try {
     const session = await auth()
     
     if (!session?.user?.email) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const body = await request.json()
-    const { email, profile } = body
-
-    if (!email || !profile) {
-      return NextResponse.json(
-        { error: 'Email and profile data are required' },
-        { status: 400 }
-      )
-    }
-
-    // Ensure user can only update their own profile
-    if (email !== session.user.email) {
-      return NextResponse.json(
-        { error: 'Forbidden' },
-        { status: 403 }
-      )
-    }
+    const { fullName, firstName, lastName, phoneNumber, avatar } = body
 
     await dbConnect()
 
-    // Find and update user
-    const updatedUser = await User.findOneAndUpdate(
-      { email },
-      {
-        $set: {
-          firstName: profile.firstName,
-          lastName: profile.lastName,
-          phoneNumber: profile.phoneNumber,
-          avatar: profile.avatar,
-          updatedAt: new Date()
-        }
-      },
+    // Find user by email
+    const user = await User.findOne({ email: session.user.email })
+    
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 })
+    }
+
+    // Update user profile - handle fullName like admin API
+    const updateData: any = {}
+    if (fullName !== undefined) {
+      updateData.fullName = fullName
+      // Also update firstName and lastName for backward compatibility
+      const nameParts = fullName.trim().split(" ")
+      updateData.firstName = nameParts[0] || ""
+      updateData.lastName = nameParts.slice(1).join(" ") || ""
+    } else {
+      // Fallback to individual firstName/lastName if fullName not provided
+      if (firstName !== undefined) updateData.firstName = firstName
+      if (lastName !== undefined) updateData.lastName = lastName
+    }
+    if (phoneNumber !== undefined) updateData.phoneNumber = phoneNumber
+    if (avatar !== undefined) updateData.avatar = avatar
+
+    const updatedUser = await User.findByIdAndUpdate(
+      user._id,
+      updateData,
       { new: true, runValidators: true }
     )
 
     if (!updatedUser) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: "Failed to update profile" }, { status: 500 })
     }
 
-    return NextResponse.json({
-      message: 'Profile updated successfully',
-      profile: {
-        firstName: updatedUser.firstName,
-        lastName: updatedUser.lastName,
-        email: updatedUser.email,
-        phoneNumber: updatedUser.phoneNumber,
-        avatar: updatedUser.avatar
-      }
-    })
+    // Return updated profile data
+    const profile = {
+      _id: updatedUser._id.toString(),
+      firstName: updatedUser.firstName || "",
+      lastName: updatedUser.lastName || "",
+      fullName: updatedUser.fullName || `${updatedUser.firstName} ${updatedUser.lastName}`.trim(),
+      email: updatedUser.email,
+      phoneNumber: updatedUser.phoneNumber || "",
+      avatar: updatedUser.avatar || "",
+      createdAt: updatedUser.createdAt,
+      updatedAt: updatedUser.updatedAt
+    }
 
-  } catch (error: any) {
-    console.error('Error updating user profile:', error)
+    return NextResponse.json(profile)
+
+  } catch (error) {
+    console.error("Error updating user profile:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Failed to update profile" },
       { status: 500 }
     )
   }

@@ -1,127 +1,150 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
-import { Button } from "@/components/ui/button"
+import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { useToast } from "@/hooks/use-toast"
-import { User, Edit, Phone, BookOpen, CheckCircle } from "lucide-react"
+import { Phone } from "lucide-react"
+import ProfileEditButton from "./ProfileEditButton"
 
 interface UserProfile {
+  _id: string
   firstName: string
   lastName: string
+  fullName?: string
   email: string
-  phoneNumber?: string
-  avatar?: string
+  phoneNumber: string
+  avatar: string
+  createdAt: string
+  updatedAt: string
 }
 
 interface LessonStats {
   totalLessons: number
   completedLessons: number
+  enrolledCourses: number
+  completionRate: number
 }
 
 export default function ProfilePage() {
-  const { data: session, status, update } = useSession()
-  const { toast } = useToast()
-  const [isEditing, setIsEditing] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [profile, setProfile] = useState<UserProfile>({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phoneNumber: "",
-    avatar: ""
+  const { data: session, status } = useSession()
+  const router = useRouter()
+  const [profile, setProfile] = useState<UserProfile | null>(null)
+  const [stats, setStats] = useState<LessonStats>({
+    totalLessons: 0,
+    completedLessons: 0,
+    enrolledCourses: 0,
+    completionRate: 0
   })
+  const [loading, setLoading] = useState(true)
 
-  // Mock lesson statistics - in real app, this would come from the database
-  const [lessonStats] = useState<LessonStats>({
-    totalLessons: 2,
-    completedLessons: 0
-  })
+  const refreshProfileData = async () => {
+    console.log("Refreshing profile data...")
+    try {
+      const [profileRes, statsRes] = await Promise.all([
+        fetch("/api/user/profile", { 
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache'
+          }
+        }),
+        fetch("/api/user/lesson-stats", { 
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache'
+          }
+        })
+      ])
 
+      console.log("Profile refresh response status:", profileRes.status)
+      console.log("Stats refresh response status:", statsRes.status)
 
+      if (profileRes.ok) {
+        const profileData = await profileRes.json()
+        console.log("Refreshed profile data:", profileData)
+        setProfile(profileData)
+      } else {
+        console.error("Profile refresh failed:", await profileRes.text())
+      }
 
-  // Initialize profile data from session
-  useEffect(() => {
-    if (session?.user) {
-      const fullName = session.user.name || ""
-      const nameParts = fullName.split(" ")
-      const firstName = nameParts[0] || ""
-      const lastName = nameParts.slice(1).join(" ") || ""
-
-      setProfile({
-        firstName,
-        lastName,
-        email: session.user.email || "",
-        phoneNumber: "+976 88014891", // Mock phone number - in real app, load from database
-        avatar: session.user.image || ""
-      })
+      if (statsRes.ok) {
+        const statsData = await statsRes.json()
+        console.log("Refreshed stats data:", statsData)
+        setStats(statsData)
+      } else {
+        console.error("Stats refresh failed:", await statsRes.text())
+      }
+    } catch (error) {
+      console.error("Error refreshing profile data:", error)
     }
-  }, [session])
-
-  const handleInputChange = (field: keyof UserProfile, value: string) => {
-    setProfile(prev => ({
-      ...prev,
-      [field]: value
-    }))
   }
 
-  const handleSaveChanges = async () => {
+  useEffect(() => {
+    console.log("ProfilePage useEffect - status:", status, "session:", session?.user?.email)
+    
+    if (status === "loading") return
+    
     if (!session?.user?.email) {
-      toast({
-        title: "Алдаа",
-        description: "Хэрэглэгчийн мэдээлэл олдсонгүй",
-        variant: "destructive"
-      })
+      console.log("No session, redirecting to login")
+      router.push("/login")
       return
     }
 
-    setIsLoading(true)
-    try {
-      // In a real app, you would make an API call here
-      // For now, we'll just simulate the update
-      await new Promise(resolve => setTimeout(resolve, 1000))
+    const fetchData = async () => {
+      console.log("Fetching profile data...")
+      try {
+        const [profileRes, statsRes] = await Promise.all([
+          fetch("/api/user/profile", { 
+            cache: 'no-store',
+            headers: {
+              'Cache-Control': 'no-cache'
+            }
+          }),
+          fetch("/api/user/lesson-stats", { 
+            cache: 'no-store',
+            headers: {
+              'Cache-Control': 'no-cache'
+            }
+          })
+        ])
 
-      // Update session with new name
-      await update({
-        ...session,
-        user: {
-          ...session.user,
-          name: `${profile.firstName} ${profile.lastName}`.trim()
+        console.log("Profile response status:", profileRes.status)
+        console.log("Stats response status:", statsRes.status)
+
+        if (profileRes.ok) {
+          const profileData = await profileRes.json()
+          console.log("Profile data received:", profileData)
+          setProfile(profileData)
+        } else {
+          console.error("Profile fetch failed:", await profileRes.text())
         }
-      })
 
-      toast({
-        title: "Амжилттай",
-        description: "Профайл амжилттай хадгалагдлаа"
-      })
-      setIsEditing(false)
-    } catch (error) {
-      console.error("Failed to update profile:", error)
-      toast({
-        title: "Алдаа",
-        description: "Профайл шинэчлэхэд алдаа гарлаа",
-        variant: "destructive"
-      })
-    } finally {
-      setIsLoading(false)
+        if (statsRes.ok) {
+          const statsData = await statsRes.json()
+          console.log("Stats data received:", statsData)
+          setStats(statsData)
+        } else {
+          console.error("Stats fetch failed:", await statsRes.text())
+        }
+      } catch (error) {
+        console.error("Error fetching profile data:", error)
+      } finally {
+        setLoading(false)
+      }
     }
-  }
 
-  if (status === "loading") {
+    fetchData()
+  }, [session, status, router])
+
+  if (status === "loading" || loading) {
     return (
-      <div className="p-8">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
         <div className="max-w-6xl mx-auto">
           <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-48 mb-8"></div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {[1, 2].map((i) => (
-                <div key={i} className="space-y-4">
-                  <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                </div>
-              ))}
+            <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="h-64 bg-gray-200 rounded"></div>
+              <div className="h-64 bg-gray-200 rounded"></div>
             </div>
           </div>
         </div>
@@ -129,22 +152,18 @@ export default function ProfilePage() {
     )
   }
 
-  if (status === "unauthenticated") {
+  if (!profile) {
     return (
-      <div className="p-8">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-[#111111] dark:text-white mb-4">
-            Профайлд хандахын тулд нэвтэрнэ үү
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
-            Таны профайлыг харахын тулд нэвтэрсэн байх шаардлагатай.
-          </p>
-          <a
-            href="/login"
-            className="inline-block bg-[#E10600] hover:bg-[#C70500] text-white px-6 py-3 rounded-lg font-medium transition-colors"
-          >
-            Нэвтрэх рүү оч
-          </a>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+              Профайл олдсонгүй
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400">
+              Профайлын мэдээлэл олдсонгүй. Дахин нэвтэрнэ үү.
+            </p>
+          </div>
         </div>
       </div>
     )
@@ -169,14 +188,22 @@ export default function ProfilePage() {
               <div className="text-center">
                 {/* Profile Picture Placeholder */}
                 <div className="w-24 h-24 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <span className="text-white text-3xl font-bold">
-                    {profile.firstName.charAt(0).toUpperCase()}
-                  </span>
+                  {profile.avatar ? (
+                    <img 
+                      src={profile.avatar} 
+                      alt="Profile" 
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-white text-3xl font-bold">
+                      {profile.firstName.charAt(0).toUpperCase()}
+                    </span>
+                  )}
                 </div>
 
                 {/* User Name */}
                 <h2 className="text-2xl font-bold text-[#111111] dark:text-white mb-2">
-                  {profile.firstName} {profile.lastName}
+                  {profile.fullName || `${profile.firstName} ${profile.lastName}`.trim()}
                 </h2>
 
                 {/* Email */}
@@ -188,7 +215,7 @@ export default function ProfilePage() {
                 <div className="flex items-center justify-center space-x-2 mb-6">
                   <Phone className="h-4 w-4 text-gray-500" />
                   <span className="text-gray-600 dark:text-gray-400">
-                    {profile.phoneNumber}
+                    {profile.phoneNumber || "Утасны дугаар оруулаагүй"}
                   </span>
                 </div>
 
@@ -199,7 +226,7 @@ export default function ProfilePage() {
                       Нийт хичээл:
                     </span>
                     <span className="font-semibold text-[#111111] dark:text-white">
-                      {lessonStats.totalLessons}
+                      {stats.totalLessons}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
@@ -207,7 +234,23 @@ export default function ProfilePage() {
                       Дууссан хичээл:
                     </span>
                     <span className="font-semibold text-[#111111] dark:text-white">
-                      {lessonStats.completedLessons}
+                      {stats.completedLessons}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Элссэн сургалт:
+                    </span>
+                    <span className="font-semibold text-[#111111] dark:text-white">
+                      {stats.enrolledCourses}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Дуусгах хувь:
+                    </span>
+                    <span className="font-semibold text-[#111111] dark:text-white">
+                      {stats.completionRate}%
                     </span>
                   </div>
                 </div>
@@ -217,108 +260,13 @@ export default function ProfilePage() {
 
           {/* Right Card - Profile Details Form */}
           <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader>
               <CardTitle className="text-xl font-semibold text-[#111111] dark:text-white">
                 Профайлын мэдээл
               </CardTitle>
-              {!isEditing && (
-                <Button
-                  variant="outline"
-                  onClick={() => setIsEditing(true)}
-                  className="border-[#E10600] text-[#E10600] hover:bg-[#E10600] hover:text-white transition-colors"
-                >
-                  <Edit className="h-4 w-4 mr-2" />
-                  Засварлах
-                </Button>
-              )}
             </CardHeader>
             <CardContent className="p-8">
-              <div className="space-y-6">
-                {/* Name Field */}
-                <div>
-                  <Label htmlFor="firstName" className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                    Нэр
-                  </Label>
-                  <Input
-                    id="firstName"
-                    value={`${profile.firstName} ${profile.lastName}`}
-                    onChange={(e) => {
-                      const fullName = e.target.value
-                      const nameParts = fullName.split(" ")
-                      handleInputChange("firstName", nameParts[0] || "")
-                      handleInputChange("lastName", nameParts.slice(1).join(" ") || "")
-                    }}
-                    disabled={!isEditing}
-                    className="h-12 text-base"
-                  />
-                </div>
-
-                {/* Email Field */}
-                <div>
-                  <Label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                    И-мэйл
-                  </Label>
-                  <Input
-                    id="email"
-                    value={profile.email}
-                    disabled
-                    className="h-12 text-base bg-gray-50 dark:bg-gray-800"
-                  />
-                </div>
-
-                {/* Phone Number Field */}
-                <div>
-                  <Label htmlFor="phoneNumber" className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                    Утасны дугаар
-                  </Label>
-                  <Input
-                    id="phoneNumber"
-                    value={profile.phoneNumber}
-                    onChange={(e) => handleInputChange("phoneNumber", e.target.value)}
-                    disabled={!isEditing}
-                    placeholder="+976 9999 9999"
-                    className="h-12 text-base"
-                  />
-                </div>
-
-                {/* Action Buttons */}
-                {isEditing && (
-                  <div className="flex space-x-3 pt-4">
-                    <Button
-                      onClick={handleSaveChanges}
-                      disabled={isLoading}
-                      className="bg-[#E10600] hover:bg-[#C70500] text-white px-6 py-2"
-                    >
-                      {isLoading
-                        ? "Хадгалж байна..."
-                        : "Хадгалах"
-                      }
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        setIsEditing(false)
-                        // Reset to original values
-                        if (session?.user) {
-                          const fullName = session.user.name || ""
-                          const nameParts = fullName.split(" ")
-                          const firstName = nameParts[0] || ""
-                          const lastName = nameParts.slice(1).join(" ") || ""
-                          setProfile(prev => ({
-                            ...prev,
-                            firstName,
-                            lastName,
-                            phoneNumber: "+976 88014891" // Reset to original phone
-                          }))
-                        }
-                      }}
-                      className="px-6 py-2"
-                    >
-                      Цуцлах
-                    </Button>
-                  </div>
-                )}
-              </div>
+              <ProfileEditButton profile={profile} onProfileUpdated={refreshProfileData} />
             </CardContent>
           </Card>
         </div>
