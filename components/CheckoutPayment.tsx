@@ -94,6 +94,7 @@ export default function CheckoutPayment({
       
       if (data.isPaid) {
         setPaymentStatus(prev => prev ? { ...prev, status: 'PAID' } : null)
+        console.log('Payment confirmed! Granting course access...')
         onPaymentSuccess?.(paymentStatus.invoice_id)
       } else {
         console.log('Payment not yet completed:', {

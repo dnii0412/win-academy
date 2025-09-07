@@ -226,9 +226,18 @@ export default function CheckoutPage() {
                                     if (accessResponse.ok) {
                                         const accessData = await accessResponse.json()
                                         console.log('Course access status:', accessData)
+                                        
+                                        // Redirect to course learning page
+                                        router.push(`/learn/${courseId}`)
+                                    } else {
+                                        console.error('Course access not granted yet, redirecting anyway')
+                                        // Redirect anyway as payment was successful
+                                        router.push(`/learn/${courseId}`)
                                     }
                                 } catch (error) {
                                     console.error('Error checking course access:', error)
+                                    // Redirect anyway as payment was successful
+                                    router.push(`/learn/${courseId}`)
                                 }
                             }}
                             onPaymentError={(error) => {

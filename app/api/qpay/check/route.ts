@@ -56,7 +56,11 @@ export async function POST(request: NextRequest) {
       console.log('Payment confirmed, marking invoice as paid and granting course access:', {
         correlationId,
         invoiceId: invoice._id,
-        paymentId: paymentCheck.rows[0]?.payment_id
+        paymentId: paymentCheck.rows[0]?.payment_id,
+        currentStatus: invoice.status,
+        isPaid,
+        count: paymentCheck.count,
+        paidAmount: paymentCheck.paid_amount
       })
       
       try {
@@ -69,10 +73,18 @@ export async function POST(request: NextRequest) {
       } catch (markPaidError) {
         console.error('Failed to mark invoice as paid:', {
           correlationId,
-          error: markPaidError instanceof Error ? markPaidError.message : 'Unknown error'
+          error: markPaidError instanceof Error ? markPaidError.message : 'Unknown error',
+          stack: markPaidError instanceof Error ? markPaidError.stack : undefined
         })
         // Continue with response even if marking as paid fails
       }
+    } else {
+      console.log('Payment check conditions not met:', {
+        correlationId,
+        isPaid,
+        currentStatus: invoice.status,
+        willMarkAsPaid: isPaid && invoice.status !== 'PAID'
+      })
     }
 
     return NextResponse.json({
