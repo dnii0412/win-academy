@@ -59,7 +59,7 @@ export async function GET(
         type: lesson.type,
         duration: lesson.durationSec,
                 videoUrl: lesson.video && lesson.video.videoId && lesson.video.status === 'ready'
-          ? `https://iframe.mediadelivery.net/embed/488255/${lesson.video.videoId}`
+          ? `https://iframe.mediadelivery.net/embed/486981/${lesson.video.videoId}`
           : null,
         videoStatus: lesson.video?.status || 'not_available',
         order: lesson.order,

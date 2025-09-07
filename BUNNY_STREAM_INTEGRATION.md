@@ -30,7 +30,7 @@ This document describes the complete integration of Bunny Stream with TUS (Tus R
 ```typescript
 // lib/bunny-stream.ts
 export const BUNNY_STREAM_CONFIG = {
-  libraryId: '488255',
+  libraryId: '486981',
   apiKey: '4c28cdf8-f836-423a-9cfee09414d0-1f41-4b3a',
   baseUrl: 'https://video.bunnycdn.com',
   streamUrl: 'https://iframe.mediadelivery.net',
