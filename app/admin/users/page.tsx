@@ -23,9 +23,7 @@ import CourseAccessManager from "./components/CourseAccessManager"
 
 interface AdminUser {
   _id: string
-  firstName: string
-  lastName: string
-  fullName?: string
+  fullName: string
   email: string
   role: "user" | "admin" | "instructor"
   createdAt: string
@@ -175,9 +173,7 @@ export default function AdminUsersPage() {
   }
 
   const filteredUsers = users.filter(user =>
-    user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.role.toLowerCase().includes(searchTerm.toLowerCase())
   )
@@ -247,7 +243,7 @@ export default function AdminUsersPage() {
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <CardTitle className="text-lg line-clamp-2">
-                      {user.fullName || `${user.firstName} ${user.lastName}`.trim()}
+                      {user.fullName}
                     </CardTitle>
                     <CardDescription className="line-clamp-2 mt-2">
                       {user.email}
@@ -268,7 +264,7 @@ export default function AdminUsersPage() {
                 <div className="space-y-3 mb-4">
                   <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
                     <User className="h-4 w-4 mr-2" />
-                    <span>{user.fullName || `${user.firstName} ${user.lastName}`.trim()}</span>
+                    <span>{user.fullName}</span>
                   </div>
                   <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
                     <Mail className="h-4 w-4 mr-2" />
@@ -357,7 +353,7 @@ export default function AdminUsersPage() {
       {showCourseAccess && selectedUserForAccess && (
         <CourseAccessManager
           userId={selectedUserForAccess._id}
-          userName={selectedUserForAccess.fullName || `${selectedUserForAccess.firstName} ${selectedUserForAccess.lastName}`.trim()}
+          userName={selectedUserForAccess.fullName}
           onClose={() => {
             setShowCourseAccess(false)
             setSelectedUserForAccess(null)

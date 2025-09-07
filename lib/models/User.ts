@@ -140,16 +140,32 @@ userSchema.methods.toJSON = function () {
 // Pre-delete middleware to clean up related data
 userSchema.pre('deleteOne', { document: true, query: false }, async function(next) {
   try {
-    const CourseEnrollment = mongoose.model('CourseEnrollment')
+    // Try to clean up course access records, but don't fail if it doesn't work
+    try {
+      // Ensure CourseAccess model is registered
+      let CourseAccess
+      if (mongoose.models.CourseAccess) {
+        CourseAccess = mongoose.models.CourseAccess
+      } else {
+        // Import and register CourseAccess model if not already registered
+        const CourseAccessModule = require('./CourseAccess')
+        CourseAccess = CourseAccessModule.default
+      }
+      
+      // Delete all course access records for this user
+      await CourseAccess.deleteMany({ userId: this._id.toString() })
+      
+      console.log(`Cleaned up course access records for user: ${this._id}`)
+    } catch (courseAccessError) {
+      console.warn(`Could not clean up course access records for user ${this._id}:`, courseAccessError instanceof Error ? courseAccessError.message : String(courseAccessError))
+      // Continue with user deletion even if course access cleanup fails
+    }
     
-    // Delete all course enrollments for this user
-    await CourseEnrollment.deleteMany({ userId: this._id })
-    
-    console.log(`Cleaned up course enrollments for user: ${this._id}`)
     next()
   } catch (error) {
-    console.error('Error cleaning up course enrollments:', error)
-    next(error as Error)
+    console.error('Error in user pre-delete hook:', error)
+    // Don't fail the deletion if cleanup fails
+    next()
   }
 })
 

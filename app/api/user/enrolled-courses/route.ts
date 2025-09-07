@@ -45,20 +45,12 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Get user's enrolled courses from both CourseEnrollment and CourseAccess
-    const CourseEnrollment = (await import('@/lib/models/CourseEnrollment')).default
+    // Get user's enrolled courses from unified CourseAccess schema
     const CourseAccess = (await import('@/lib/models/CourseAccess')).default
-    const Course = (await import('@/lib/models/Course')).default
 
-    // Get courses from CourseEnrollment (old system)
-    const enrollments = await CourseEnrollment.find({
-      userId: user._id,
-      status: 'completed'
-    }).populate('courseId')
-
-    // Get courses from CourseAccess (new payment system)
+    // Get all courses user has access to
     const accessRecords = await CourseAccess.find({
-      userId: user._id,
+      userId: user._id.toString(),
       hasAccess: true
     }).populate('courseId')
 
@@ -69,36 +61,16 @@ export async function GET(request: NextRequest) {
       accessRecords: accessRecords.map(ar => ({
         courseId: ar.courseId?._id,
         hasAccess: ar.hasAccess,
-        accessType: ar.accessType
+        accessType: ar.accessType,
+        status: ar.status,
+        progress: ar.progress
       }))
     })
 
-    // Combine both sources and remove duplicates
-    const allCourses = new Map()
-
-    // Add enrollment courses
-    enrollments.forEach(enrollment => {
-      if (enrollment.courseId) {
-        allCourses.set(enrollment.courseId._id.toString(), {
-          _id: enrollment.courseId._id,
-          title: enrollment.courseId.title,
-          titleMn: enrollment.courseId.titleMn,
-          description: enrollment.courseId.description,
-          descriptionMn: enrollment.courseId.descriptionMn,
-          thumbnailUrl: enrollment.courseId.thumbnailUrl,
-          price: enrollment.courseId.price,
-          enrolledAt: enrollment.enrolledAt,
-          progress: enrollment.progress,
-          lastAccessedAt: enrollment.lastAccessedAt,
-          accessType: 'enrollment'
-        })
-      }
-    })
-
-    // Add access courses (from payments)
-    accessRecords.forEach(access => {
+    // Convert access records to course format
+    const courses = accessRecords.map(access => {
       if (access.courseId) {
-        allCourses.set(access.courseId._id.toString(), {
+        return {
           _id: access.courseId._id,
           title: access.courseId.title,
           titleMn: access.courseId.titleMn,
@@ -107,14 +79,15 @@ export async function GET(request: NextRequest) {
           thumbnailUrl: access.courseId.thumbnailUrl,
           price: access.courseId.price,
           enrolledAt: access.grantedAt,
-          progress: 0, // New purchases start at 0 progress
-          lastAccessedAt: access.grantedAt,
-          accessType: access.accessType || 'purchase'
-        })
+          progress: access.progress || 0,
+          lastAccessedAt: access.lastAccessedAt,
+          accessType: access.accessType || 'purchase',
+          status: access.status || 'active',
+          notes: access.notes
+        }
       }
-    })
-
-    const courses = Array.from(allCourses.values())
+      return null
+    }).filter(Boolean)
 
     return NextResponse.json({
       courses

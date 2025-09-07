@@ -3,7 +3,6 @@ import jwt from "jsonwebtoken"
 import dbConnect from "@/lib/mongoose"
 import User from "@/lib/models/User"
 import Course from "@/lib/models/Course"
-import CourseEnrollment from "@/lib/models/CourseEnrollment"
 import CourseAccess from "@/lib/models/CourseAccess"
 
 export async function GET(
@@ -29,22 +28,16 @@ export async function GET(
     // Connect to database
     await dbConnect()
 
-    // Get user's course enrollments (legacy system)
-    const enrollments = await CourseEnrollment.find({ userId })
-      .populate('courseId', 'title titleMn description descriptionMn price status')
-      .populate('accessGrantedBy', 'firstName lastName email')
-      .sort({ enrolledAt: -1 })
-
-    // Get user's course access (new system)
+    // Get user's course access from unified schema
     const courseAccess = await CourseAccess.find({ userId })
       .populate('courseId', 'title titleMn description descriptionMn price status')
       .populate('orderId', 'orderNumber status')
+      .populate('accessGrantedBy', 'firstName lastName email')
       .sort({ grantedAt: -1 })
 
     return NextResponse.json({ 
-      enrollments,
       courseAccess,
-      totalAccess: enrollments.length + courseAccess.length
+      totalAccess: courseAccess.length
     })
 
   } catch (error) {
@@ -96,22 +89,26 @@ export async function POST(
       return NextResponse.json({ error: "Course not found" }, { status: 404 })
     }
 
-    // Check if enrollment already exists
-    const existingEnrollment = await CourseEnrollment.findOne({
-      userId,
+    const userStringId = user._id.toString()
+
+    // Check if access already exists
+    const existingAccess = await CourseAccess.findOne({
+      userId: userStringId,
       courseId: body.courseId
     })
 
-    if (existingEnrollment) {
+    if (existingAccess) {
       return NextResponse.json({ error: "User already has access to this course" }, { status: 400 })
     }
 
-    // Create new CourseAccess record (new system)
+    // Create new CourseAccess record with admin grant
     const courseAccess = await CourseAccess.grantAccess(
-      userId,
+      userStringId,
       body.courseId,
       undefined, // No orderId for admin grants
-      'admin_grant'
+      'admin_grant',
+      decoded.userId || decoded.sub, // grantedBy
+      body.notes || '' // notes
     )
 
     // Set expiry if provided
@@ -120,27 +117,19 @@ export async function POST(
       await courseAccess.save()
     }
 
-    // Also create legacy enrollment for backward compatibility
-    const enrollment = new CourseEnrollment({
-      userId,
-      courseId: body.courseId,
-      status: body.status || 'completed',
-      expiresAt: body.expiresAt || null,
-      accessGrantedBy: decoded.userId || decoded.sub,
-      notes: body.notes || ''
-    })
-
-    await enrollment.save()
+    // Update status if provided
+    if (body.status) {
+      courseAccess.status = body.status
+      await courseAccess.save()
+    }
 
     // Populate course info for response
     await courseAccess.populate('courseId', 'title titleMn')
-    await enrollment.populate('courseId', 'title titleMn')
-    await enrollment.populate('accessGrantedBy', 'firstName lastName')
+    await courseAccess.populate('accessGrantedBy', 'firstName lastName')
 
     return NextResponse.json({
       message: "Course access granted successfully",
       courseAccess,
-      enrollment,
       accessType: 'admin_grant'
     }, { status: 201 })
 
@@ -171,16 +160,16 @@ export async function PUT(
     const { userId } = await params
     const body = await request.json()
 
-    if (!body.enrollmentId) {
-      return NextResponse.json({ error: "Enrollment ID is required" }, { status: 400 })
+    if (!body.accessId) {
+      return NextResponse.json({ error: "Access ID is required" }, { status: 400 })
     }
 
     // Connect to database
     await dbConnect()
 
-    // Update enrollment
-    const enrollment = await CourseEnrollment.findOneAndUpdate(
-      { _id: body.enrollmentId, userId },
+    // Update course access
+    const courseAccess = await CourseAccess.findOneAndUpdate(
+      { _id: body.accessId, userId },
       {
         status: body.status,
         expiresAt: body.expiresAt,
@@ -189,17 +178,17 @@ export async function PUT(
       { new: true }
     )
 
-    if (!enrollment) {
-      return NextResponse.json({ error: "Enrollment not found" }, { status: 404 })
+    if (!courseAccess) {
+      return NextResponse.json({ error: "Course access not found" }, { status: 404 })
     }
 
     // Populate course and admin info for response
-    await enrollment.populate('courseId', 'title titleMn')
-    await enrollment.populate('accessGrantedBy', 'firstName lastName')
+    await courseAccess.populate('courseId', 'title titleMn')
+    await courseAccess.populate('accessGrantedBy', 'firstName lastName')
 
     return NextResponse.json({
       message: "Course access updated successfully",
-      enrollment
+      courseAccess
     })
 
   } catch (error) {
@@ -228,33 +217,27 @@ export async function DELETE(
 
     const { userId } = await params
     const { searchParams } = new URL(request.url)
-    const enrollmentId = searchParams.get('enrollmentId')
+    const accessId = searchParams.get('accessId')
 
-    if (!enrollmentId) {
-      return NextResponse.json({ error: "Enrollment ID is required" }, { status: 400 })
+    if (!accessId) {
+      return NextResponse.json({ error: "Access ID is required" }, { status: 400 })
     }
 
     // Connect to database
     await dbConnect()
 
-    // Find enrollment to get courseId
-    const enrollment = await CourseEnrollment.findOne({
-      _id: enrollmentId,
+    // Find access record
+    const courseAccess = await CourseAccess.findOne({
+      _id: accessId,
       userId
     })
 
-    if (!enrollment) {
-      return NextResponse.json({ error: "Enrollment not found" }, { status: 404 })
+    if (!courseAccess) {
+      return NextResponse.json({ error: "Course access not found" }, { status: 404 })
     }
 
-    // Revoke access from both systems
-    await CourseEnrollment.findOneAndDelete({
-      _id: enrollmentId,
-      userId
-    })
-
-    // Also revoke from CourseAccess system
-    await CourseAccess.revokeAccess(userId, enrollment.courseId.toString())
+    // Revoke access
+    await CourseAccess.revokeAccess(userId, courseAccess.courseId.toString())
 
     return NextResponse.json({ message: "Course access revoked successfully" })
 

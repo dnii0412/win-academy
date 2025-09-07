@@ -13,7 +13,7 @@ This document describes the complete integration of Bunny Stream with TUS (Tus R
 
 ### ✅ **Video Management**
 - **Video Library**: Browse all uploaded videos
-- **Status Tracking**: Monitor encoding status (ready, encoding, error)
+- **Status Tracking*e*: Monitor encoding status (ready, encoding, error)
 - **Metadata Management**: Edit video titles, descriptions, and details
 - **Bulk Operations**: Delete multiple videos
 - **Search & Filter**: Find videos quickly

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import jwt from "jsonwebtoken"
 import dbConnect from "@/lib/mongoose"
 import User from "@/lib/models/User"
+import CourseAccess from "@/lib/models/CourseAccess"
 import bcrypt from "bcryptjs"
 import mongoose from "mongoose"
 
@@ -50,8 +51,6 @@ export async function PUT(
 
     // Prepare update data
     const updateData: any = {
-      firstName: body.firstName || "",
-      lastName: body.lastName || "",
       fullName: body.fullName || "",
       email: body.email,
       phoneNumber: body.phoneNumber || "",
@@ -111,6 +110,12 @@ export async function DELETE(
 
     // Connect to database
     await dbConnect()
+    
+    // Ensure CourseAccess model is loaded
+    if (!mongoose.models.CourseAccess) {
+      const CourseAccessModule = require('@/lib/models/CourseAccess')
+      mongoose.model('CourseAccess', CourseAccessModule.default.schema)
+    }
 
     // Check if user exists
     const existingUser = await User.findById(userId)
@@ -130,15 +135,20 @@ export async function DELETE(
       }, { status: 400 })
     }
 
-    // Check if user has any active course enrollments
-    const CourseEnrollment = mongoose.model('CourseEnrollment')
-    const activeEnrollments = await CourseEnrollment.countDocuments({ 
-      userId, 
-      status: { $in: ['completed', 'suspended'] } 
-    })
+    // Check if user has any active course access
+    let activeAccess = 0
+    try {
+      activeAccess = await CourseAccess.countDocuments({ 
+        userId, 
+        hasAccess: true 
+      })
+    } catch (courseAccessError) {
+      console.warn('Could not check course access records:', courseAccessError instanceof Error ? courseAccessError.message : String(courseAccessError))
+      // Continue with deletion even if course access check fails
+    }
 
-    if (activeEnrollments > 0) {
-      console.log(`User ${userId} has ${activeEnrollments} active course enrollments`)
+    if (activeAccess > 0) {
+      console.log(`User ${userId} has ${activeAccess} active course access records`)
     }
 
     // Delete user (this will trigger the pre-delete hook to clean up enrollments)
@@ -159,7 +169,8 @@ export async function DELETE(
     console.error("Error deleting user:", error)
     return NextResponse.json({ 
       error: "Internal server error",
-      details: error instanceof Error ? error.message : "Unknown error"
+      details: error instanceof Error ? error.message : "Unknown error",
+      stack: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.stack : undefined) : undefined
     }, { status: 500 })
   }
 }

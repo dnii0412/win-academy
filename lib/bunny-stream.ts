@@ -128,7 +128,7 @@ export const createBunnyVideo = async (title: string, description?: string) => {
     for (const endpoint of endpoints) {
       console.log('Trying endpoint:', endpoint)
       
-      // Try with AccessKey header
+      // Try with Authorization Bearer header
       let response = await fetch(endpoint, {
         method: 'POST',
         headers: {
@@ -152,12 +152,12 @@ export const createBunnyVideo = async (title: string, description?: string) => {
       console.log('Error response:', errorText)
     }
     
-    // If all endpoints fail, try with Authorization header on the first endpoint
-    console.log('All endpoints failed, trying Authorization header...')
+    // If all endpoints fail, try with AccessKey header on the first endpoint
+    console.log('All endpoints failed, trying AccessKey header...')
     const response = await fetch(endpoints[0], {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${BUNNY_STREAM_CONFIG.apiKey}`,
+        'AccessKey': BUNNY_STREAM_CONFIG.apiKey,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({

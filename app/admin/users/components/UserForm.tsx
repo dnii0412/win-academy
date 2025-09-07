@@ -18,8 +18,7 @@ interface UserFormProps {
 
 export default function UserForm({ isOpen, onClose, onSubmit, user, mode }: UserFormProps) {
   const [formData, setFormData] = useState({
-    firstName: user?.firstName || "",
-    lastName: user?.lastName || "",
+    fullName: user?.fullName || "",
     email: user?.email || "",
     phoneNumber: user?.phoneNumber || "",
     password: "",
@@ -31,8 +30,7 @@ export default function UserForm({ isOpen, onClose, onSubmit, user, mode }: User
   useEffect(() => {
     if (user) {
       setFormData({
-        firstName: user.firstName || "",
-        lastName: user.lastName || "",
+        fullName: user.fullName || "",
         email: user.email || "",
         phoneNumber: user.phoneNumber || "",
         password: "", // Don't populate password for security
@@ -53,12 +51,18 @@ export default function UserForm({ isOpen, onClose, onSubmit, user, mode }: User
     e.preventDefault()
     
     // Client-side validation
-    if (!formData.firstName.trim() || !formData.lastName.trim() || !formData.email.trim() || !formData.password.trim()) {
+    if (!formData.fullName.trim() || !formData.email.trim()) {
       alert("Please fill in all required fields!")
       return
     }
     
-    if (formData.password.length < 6) {
+    // Password validation only for create mode or if password is provided
+    if (mode === "create" && !formData.password.trim()) {
+      alert("Password is required for new users!")
+      return
+    }
+    
+    if (formData.password && formData.password.length < 6) {
       alert("Password must be at least 6 characters long!")
       return
     }
@@ -98,25 +102,15 @@ export default function UserForm({ isOpen, onClose, onSubmit, user, mode }: User
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="firstName">First Name</Label>
-                    <Input
-                      id="firstName"
-                      value={formData.firstName}
-                      onChange={(e) => handleInputChange("firstName", e.target.value)}
-                      placeholder="First name"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="lastName">Last Name</Label>
-                    <Input
-                      id="lastName"
-                      value={formData.lastName}
-                      onChange={(e) => handleInputChange("lastName", e.target.value)}
-                      placeholder="Last name"
-                    />
-                  </div>
+                <div>
+                  <Label htmlFor="fullName">Full Name</Label>
+                  <Input
+                    id="fullName"
+                    value={formData.fullName}
+                    onChange={(e) => handleInputChange("fullName", e.target.value)}
+                    placeholder="Full name"
+                    required
+                  />
                 </div>
 
                 <div>

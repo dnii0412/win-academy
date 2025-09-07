@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import dbConnect from '@/lib/mongoose'
 import CourseAccess from '@/lib/models/CourseAccess'
-import CourseEnrollment from '@/lib/models/CourseEnrollment'
 
 export async function GET(
   request: NextRequest,
@@ -45,72 +44,58 @@ export async function GET(
     // Import User model to find user by email if needed
     const User = require('@/lib/models/User').default
 
-    // First try with the userId from session
+    // Find user by email first to get consistent user ID
+    const user = await User.findOne({ email: session.user.email })
+    if (!user) {
+      console.error('User not found:', { email: session.user.email })
+      return NextResponse.json({ 
+        hasAccess: false,
+        error: 'User not found',
+        courseId,
+        userId: null,
+        accessSource: 'none',
+        accessDetails: { courseAccess: null, enrollment: null }
+      })
+    }
+
+    const userObjectId = user._id.toString()
+    console.log('Found user:', { userId: userObjectId, email: user.email })
+
+    // Check unified CourseAccess schema
     let courseAccess = await CourseAccess.findOne({
-      userId,
+      userId: userObjectId,
       courseId,
       hasAccess: true
     })
-
-    let enrollment = await CourseEnrollment.findOne({
-      userId,
-      courseId,
-      status: 'completed'
-    })
-
-    // If no access found and userId looks like an email, try to find user by email
-    if (!courseAccess && !enrollment && session.user.email && session.user.email.includes('@')) {
-      console.log('No access found with userId, trying to find user by email:', session.user.email)
-      
-      const user = await User.findOne({ email: session.user.email })
-      if (user) {
-        console.log('Found user by email:', { userId: user._id.toString(), email: user.email })
-        
-        // Try again with the found user ID
-        courseAccess = await CourseAccess.findOne({
-          userId: user._id.toString(),
-          courseId,
-          hasAccess: true
-        })
-
-        enrollment = await CourseEnrollment.findOne({
-          userId: user._id.toString(),
-          courseId,
-          status: 'completed'
-        })
-      }
-    }
 
     console.log('Access check results:', {
       courseAccess: courseAccess ? {
         userId: courseAccess.userId,
         hasAccess: courseAccess.hasAccess,
-        accessType: courseAccess.accessType
-      } : null,
-      enrollment: enrollment ? {
-        userId: enrollment.userId,
-        status: enrollment.status
+        accessType: courseAccess.accessType,
+        status: courseAccess.status,
+        progress: courseAccess.progress
       } : null
     })
 
-    const hasAccess = !!(courseAccess?.hasAccess || enrollment)
+    const hasAccess = !!(courseAccess?.hasAccess)
 
     return NextResponse.json({
       hasAccess,
       courseId,
       userId,
-      accessSource: courseAccess ? 'CourseAccess' : enrollment ? 'CourseEnrollment' : 'none',
+      accessSource: courseAccess ? 'CourseAccess' : 'none',
       accessDetails: {
         courseAccess: courseAccess ? {
           hasAccess: courseAccess.hasAccess,
           accessType: courseAccess.accessType,
+          status: courseAccess.status,
+          progress: courseAccess.progress,
           grantedAt: courseAccess.grantedAt,
-          orderId: courseAccess.orderId
-        } : null,
-        enrollment: enrollment ? {
-          status: enrollment.status,
-          enrolledAt: enrollment.enrolledAt,
-          accessGrantedBy: enrollment.accessGrantedBy
+          lastAccessedAt: courseAccess.lastAccessedAt,
+          orderId: courseAccess.orderId,
+          accessGrantedBy: courseAccess.accessGrantedBy,
+          notes: courseAccess.notes
         } : null
       }
     })

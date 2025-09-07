@@ -31,28 +31,21 @@ interface Course {
   status: string
 }
 
-interface CourseEnrollment {
-  _id: string
-  courseId: Course
-  status: 'completed' | 'suspended' | 'expired'
-  enrolledAt: string
-  expiresAt?: string
-  progress: number
-  lastAccessedAt: string
-  accessGrantedBy: {
-    firstName: string
-    lastName: string
-  }
-  notes: string
-}
-
 interface CourseAccess {
   _id: string
   courseId: Course
   hasAccess: boolean
   accessType: 'purchase' | 'enrollment' | 'admin_grant' | 'free'
+  status: 'active' | 'suspended' | 'expired' | 'completed'
   grantedAt: string
   expiresAt?: string
+  progress: number
+  lastAccessedAt: string
+  accessGrantedBy?: {
+    firstName: string
+    lastName: string
+  }
+  notes: string
   orderId?: {
     orderNumber: string
     status: string
@@ -66,12 +59,11 @@ interface CourseAccessManagerProps {
 }
 
 export default function CourseAccessManager({ userId, userName, onClose }: CourseAccessManagerProps) {
-  const [enrollments, setEnrollments] = useState<CourseEnrollment[]>([])
   const [courseAccess, setCourseAccess] = useState<CourseAccess[]>([])
   const [availableCourses, setAvailableCourses] = useState<Course[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [showGrantForm, setShowGrantForm] = useState(false)
-  const [editingEnrollment, setEditingEnrollment] = useState<CourseEnrollment | null>(null)
+  const [editingAccess, setEditingAccess] = useState<CourseAccess | null>(null)
   
   const [grantForm, setGrantForm] = useState({
     courseId: "",
@@ -103,7 +95,6 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
 
       if (enrollmentsResponse.ok) {
         const data = await enrollmentsResponse.json()
-        setEnrollments(data.enrollments || [])
         setCourseAccess(data.courseAccess || [])
       }
 
@@ -143,7 +134,7 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
 
       if (response.ok) {
         const data = await response.json()
-        setEnrollments(prev => [data.enrollment, ...prev])
+        setCourseAccess(prev => [data.courseAccess, ...prev])
         setShowGrantForm(false)
         setGrantForm({ courseId: "", status: "completed", expiresAt: "", notes: "" })
         alert("Курс хандалт амжилттай олгогдлоо!")
@@ -160,7 +151,7 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
   const handleUpdateAccess = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!editingEnrollment) return
+    if (!editingAccess) return
 
     try {
       const adminToken = localStorage.getItem("adminToken")
@@ -171,17 +162,17 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
           Authorization: `Bearer ${adminToken}`,
         },
         body: JSON.stringify({
-          enrollmentId: editingEnrollment._id,
+          accessId: editingAccess._id,
           ...editForm
         }),
       })
 
       if (response.ok) {
         const data = await response.json()
-        setEnrollments(prev => prev.map(enrollment => 
-          enrollment._id === editingEnrollment._id ? data.enrollment : enrollment
+        setCourseAccess(prev => prev.map(access => 
+          access._id === editingAccess._id ? data.courseAccess : access
         ))
-        setEditingEnrollment(null)
+        setEditingAccess(null)
         setEditForm({ status: "completed", expiresAt: "", notes: "" })
         alert("Курс хандалт амжилттай шинэчлэгдлээ!")
       } else {
@@ -194,14 +185,14 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
     }
   }
 
-  const handleRevokeAccess = async (enrollmentId: string) => {
+  const handleRevokeAccess = async (accessId: string) => {
     if (!confirm("Курс хандалтыг цуцлахдаа итгэлтэй байна уу?")) {
       return
     }
 
     try {
       const adminToken = localStorage.getItem("adminToken")
-      const response = await fetch(`/api/admin/users/${userId}/course-access?enrollmentId=${enrollmentId}`, {
+      const response = await fetch(`/api/admin/users/${userId}/course-access?accessId=${accessId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${adminToken}`,
@@ -209,7 +200,7 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
       })
 
       if (response.ok) {
-        setEnrollments(prev => prev.filter(enrollment => enrollment._id !== enrollmentId))
+        setCourseAccess(prev => prev.filter(access => access._id !== accessId))
         alert("Курс хандалт амжилттай цуцлагдлаа")
       } else {
         const errorData = await response.json()
@@ -292,13 +283,13 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
             </Button>
           </div>
 
-          {/* Current Enrollments */}
+          {/* Current Course Access */}
           <div className="space-y-4">
             <h3 className="text-lg font-medium text-gray-900 dark:text-white">
               {"Одоогийн курс хандалтууд"}
             </h3>
             
-            {enrollments.length === 0 ? (
+            {courseAccess.length === 0 ? (
               <Card>
                 <CardContent className="text-center py-8">
                   <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -309,29 +300,30 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
                 </CardContent>
               </Card>
             ) : (
-              enrollments.map((enrollment) => (
-                <Card key={enrollment._id}>
+              courseAccess.map((access) => (
+                <Card key={access._id}>
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <div>
                         <CardTitle className="text-lg">
-                          {enrollment.courseId.titleMn || enrollment.courseId.title}
+                          {access.courseId.titleMn || access.courseId.title}
                         </CardTitle>
                         <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                          {enrollment.courseId.descriptionMn || enrollment.courseId.description}
+                          {access.courseId.descriptionMn || access.courseId.description}
                         </p>
                       </div>
                       <div className="flex items-center space-x-2">
-                        {getStatusBadge(enrollment.status)}
+                        {getStatusBadge(access.status)}
+                        {getAccessTypeBadge(access.accessType)}
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => {
-                            setEditingEnrollment(enrollment)
+                            setEditingAccess(access)
                             setEditForm({
-                              status: enrollment.status,
-                              expiresAt: enrollment.expiresAt ? new Date(enrollment.expiresAt).toISOString().split('T')[0] : "",
-                              notes: enrollment.notes
+                              status: access.status,
+                              expiresAt: access.expiresAt ? new Date(access.expiresAt).toISOString().split('T')[0] : "",
+                              notes: access.notes
                             })
                           }}
                         >
@@ -341,7 +333,7 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
                           variant="outline"
                           size="sm"
                           className="text-red-600 border-red-600 hover:bg-red-50"
-                          onClick={() => handleRevokeAccess(enrollment._id)}
+                          onClick={() => handleRevokeAccess(access._id)}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -352,35 +344,35 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                       <div>
                         <Label className="text-gray-600 dark:text-gray-400">
-                          {"Элссэн огноо"}
+                          {"Олгосон огноо"}
                         </Label>
-                        <p>{formatDate(enrollment.enrolledAt)}</p>
+                        <p>{formatDate(access.grantedAt)}</p>
                       </div>
                       <div>
                         <Label className="text-gray-600 dark:text-gray-400">
                           {"Сүүлд хандалт"}
                         </Label>
-                        <p>{formatDate(enrollment.lastAccessedAt)}</p>
+                        <p>{formatDate(access.lastAccessedAt)}</p>
                       </div>
                       <div>
                         <Label className="text-gray-600 dark:text-gray-400">
                           {"Явц"}
                         </Label>
-                        <p>{enrollment.progress}%</p>
+                        <p>{access.progress}%</p>
                       </div>
                       <div>
                         <Label className="text-gray-600 dark:text-gray-400">
                           {"Олгосон"}
                         </Label>
-                        <p>{enrollment.accessGrantedBy.firstName} {enrollment.accessGrantedBy.lastName}</p>
+                        <p>{access.accessGrantedBy ? `${access.accessGrantedBy.firstName} ${access.accessGrantedBy.lastName}` : 'N/A'}</p>
                       </div>
                     </div>
-                    {enrollment.notes && (
+                    {access.notes && (
                       <div className="mt-4">
                         <Label className="text-gray-600 dark:text-gray-400">
                           {"Тэмдэглэл"}
                         </Label>
-                        <p className="text-sm mt-1">{enrollment.notes}</p>
+                        <p className="text-sm mt-1">{access.notes}</p>
                       </div>
                     )}
                   </CardContent>
@@ -389,75 +381,6 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
             )}
           </div>
 
-          {/* Course Access Section (New System) */}
-          {courseAccess.length > 0 && (
-            <div className="mt-8">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                <BookOpen className="w-5 h-5" />
-                Course Access (New System)
-              </h3>
-              <div className="space-y-4">
-                {courseAccess.map((access) => (
-                  <Card key={access._id}>
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <CardTitle className="text-lg">
-                            {access.courseId.titleMn || access.courseId.title}
-                          </CardTitle>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
-                            {access.courseId.descriptionMn || access.courseId.description}
-                          </p>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          {getAccessTypeBadge(access.accessType)}
-                          {access.hasAccess ? (
-                            <Badge variant="default" className="bg-green-100 text-green-800">
-                              <CheckCircle className="w-3 h-3 mr-1" />
-                              Active
-                            </Badge>
-                          ) : (
-                            <Badge variant="destructive">
-                              <XCircle className="w-3 h-3 mr-1" />
-                              Inactive
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                        <div>
-                          <Label className="text-gray-600 dark:text-gray-400">
-                            Granted At
-                          </Label>
-                          <p>{formatDate(access.grantedAt)}</p>
-                        </div>
-                        <div>
-                          <Label className="text-gray-600 dark:text-gray-400">
-                            Access Type
-                          </Label>
-                          <p className="capitalize">{access.accessType.replace('_', ' ')}</p>
-                        </div>
-                        <div>
-                          <Label className="text-gray-600 dark:text-gray-400">
-                            Expires At
-                          </Label>
-                          <p>{access.expiresAt ? formatDate(access.expiresAt) : 'Never'}</p>
-                        </div>
-                        <div>
-                          <Label className="text-gray-600 dark:text-gray-400">
-                            Order
-                          </Label>
-                          <p>{access.orderId ? access.orderId.orderNumber : 'N/A'}</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
@@ -534,7 +457,7 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
       )}
 
       {/* Edit Access Form */}
-      {editingEnrollment && (
+      {editingAccess && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-md">
             <div className="p-6">
@@ -578,7 +501,7 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
                 </div>
 
                 <div className="flex justify-end space-x-3">
-                  <Button type="button" variant="outline" onClick={() => setEditingEnrollment(null)}>
+                  <Button type="button" variant="outline" onClick={() => setEditingAccess(null)}>
                     {"Цуцлах"}
                   </Button>
                   <Button type="submit">

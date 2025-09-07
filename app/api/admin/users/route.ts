@@ -38,15 +38,13 @@ export async function GET(request: NextRequest) {
     // Get all users
     const users = await User.find({})
       .sort({ createdAt: -1 })
-      .select("firstName lastName fullName email role createdAt lastLogin status phoneNumber")
+      .select("fullName email role createdAt lastLogin status phoneNumber")
       .lean()
 
     return NextResponse.json({
       users: users.map((user: any) => ({
         _id: user._id.toString(),
-        firstName: user.firstName || "",
-        lastName: user.lastName || "",
-        fullName: user.fullName || `${user.firstName || ""} ${user.lastName || ""}`.trim(),
+        fullName: user.fullName || "",
         email: user.email,
         role: user.role || "user",
         createdAt: user.createdAt?.toISOString() || new Date().toISOString(),
@@ -94,12 +92,12 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { firstName, lastName, email, password, role, phoneNumber, status } = body
+    const { fullName, email, password, role, phoneNumber, status } = body
 
     // Validate required fields
-    if (!firstName || !lastName || !email || !password || !role) {
+    if (!fullName || !email || !password || !role) {
       return NextResponse.json(
-        { message: "Missing required fields: firstName, lastName, email, password, role" },
+        { message: "Missing required fields: fullName, email, password, role" },
         { status: 400 }
       )
     }
@@ -143,8 +141,7 @@ export async function POST(request: NextRequest) {
 
     // Create new user
     const newUser = new User({
-      firstName,
-      lastName,
+      fullName,
       email: email.toLowerCase(),
       password: await bcrypt.hash(password, 10), // Hash the password
       role,
@@ -159,8 +156,6 @@ export async function POST(request: NextRequest) {
       message: "User created successfully",
       user: {
         _id: newUser._id.toString(),
-        firstName: newUser.firstName,
-        lastName: newUser.lastName,
         fullName: newUser.fullName,
         email: newUser.email,
         role: newUser.role,

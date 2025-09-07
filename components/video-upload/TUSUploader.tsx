@@ -513,8 +513,7 @@ export default function TUSUploader({ onUploadComplete, onClose }: TUSUploaderPr
       const response = await fetch(`${BUNNY_STREAM_CONFIG.baseUrl}/library/${BUNNY_STREAM_CONFIG.libraryId}/videos`, {
         headers: {
           'AccessKey': BUNNY_STREAM_CONFIG.apiKey,
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${adminToken}`
+          'Content-Type': 'application/json'
         }
       })
       
