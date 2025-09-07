@@ -166,16 +166,20 @@ export function MobilePaymentDisplay({
     }
   }
 
-  // Filter and match bank apps from QPay URLs
+  // Get all bank apps from QPay URLs
   const availableBankApps = urls
     .filter(url => url.link && url.link.includes('://'))
     .map(url => {
       const bankApp = BANK_APPS.find(app => url.link?.startsWith(app.identifier))
-      return bankApp ? { ...bankApp, url: url.link } : null
+      return bankApp ? { 
+        ...bankApp, 
+        url: url.link,
+        logo: url.name ? `https://qpay.mn/q/logo/${url.name.toLowerCase().replace(/\s+/g, '')}.png` : bankApp.logo
+      } : null
     })
     .filter((app): app is NonNullable<typeof app> => app !== null)
 
-  // If no bank apps found from URLs, try to extract from qrText
+  // Get bank apps from qrText as fallback
   const qrBankApps = qrText ? BANK_APPS.filter(app => qrText.includes(app.identifier)) : []
 
   // Combine both sources and remove duplicates
@@ -186,7 +190,10 @@ export function MobilePaymentDisplay({
     index === self.findIndex(a => a.identifier === app.identifier)
   )
 
-  if (isMobile && allBankApps.length > 0) {
+  // If no bank apps found from QPay, show all available bank apps
+  const displayBankApps = allBankApps.length > 0 ? allBankApps : BANK_APPS.map(app => ({ ...app, url: qrText }))
+
+  if (isMobile && displayBankApps.length > 0) {
     return (
       <div className={`space-y-4 ${className}`}>
         <Card>
@@ -206,7 +213,7 @@ export function MobilePaymentDisplay({
             </div>
             
             <div className="grid grid-cols-2 gap-2">
-              {allBankApps.slice(0, 8).map((app, index) => {
+              {displayBankApps.map((app, index) => {
                 const IconComponent = app.icon
                 return (
                   <Button
@@ -215,8 +222,26 @@ export function MobilePaymentDisplay({
                     className="h-auto p-3 flex flex-col items-center gap-2 hover:bg-gray-50"
                     onClick={() => handleBankAppClick(app.url || '', app.name)}
                   >
-                    <div className={`w-8 h-8 rounded-full ${app.color} flex items-center justify-center`}>
-                      <IconComponent className="w-4 h-4 text-white" />
+                    <div className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center overflow-hidden">
+                      <img 
+                        src={app.logo} 
+                        alt={app.name}
+                        className="w-6 h-6 object-contain"
+                        onError={(e) => {
+                          // Fallback to icon if logo fails to load
+                          const target = e.target as HTMLImageElement
+                          target.style.display = 'none'
+                          const parent = target.parentElement
+                          if (parent) {
+                            const icon = document.createElement('div')
+                            icon.className = `w-6 h-6 rounded-full ${app.color} flex items-center justify-center`
+                            const iconComponent = document.createElement('div')
+                            iconComponent.className = 'w-4 h-4 text-white'
+                            icon.appendChild(iconComponent)
+                            parent.appendChild(icon)
+                          }
+                        }}
+                      />
                     </div>
                     <div className="text-center">
                       <p className="text-xs font-medium leading-tight">{app.name}</p>
@@ -227,13 +252,6 @@ export function MobilePaymentDisplay({
               })}
             </div>
 
-            {allBankApps.length > 8 && (
-              <div className="text-center">
-                <Badge variant="secondary" className="text-xs">
-                  +{allBankApps.length - 8} more apps available
-                </Badge>
-              </div>
-            )}
 
             <div className="pt-2 border-t">
               <p className="text-xs text-gray-500 text-center mb-2">
