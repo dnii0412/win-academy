@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import dbConnect from '@/lib/mongoose'
 import CourseAccess from '@/lib/models/CourseAccess'
+import Course from '@/lib/models/Course'
 import Order from '@/lib/models/Order'
+import mongoose from 'mongoose'
 
 export async function GET(req: NextRequest) {
   try {
@@ -18,6 +20,11 @@ export async function GET(req: NextRequest) {
     await dbConnect()
 
     // Get all course access records for this user
+    // Ensure Course model is registered before using populate
+    if (!mongoose.models.Course) {
+      mongoose.model('Course', Course.schema)
+    }
+
     const accessRecords = await CourseAccess.find({ userId }).populate('courseId')
     
     // Get all orders for this user

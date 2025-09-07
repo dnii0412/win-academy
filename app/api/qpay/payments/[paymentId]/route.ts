@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import dbConnect from '@/lib/mongoose'
 import QPayInvoice from '@/lib/models/QPayInvoice'
+import Course from '@/lib/models/Course'
 import { getQPayInvoice } from '@/lib/qpay'
 
 export async function GET(

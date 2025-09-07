@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import dbConnect from '@/lib/mongoose'
 import User from '@/lib/models/User'
+import Course from '@/lib/models/Course'
+import CourseAccess from '@/lib/models/CourseAccess'
+import mongoose from 'mongoose'
 
 // GET /api/user/enrolled-courses - Get courses enrolled by the current user
 export async function GET(request: NextRequest) {
@@ -45,49 +48,44 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Get user's enrolled courses from unified CourseAccess schema
-    const CourseAccess = (await import('@/lib/models/CourseAccess')).default
-
-    // Get all courses user has access to
+    // Get all courses user has access to from unified CourseAccess schema
     const accessRecords = await CourseAccess.find({
       userId: user._id.toString(),
       hasAccess: true
-    }).populate('courseId')
+    })
+
+    // Manually populate course data to avoid schema registration issues
+    const courses = []
+    for (const access of accessRecords) {
+      if (access.courseId) {
+        const course = await Course.findById(access.courseId)
+        if (course) {
+          courses.push({
+            _id: course._id,
+            title: course.title,
+            titleMn: course.titleMn,
+            description: course.description,
+            descriptionMn: course.descriptionMn,
+            thumbnailUrl: course.thumbnailUrl,
+            price: course.price,
+            enrolledAt: access.grantedAt,
+            progress: access.progress || 0,
+            lastAccessedAt: access.lastAccessedAt,
+            accessType: access.accessType || 'purchase',
+            status: access.status || 'active',
+            notes: access.notes
+          })
+        }
+      }
+    }
 
     console.log('Enrolled courses debug:', {
       userId: user._id,
       userEmail: user.email,
       accessRecordsCount: accessRecords.length,
-      accessRecords: accessRecords.map(ar => ({
-        courseId: ar.courseId?._id,
-        hasAccess: ar.hasAccess,
-        accessType: ar.accessType,
-        status: ar.status,
-        progress: ar.progress
-      }))
+      coursesCount: courses.length
     })
 
-    // Convert access records to course format
-    const courses = accessRecords.map(access => {
-      if (access.courseId) {
-        return {
-          _id: access.courseId._id,
-          title: access.courseId.title,
-          titleMn: access.courseId.titleMn,
-          description: access.courseId.description,
-          descriptionMn: access.courseId.descriptionMn,
-          thumbnailUrl: access.courseId.thumbnailUrl,
-          price: access.courseId.price,
-          enrolledAt: access.grantedAt,
-          progress: access.progress || 0,
-          lastAccessedAt: access.lastAccessedAt,
-          accessType: access.accessType || 'purchase',
-          status: access.status || 'active',
-          notes: access.notes
-        }
-      }
-      return null
-    }).filter(Boolean)
 
     return NextResponse.json({
       courses

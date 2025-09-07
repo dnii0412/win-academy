@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import dbConnect from '@/lib/mongoose'
 import QPayInvoice from '@/lib/models/QPayInvoice'
+import Course from '@/lib/models/Course'
 
 export async function GET(request: NextRequest) {
   const correlationId = `payments_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
