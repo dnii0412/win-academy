@@ -112,14 +112,14 @@ export default function CourseOverviewPage() {
         setSubcourses(subcoursesData.subcourses)
       }
 
-      // Check if user has access to this course
+      // Check if user has access to this course using the new access API
       if (session?.user?.email) {
         try {
-          const accessResponse = await fetch(`/api/user/enrolled-courses?email=${encodeURIComponent(session.user.email)}`)
+          const accessResponse = await fetch(`/api/courses/${courseId}/access`)
           if (accessResponse.ok) {
             const accessData = await accessResponse.json()
-            const enrolledCourseIds = (accessData.courses || []).map((course: any) => course._id)
-            setHasAccess(enrolledCourseIds.includes(courseId))
+            setHasAccess(accessData.hasAccess)
+            console.log('Course access check result:', accessData)
           }
         } catch (error) {
           console.error('Error checking course access:', error)

@@ -87,15 +87,16 @@ export default function CourseAccessPage() {
       }
 
       try {
-        // Check if user has access to this course
-        const enrollmentResponse = await fetch(`/api/user/enrolled-courses?email=${session.user.email}`)
-        if (!enrollmentResponse.ok) {
-          throw new Error("Failed to check enrollment status")
+        // Check if user has access to this course using the new access API
+        const accessResponse = await fetch(`/api/courses/${courseId}/access`)
+        if (accessResponse.ok) {
+          const accessData = await accessResponse.json()
+          setHasAccess(accessData.hasAccess)
+          console.log('Course access check result:', accessData)
+        } else {
+          console.error('Failed to check course access')
+          setHasAccess(false)
         }
-
-        const enrollmentData = await enrollmentResponse.json()
-        const hasEnrollment = enrollmentData.courses.some((c: any) => c._id === courseId)
-        setHasAccess(hasEnrollment)
 
         // Fetch course details
         const courseResponse = await fetch(`/api/courses/${courseId}`)
@@ -107,7 +108,7 @@ export default function CourseAccessPage() {
         setCourse(courseData.course)
 
         // If user has access, automatically load subcourses and lessons
-        if (hasEnrollment) {
+        if (hasAccess) {
           try {
             const subcoursesResponse = await fetch(`/api/courses/${courseId}/subcourses`)
             if (subcoursesResponse.ok) {

@@ -157,11 +157,58 @@ QPayInvoiceSchema.statics.findActiveByUser = function(userId: string) {
 }
 
 // Instance methods
-QPayInvoiceSchema.methods.markAsPaid = function(paymentId: string) {
+QPayInvoiceSchema.methods.markAsPaid = async function(paymentId: string) {
+  console.log('markAsPaid called:', {
+    invoiceId: this._id,
+    qpayInvoiceId: this.qpayInvoiceId,
+    currentStatus: this.status,
+    paymentId,
+    userId: this.userId,
+    courseId: this.courseId
+  })
+
   this.status = 'PAID'
   this.paymentId = paymentId
   this.paidAt = new Date()
-  return this.save()
+  
+  console.log('Saving invoice with new status:', {
+    invoiceId: this._id,
+    newStatus: this.status,
+    paymentId: this.paymentId,
+    paidAt: this.paidAt
+  })
+  
+  await this.save()
+  
+  console.log('Invoice saved successfully, granting course access...')
+  
+  // Grant course access after marking as paid
+  try {
+    const CourseAccess = require('./CourseAccess').default
+    const mongoose = require('mongoose')
+    const accessResult = await CourseAccess.grantAccess(
+      this.userId,
+      new mongoose.Types.ObjectId(this.courseId),
+      this._id.toString(),
+      'qpay_purchase'
+    )
+    console.log('Course access granted after payment:', {
+      userId: this.userId,
+      courseId: this.courseId,
+      invoiceId: this._id,
+      accessResult: accessResult?._id
+    })
+  } catch (accessError) {
+    console.error('Failed to grant course access after payment:', {
+      error: accessError instanceof Error ? accessError.message : 'Unknown error',
+      userId: this.userId,
+      courseId: this.courseId,
+      invoiceId: this._id
+    })
+    // Don't throw error - payment is still valid, access can be granted manually
+  }
+  
+  return this
 }
 
 QPayInvoiceSchema.methods.cancel = function() {

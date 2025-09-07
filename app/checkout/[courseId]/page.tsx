@@ -11,7 +11,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, CreditCard, Smartphone, BookOpen } from "lucide-react"
-import QPayPayment from "@/components/QPayPayment"
+import CheckoutPayment from "@/components/CheckoutPayment"
 import CourseImage from "@/components/course-image"
 import type { CheckoutFormData } from "@/types/payment"
 import type { Course } from "@/types/course"
@@ -25,6 +25,7 @@ export default function CheckoutPage() {
     const [course, setCourse] = useState<Course | null>(null)
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    const [isRedirecting, setIsRedirecting] = useState(false)
     const [formData, setFormData] = useState<CheckoutFormData>({
         email: "",
         phone: "",
@@ -201,16 +202,34 @@ export default function CheckoutPage() {
                         </CardContent>
                     </Card>
 
-                    {/* QPay Payment */}
+                    {/* Payment Section - Manual checking only */}
                     <div>
-                        <QPayPayment
+                        <CheckoutPayment
                             courseId={courseId}
                             amount={course.price}
                             description={course.titleMn || course.title}
-                            onPaymentSuccess={(invoiceId) => {
+                            onPaymentSuccess={async (invoiceId) => {
+                                if (isRedirecting) {
+                                    console.log('Already redirecting, ignoring duplicate payment success')
+                                    return
+                                }
+                                
                                 console.log('Payment successful!', { invoiceId })
-                                // Redirect to course page after successful payment
-                                router.push(`/courses/${courseId}`)
+                                setIsRedirecting(true)
+                                
+                                // Wait a moment for course access to be granted
+                                await new Promise(resolve => setTimeout(resolve, 2000))
+                                
+                                // Check if user has access to the course
+                                try {
+                                    const accessResponse = await fetch(`/api/courses/${courseId}/access`)
+                                    if (accessResponse.ok) {
+                                        const accessData = await accessResponse.json()
+                                        console.log('Course access status:', accessData)
+                                    }
+                                } catch (error) {
+                                    console.error('Error checking course access:', error)
+                                }
                             }}
                             onPaymentError={(error) => {
                                 console.error('Payment error:', error)

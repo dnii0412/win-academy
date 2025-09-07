@@ -3,12 +3,13 @@ import { auth } from '@/auth'
 import dbConnect from '@/lib/mongoose'
 import Course from '@/lib/models/Course'
 import QPayInvoice from '@/lib/models/QPayInvoice'
-import { createQPayInvoice, generateSenderInvoiceNo, QPayError } from '@/lib/qpay'
+import { createQPayInvoice, generateSenderInvoiceNo, cancelQPayInvoice, QPayError } from '@/lib/qpay'
 
 interface CreateInvoiceRequest {
   courseId: string
   amount?: number
   description?: string
+  forceNew?: boolean // Force creating a new invoice even if one exists
 }
 
 export async function POST(request: NextRequest) {
@@ -28,7 +29,7 @@ export async function POST(request: NextRequest) {
 
     // Parse request body
     const body: CreateInvoiceRequest = await request.json()
-    const { courseId, amount, description } = body
+    const { courseId, amount, description, forceNew = false } = body
     const userId = session.user.id
 
     // Validate required fields
@@ -82,25 +83,31 @@ export async function POST(request: NextRequest) {
     })
 
     if (existingInvoice) {
-      console.log('Found existing active invoice:', {
+      console.log('Found existing active invoice, cancelling it:', {
         correlationId,
         existingInvoiceId: existingInvoice.qpayInvoiceId,
-        status: existingInvoice.status
+        status: existingInvoice.status,
+        forceNew
       })
 
-      return NextResponse.json({
-        success: true,
-        invoice: {
-          invoice_id: existingInvoice.qpayInvoiceId,
-          qr_text: existingInvoice.qrText,
-          qr_image: existingInvoice.qrImage,
-          urls: existingInvoice.urls,
-          status: existingInvoice.status,
-          amount: existingInvoice.amount,
-          expires_at: existingInvoice.expiresAt
-        },
-        message: 'Existing active invoice found'
-      })
+      // Cancel the existing invoice in QPay first
+      try {
+        await cancelQPayInvoice(existingInvoice.qpayInvoiceId)
+        console.log('QPay invoice cancelled successfully:', {
+          correlationId,
+          qpayInvoiceId: existingInvoice.qpayInvoiceId
+        })
+      } catch (qpayError) {
+        console.error('QPay cancellation failed, but cancelling locally:', {
+          correlationId,
+          qpayInvoiceId: existingInvoice.qpayInvoiceId,
+          error: qpayError instanceof Error ? qpayError.message : 'Unknown error'
+        })
+        // Continue with local cancellation even if QPay fails
+      }
+
+      // Cancel the existing invoice locally
+      await existingInvoice.cancel()
     }
 
     // Generate unique sender invoice number
