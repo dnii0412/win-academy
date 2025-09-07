@@ -11,6 +11,7 @@ import { Play, BookOpen, Clock, User, ShoppingCart, Search, Filter, Plus } from 
 import Link from "next/link"
 import { Course } from "@/types/course"
 import CourseImage from "@/components/course-image"
+import { useLanguage } from "@/contexts/language-context"
 
 export default function CoursesPage() {
   const { data: session, status } = useSession()
@@ -20,6 +21,7 @@ export default function CoursesPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [selectedLevel, setSelectedLevel] = useState("all")
+  const { t } = useLanguage()
 
   useEffect(() => {
     loadCourses()
@@ -142,10 +144,10 @@ export default function CoursesPage() {
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-[#111111] dark:text-white mb-4">
-            Бүх сургалтууд
+            {t("courses.title")}
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            Манай мэргэжлийн багшаас суралцаж, ур чадвараа сайжруулна уу
+            {t("courses.subtitle")}
           </p>
         </div>
 
@@ -155,7 +157,7 @@ export default function CoursesPage() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Сургалт хайх..."
+                placeholder={t("courses.search")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -163,10 +165,10 @@ export default function CoursesPage() {
             </div>
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
               <SelectTrigger className="w-full sm:w-48">
-                <SelectValue placeholder="Бүх ангилал" />
+                <SelectValue placeholder={t("courses.all")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Бүх ангилал</SelectItem>
+                <SelectItem value="all">{t("courses.all")}</SelectItem>
                 <SelectItem value="design">Дизайн</SelectItem>
                 <SelectItem value="marketing">Маркетинг</SelectItem>
                 <SelectItem value="programming">Програмчлал</SelectItem>
@@ -175,13 +177,13 @@ export default function CoursesPage() {
             </Select>
             <Select value={selectedLevel} onValueChange={setSelectedLevel}>
               <SelectTrigger className="w-full sm:w-48">
-                <SelectValue placeholder="Бүх түвшин" />
+                <SelectValue placeholder={t("courses.all")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Бүх түвшин</SelectItem>
-                <SelectItem value="beginner">Эхлэгч</SelectItem>
-                <SelectItem value="intermediate">Дунд</SelectItem>
-                <SelectItem value="advanced">Дээд</SelectItem>
+                <SelectItem value="all">{t("courses.all")}</SelectItem>
+                <SelectItem value="beginner">{t("courses.beginner")}</SelectItem>
+                <SelectItem value="intermediate">{t("courses.intermediate")}</SelectItem>
+                <SelectItem value="advanced">{t("courses.advanced")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -194,10 +196,10 @@ export default function CoursesPage() {
               <BookOpen className="h-16 w-16 text-gray-400" />
             </div>
             <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-4">
-              Одоогоор сургалт байхгүй байна
+              {t("courses.noCourses")}
             </h2>
             <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-lg mx-auto">
-              Манай багш нар одоогоор сургалтуудыг бэлтгэж байна. Удахгүй шинэ сургалтууд нэмэгдэх болно.
+              {t("courses.noCoursesDescription")}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               {session ? (

@@ -96,6 +96,11 @@ export const translations = {
       onsiteCourses: "On-site courses",
       previous: "Previous",
       next: "Next",
+      beginner: "Beginner",
+      intermediate: "Intermediate",
+      advanced: "Advanced",
+      noCourses: "No courses available yet",
+      noCoursesDescription: "Our teachers are currently preparing courses. New courses will be added soon.",
     },
     // Course cards
     courseCard: {
@@ -278,11 +283,11 @@ export const translations = {
         },
         growth: {
           title: "Хурдан хөгжил",
-          description: "Манай хурдасгасан сургалтын аргаар суралцаж, дадлага хийж, хурдан ажилд орно уу.",
+          description: "Манай хурдасгасан сургалтын аргаар суралцаж, дадлага хийж, хурдан ажилд орох боломж.",
         },
         ai: {
-          title: "AI-аар хөгжсөн",
-          description: "Бүх сургалтад нэгтгэгдсэн дэлгээний AI хэрэгслүүд, арга техникээр урьдчилж байна уу.",
+          title: "AI-хөгжүүлэлт",
+          description: "Одоо үед хэрэгцээтэй AI чанартай хэрэглэх аргачлалууд.",
         },
       },
       testimonials: {
@@ -326,6 +331,11 @@ export const translations = {
       onsiteCourses: "Танхимын сургалтууд",
       previous: "Өмнөх",
       next: "Дараах",
+      beginner: "Анхан шат",
+      intermediate: "Дунд",
+      advanced: "Дээд",
+      noCourses: "Одоогоор сургалт байхгүй байна",
+      noCoursesDescription: "Манай багш нар одоогоор сургалтуудыг бэлтгэж байна. Удахгүй шинэ сургалтууд нэмэгдэх болно.",
     },
     // Course cards
     courseCard: {

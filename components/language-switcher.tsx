@@ -4,23 +4,21 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Globe, ChevronDown, Check } from "lucide-react"
-import { languages, type Language } from "@/lib/languages"
+import { useLanguage } from "@/contexts/language-context"
+import { type Language } from "@/lib/languages"
 
 interface LanguageSwitcherProps {
-  currentLanguage: Language
-  onLanguageChange: (language: Language) => void
   className?: string
 }
 
 export default function LanguageSwitcher({
-  currentLanguage,
-  onLanguageChange,
   className = ""
 }: LanguageSwitcherProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const { currentLanguage, setLanguage, languages } = useLanguage()
 
   const handleLanguageSelect = (language: Language) => {
-    onLanguageChange(language)
+    setLanguage(language)
     setIsOpen(false)
   }
 
