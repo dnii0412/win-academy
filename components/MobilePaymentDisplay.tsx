@@ -126,6 +126,54 @@ const BANK_APPS = [
     color: 'bg-lime-500',
     icon: Wallet,
     logo: 'https://qpay.mn/q/logo/monpay.png'
+  },
+  {
+    name: 'Khan Bank',
+    description: 'Хаан банк',
+    identifier: 'khanbank://',
+    color: 'bg-blue-600',
+    icon: CreditCard,
+    logo: 'https://qpay.mn/q/logo/khanbank.png'
+  },
+  {
+    name: 'Khan Bank',
+    description: 'Хаан банк',
+    identifier: 'khan://',
+    color: 'bg-blue-600',
+    icon: CreditCard,
+    logo: 'https://qpay.mn/q/logo/khanbank.png'
+  },
+  {
+    name: 'State Bank 3.0',
+    description: 'Төрийн банк 3.0',
+    identifier: 'statebankmongolia://',
+    color: 'bg-red-600',
+    icon: CreditCard,
+    logo: 'https://qpay.mn/q/logo/state_3.png'
+  },
+  {
+    name: 'Xac Bank',
+    description: 'Хас банк',
+    identifier: 'xacbank://',
+    color: 'bg-green-600',
+    icon: CreditCard,
+    logo: 'https://qpay.mn/q/logo/xacbank.png'
+  },
+  {
+    name: 'Trade and Development Bank',
+    description: 'TDB online',
+    identifier: 'tdbbank://',
+    color: 'bg-purple-600',
+    icon: CreditCard,
+    logo: 'https://qpay.mn/q/logo/tdbbank.png'
+  },
+  {
+    name: 'Social Pay',
+    description: 'Голомт банк',
+    identifier: 'socialpay-payment://',
+    color: 'bg-orange-600',
+    icon: Wallet,
+    logo: 'https://qpay.mn/q/logo/socialpay.png'
   }
 ]
 
