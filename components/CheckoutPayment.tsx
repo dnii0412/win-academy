@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, CheckCircle, XCircle, RefreshCw, CreditCard } from "lucide-react"
-import { QRCodeDisplay } from "@/components/QRCodeDisplay"
+import { MobilePaymentDisplay } from "@/components/MobilePaymentDisplay"
 
 interface CheckoutPaymentProps {
   courseId: string
@@ -22,6 +22,11 @@ interface PaymentStatus {
   amount: number
   status: 'NEW' | 'PAID' | 'EXPIRED' | 'CANCELLED'
   expires_at?: string
+  urls?: Array<{
+    name?: string
+    description?: string
+    link?: string
+  }>
 }
 
 export default function CheckoutPayment({
@@ -160,15 +165,18 @@ export default function CheckoutPayment({
               </div>
             )}
 
-            {paymentStatus.status !== 'PAID' && (
-              <div className="space-y-4">
-                <div className="text-center">
-                  <QRCodeDisplay 
-                    qrText={paymentStatus.qr_text || paymentStatus.qr_image}
-                    qrImage={paymentStatus.qr_image}
-                    size={200}
-                  />
-                </div>
+                      {paymentStatus.status !== 'PAID' && (
+                        <div className="space-y-4">
+                          <div className="text-center">
+                            <MobilePaymentDisplay 
+                              qrText={paymentStatus.qr_text || paymentStatus.qr_image}
+                              qrImage={paymentStatus.qr_image}
+                              urls={paymentStatus.urls || []}
+                              amount={paymentStatus.amount || 0}
+                              description={description}
+                              size={200}
+                            />
+                          </div>
 
                 <Button
                   onClick={checkPaymentStatus}
