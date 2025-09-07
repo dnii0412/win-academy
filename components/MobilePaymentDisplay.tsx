@@ -201,7 +201,13 @@ export function MobilePaymentDisplay({
 
   const handleBankAppClick = (url: string, appName: string) => {
     console.log(`Opening ${appName} with URL:`, url)
-    window.location.href = url
+    try {
+      window.location.href = url
+    } catch (error) {
+      console.error('Failed to open bank app:', error)
+      // Fallback: try to open in new tab
+      window.open(url, '_blank')
+    }
   }
 
   const handleCopyUrl = async (url: string) => {

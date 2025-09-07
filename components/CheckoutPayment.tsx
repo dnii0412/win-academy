@@ -90,12 +90,21 @@ export default function CheckoutPayment({
       }
 
       const data = await response.json()
+      console.log('Payment check response:', data)
       
       if (data.isPaid) {
         setPaymentStatus(prev => prev ? { ...prev, status: 'PAID' } : null)
         onPaymentSuccess?.(paymentStatus.invoice_id)
       } else {
-        console.log('Payment not yet completed')
+        console.log('Payment not yet completed:', {
+          isPaid: data.isPaid,
+          count: data.count,
+          paidAmount: data.paid_amount,
+          invoiceStatus: data.invoice_status
+        })
+        if (data.invoice_status === 'CANCELLED') {
+          setError('Invoice has expired. Please create a new payment.')
+        }
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to check payment status'
