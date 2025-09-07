@@ -24,8 +24,11 @@ export default function CoursesPage() {
   const { t } = useLanguage()
 
   useEffect(() => {
-    loadCourses()
-  }, [])
+    // Only load courses when session is loaded (not loading)
+    if (status !== 'loading') {
+      loadCourses()
+    }
+  }, [session, status])
 
   useEffect(() => {
     filterCourses()
@@ -33,6 +36,7 @@ export default function CoursesPage() {
 
   const loadCourses = async () => {
     try {
+      setIsLoading(true)
       const response = await fetch('/api/courses')
       if (response.ok) {
         const data = await response.json()
@@ -56,15 +60,22 @@ export default function CoursesPage() {
 
   const checkEnrollmentStatus = async (courses: Course[]): Promise<Course[]> => {
     try {
+      console.log('Checking enrollment status for user:', session?.user?.email)
       const response = await fetch(`/api/user/enrolled-courses?email=${encodeURIComponent(session!.user!.email!)}`)
       if (response.ok) {
         const data = await response.json()
         const enrolledCourseIds = (data.courses || []).map((course: any) => course._id)
+        console.log('Enrolled course IDs:', enrolledCourseIds)
 
-        return courses.map(course => ({
+        const coursesWithEnrollment = courses.map(course => ({
           ...course,
           isEnrolled: enrolledCourseIds.includes(course._id)
         }))
+        
+        console.log('Courses with enrollment status:', coursesWithEnrollment.map(c => ({ id: c._id, title: c.title, isEnrolled: c.isEnrolled })))
+        return coursesWithEnrollment
+      } else {
+        console.error('Failed to fetch enrolled courses:', response.status)
       }
     } catch (error) {
       console.error('Error checking enrollment status:', error)
