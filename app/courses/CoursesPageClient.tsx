@@ -156,7 +156,14 @@ export default function CoursesPageClient({ courses }: CoursesPageClientProps) {
                         </Link>
                       </div>
                       <div className="w-full">
-                        {session?.user ? (
+                        {course.isEnrolled ? (
+                          <Link href={`/learn/${course._id}`} className="block">
+                            <Button className="w-full bg-green-600 hover:bg-green-700 text-white whitespace-normal leading-tight">
+                              <Play className="h-4 w-4 mr-2" />
+                              {t("courseCard.continue")}
+                            </Button>
+                          </Link>
+                        ) : session?.user ? (
                           <Link href={`/checkout/${course._id}`} className="block">
                             <Button className="w-full bg-[#E10600] hover:bg-[#C70500] text-white whitespace-normal leading-tight">
                               <ShoppingCart className="h-4 w-4 mr-2" />
