@@ -21,6 +21,7 @@ import {
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [navbarHeight, setNavbarHeight] = useState(64) // Default height
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   const pathname = usePathname()
@@ -34,13 +35,54 @@ export default function Navbar() {
       setIsScrolled(window.scrollY > 50)
     }
 
+    const updateNavbarHeight = () => {
+      const navbar = document.querySelector('nav')
+      if (navbar) {
+        setNavbarHeight(navbar.offsetHeight)
+      }
+    }
+
     window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
+    window.addEventListener("resize", updateNavbarHeight)
+    updateNavbarHeight() // Initial measurement
+    
+    return () => {
+      window.removeEventListener("scroll", handleScroll)
+      window.removeEventListener("resize", updateNavbarHeight)
+    }
   }, [])
 
   // Debug mobile menu state changes
   useEffect(() => {
     console.log("Mobile menu state changed to:", isMobileMenuOpen)
+  }, [isMobileMenuOpen])
+
+  // Close mobile menu when clicking outside or pressing Escape
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isMobileMenuOpen) {
+        const target = event.target as Element
+        const navbar = document.querySelector('nav')
+        if (navbar && !navbar.contains(target)) {
+          setIsMobileMenuOpen(false)
+        }
+      }
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && isMobileMenuOpen) {
+        setIsMobileMenuOpen(false)
+      }
+    }
+
+    if (isMobileMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+      document.addEventListener('keydown', handleKeyDown)
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside)
+        document.removeEventListener('keydown', handleKeyDown)
+      }
+    }
   }, [isMobileMenuOpen])
 
   const toggleMobileMenu = () => {
@@ -158,9 +200,10 @@ export default function Navbar() {
               size="icon"
               onClick={toggleMobileMenu}
               className="hover:bg-accent transition-colors duration-200"
+              aria-expanded={isMobileMenuOpen}
+              aria-label={isMobileMenuOpen ? "Close mobile menu" : "Open mobile menu"}
             >
-              <Menu className="h-6 w-6" />
-              <span className="sr-only">Open mobile menu</span>
+              {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </Button>
           </div>
         </div>
@@ -168,7 +211,10 @@ export default function Navbar() {
 
       {/* Mobile Menu Dropdown */}
       {isMobileMenuOpen && (
-        <div className="block lg:hidden fixed top-16 left-0 right-0 z-[9999] bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-lg">
+        <div 
+          className="block md:hidden fixed left-0 right-0 z-[9999] bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-lg"
+          style={{ top: `${navbarHeight}px` }}
+        >
           <div className="px-4 py-6">
             {/* Mobile Menu Content */}
             <div className="space-y-6">
