@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
         email: 'dev@example.com',
         role: 'admin'
       }
-      console.log('⚠️ Development mode: Using mock admin user:', decoded)
+      console.log('⚠️ Development mode: Using mock admin user')
     } else {
       const token = authHeader!.replace('Bearer ', '')
       

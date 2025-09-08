@@ -152,7 +152,7 @@ async function handleQPayCallback(data: any) {
                         notes: `Enrolled via QPay payment. Order ID: ${order._id}`
                     })
                     await enrollment.save()
-                    console.log(`Course enrollment created for user ${order.userId}, course ${order.courseId}`)
+                    console.log(`Course enrollment created`)
                 }
             } catch (enrollmentError) {
                 console.error('Error creating enrollment:', enrollmentError)

@@ -40,25 +40,17 @@ const updateUserToAdmin = async () => {
   try {
     // Find the user by email
     const user = await User.findOne({ email: 'admin@winacademy.mn' });
-    
+
     if (!user) {
       console.log('User not found. Please create the user first.');
       return;
     }
-
-    console.log('Current user:', {
-      email: user.email,
-      role: user.role,
-      name: user.fullName || `${user.firstName} ${user.lastName}`.trim()
-    });
 
     // Update the user to admin role
     user.role = 'admin';
     await user.save();
 
     console.log('User updated to admin role successfully!');
-    console.log('Email:', user.email);
-    console.log('New Role:', user.role);
 
   } catch (error) {
     console.error('Error updating user to admin:', error);

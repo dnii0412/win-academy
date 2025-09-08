@@ -42,11 +42,8 @@ interface Subcourse {
 
 async function getLearnPageData(courseId: string) {
   try {
-    console.log('getLearnPageData: Starting with courseId:', courseId)
-    
     // Validate courseId
     if (!courseId || !mongoose.Types.ObjectId.isValid(courseId)) {
-      console.error('getLearnPageData: Invalid courseId:', courseId)
       return { 
         course: null, 
         subcourses: [], 
@@ -56,14 +53,11 @@ async function getLearnPageData(courseId: string) {
     }
 
     await dbConnect()
-    console.log('getLearnPageData: Database connected')
     
     // Get session to check access
     const session = await auth()
-    console.log('getLearnPageData: Session retrieved:', !!session?.user?.email)
     
     if (!session?.user?.email) {
-      console.log('getLearnPageData: No session found')
       return { 
         course: null, 
         subcourses: [], 
@@ -74,9 +68,7 @@ async function getLearnPageData(courseId: string) {
 
     // Find user by email
     const user = await User.findOne({ email: session.user.email })
-    console.log('getLearnPageData: User found:', !!user)
     if (!user) {
-      console.error('getLearnPageData: User not found for email:', session.user.email)
       return { 
         course: null, 
         subcourses: [], 
@@ -87,9 +79,7 @@ async function getLearnPageData(courseId: string) {
 
     // Fetch course data
     const course = await CourseModel.findById(courseId).lean()
-    console.log('getLearnPageData: Course found:', !!course)
     if (!course) {
-      console.error('getLearnPageData: Course not found for ID:', courseId)
       return { 
         course: null, 
         subcourses: [], 
@@ -108,17 +98,13 @@ async function getLearnPageData(courseId: string) {
     }).lean()
     
     const hasAccess = !!courseAccess
-    console.log('getLearnPageData: User has access:', hasAccess, 'Access record:', !!courseAccess, 'User ID:', user._id.toString(), 'User email:', user.email)
 
     // Fetch subcourses if user has access
     let subcourses: Subcourse[] = []
     if (hasAccess) {
-      console.log('getLearnPageData: Fetching subcourses for course:', courseId)
       const fetchedSubcourses = await Subcourse.find({ courseId })
         .sort({ order: 1 })
         .lean()
-      
-      console.log('getLearnPageData: Found subcourses:', fetchedSubcourses.length)
       
       // Fetch lessons for each subcourse
       const subcoursesWithLessons = await Promise.all(
@@ -128,8 +114,6 @@ async function getLearnPageData(courseId: string) {
           })
           .sort({ order: 1 })
           .lean()
-          
-          console.log(`getLearnPageData: Found ${lessons.length} lessons for subcourse ${subcourse._id}`)
           
           return {
             ...subcourse,
@@ -148,10 +132,7 @@ async function getLearnPageData(courseId: string) {
       )
       
       subcourses = subcoursesWithLessons as unknown as Subcourse[]
-      console.log('getLearnPageData: Processed subcourses with lessons:', subcourses.length)
     }
-
-    console.log('getLearnPageData: Returning data successfully')
     return {
       course: course ? {
         ...course,
@@ -166,12 +147,6 @@ async function getLearnPageData(courseId: string) {
       error: null
     }
     } catch (error) {
-    console.error('getLearnPageData: Error fetching learn page data:', error)
-    console.error('getLearnPageData: Error details:', {
-      message: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined,
-      courseId
-    })
     return { 
       course: null, 
       subcourses: [], 

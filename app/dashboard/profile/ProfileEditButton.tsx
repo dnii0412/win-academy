@@ -26,14 +26,6 @@ interface ProfileEditButtonProps {
 }
 
 export default function ProfileEditButton({ profile, onProfileUpdated }: ProfileEditButtonProps) {
-  console.log("ProfileEditButton rendered with profile:", profile)
-  console.log("Profile data:", {
-    firstName: profile?.firstName,
-    lastName: profile?.lastName,
-    fullName: profile?.fullName,
-    email: profile?.email,
-    phoneNumber: profile?.phoneNumber
-  })
 
   const { data: session, update } = useSession()
   const { toast } = useToast()
@@ -70,8 +62,6 @@ export default function ProfileEditButton({ profile, onProfileUpdated }: Profile
     }
   }, [profile])
 
-  console.log("Session:", session?.user?.email)
-  console.log("Is editing:", isEditing)
 
   const handleSaveChanges = async () => {
     if (!session?.user?.email) {
@@ -85,7 +75,6 @@ export default function ProfileEditButton({ profile, onProfileUpdated }: Profile
 
     setIsLoading(true)
     try {
-      console.log("Saving profile with data:", { fullName: fullName.trim(), phoneNumber: phoneNumber.trim() })
 
       const response = await fetch('/api/user/profile', {
         method: 'PUT',
@@ -99,16 +88,12 @@ export default function ProfileEditButton({ profile, onProfileUpdated }: Profile
         })
       })
 
-      console.log("Response status:", response.status)
-
       if (!response.ok) {
         const errorData = await response.json()
-        console.error("API Error:", errorData)
         throw new Error(errorData.error || 'Failed to update profile')
       }
 
       const updatedProfile = await response.json()
-      console.log("Updated profile:", updatedProfile)
 
       // Update session data
       await update({
@@ -126,7 +111,6 @@ export default function ProfileEditButton({ profile, onProfileUpdated }: Profile
       })
       setIsEditing(false)
     } catch (error: any) {
-      console.error("Failed to update profile:", error)
       toast({
         title: "Алдаа",
         description: error.message || "Профайл шинэчлэхэд алдаа гарлаа",
@@ -182,7 +166,6 @@ export default function ProfileEditButton({ profile, onProfileUpdated }: Profile
         <div className="pt-4">
           <Button
             onClick={() => {
-              console.log("Edit button clicked!")
               setIsEditing(true)
             }}
             className="bg-[#E10600] hover:bg-[#C70500] text-white px-6 py-2"
@@ -243,7 +226,6 @@ export default function ProfileEditButton({ profile, onProfileUpdated }: Profile
       <div className="flex space-x-3 pt-4">
         <Button
           onClick={() => {
-            console.log("Save button clicked!")
             handleSaveChanges()
           }}
           disabled={isLoading}

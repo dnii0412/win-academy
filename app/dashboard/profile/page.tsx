@@ -39,7 +39,6 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true)
 
   const refreshProfileData = async () => {
-    console.log("Refreshing profile data...")
     try {
       const [profileRes, statsRes] = await Promise.all([
         fetch("/api/user/profile", {
@@ -56,42 +55,29 @@ export default function ProfilePage() {
         })
       ])
 
-      console.log("Profile refresh response status:", profileRes.status)
-      console.log("Stats refresh response status:", statsRes.status)
-
       if (profileRes.ok) {
         const profileData = await profileRes.json()
-        console.log("Refreshed profile data:", profileData)
         setProfile(profileData)
-      } else {
-        console.error("Profile refresh failed:", await profileRes.text())
       }
 
       if (statsRes.ok) {
         const statsData = await statsRes.json()
-        console.log("Refreshed stats data:", statsData)
         setStats(statsData)
-      } else {
-        console.error("Stats refresh failed:", await statsRes.text())
       }
     } catch (error) {
-      console.error("Error refreshing profile data:", error)
+      // Silent error handling
     }
   }
 
   useEffect(() => {
-    console.log("ProfilePage useEffect - status:", status, "session:", session?.user?.email)
-
     if (status === "loading") return
 
     if (!session?.user?.email) {
-      console.log("No session, redirecting to login")
       router.push("/login")
       return
     }
 
     const fetchData = async () => {
-      console.log("Fetching profile data...")
       try {
         const [profileRes, statsRes] = await Promise.all([
           fetch("/api/user/profile", {
@@ -108,26 +94,17 @@ export default function ProfilePage() {
           })
         ])
 
-        console.log("Profile response status:", profileRes.status)
-        console.log("Stats response status:", statsRes.status)
-
         if (profileRes.ok) {
           const profileData = await profileRes.json()
-          console.log("Profile data received:", profileData)
           setProfile(profileData)
-        } else {
-          console.error("Profile fetch failed:", await profileRes.text())
         }
 
         if (statsRes.ok) {
           const statsData = await statsRes.json()
-          console.log("Stats data received:", statsData)
           setStats(statsData)
-        } else {
-          console.error("Stats fetch failed:", await statsRes.text())
         }
       } catch (error) {
-        console.error("Error fetching profile data:", error)
+        // Silent error handling
       } finally {
         setLoading(false)
       }

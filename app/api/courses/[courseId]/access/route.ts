@@ -16,19 +16,9 @@ export async function GET(
     const { courseId } = await params
     const userId = session.user.id || session.user.email
 
-    console.log('Course access check:', {
-      courseId,
-      courseIdType: typeof courseId,
-      userId,
-      userIdType: typeof userId,
-      userEmail: session.user.email,
-      sessionUserId: session.user.id,
-      sessionUser: session.user
-    })
 
     // If we don't have a userId, we can't check access
     if (!userId) {
-      console.error('No userId found in session:', { session: session.user })
       return NextResponse.json({ 
         hasAccess: false,
         error: 'User ID not found in session',
@@ -47,7 +37,6 @@ export async function GET(
     // Find user by email first to get consistent user ID
     const user = await User.findOne({ email: session.user.email })
     if (!user) {
-      console.error('User not found:', { email: session.user.email })
       return NextResponse.json({ 
         hasAccess: false,
         error: 'User not found',
@@ -59,7 +48,6 @@ export async function GET(
     }
 
     const userObjectId = user._id.toString()
-    console.log('Found user:', { userId: userObjectId, email: user.email })
 
     // Check unified CourseAccess schema
     // Try both user._id.toString() and user.email since orders might use either format
@@ -70,15 +58,6 @@ export async function GET(
       ]
     })
 
-    console.log('Access check results:', {
-      courseAccess: courseAccess ? {
-        userId: courseAccess.userId,
-        hasAccess: courseAccess.hasAccess,
-        accessType: courseAccess.accessType,
-        status: courseAccess.status,
-        progress: courseAccess.progress
-      } : null
-    })
 
     const hasAccess = !!(courseAccess?.hasAccess)
 

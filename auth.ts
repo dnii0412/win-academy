@@ -145,7 +145,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             })
 
             await newUser.save()
-            console.log("New Google OAuth user created:", newUser.email)
+            console.log("New Google OAuth user created")
           }
         } catch (error) {
           console.error("Error creating Google OAuth user:", error)

@@ -196,8 +196,6 @@ export async function POST(req: NextRequest) {
     })
 
     // Create enhanced QPay invoice with customer data and proper lines
-    console.log('Creating QPay invoice in mock mode:', process.env.QPAY_MOCK_MODE)
-
     const invoiceData = createSimpleCourseInvoice({
       courseTitle: course.title,
       price: priceMnt,
@@ -212,17 +210,8 @@ export async function POST(req: NextRequest) {
       note: `Win Academy course payment - ${course.title}`
     })
 
-    console.log('About to call qpayCreateInvoice with enhanced params:', invoiceData)
-
     const inv = await qpayCreateInvoice(invoiceData)
 
-    console.log('QPay invoice response:', {
-      invoiceId: inv.invoice_id,
-      hasQrImage: !!inv.qr_image,
-      hasQrText: !!inv.qr_text,
-      urls: inv.urls?.length || 0,
-      fullResponse: inv
-    })
 
     // Validate QPay response
     if (!inv.invoice_id) {
@@ -230,10 +219,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (!inv.qr_text && !inv.qr_image) {
-      console.warn('QPay invoice created but no QR code returned', {
-        invoiceId: inv.invoice_id,
-        response: inv
-      })
+      // QPay invoice created but no QR code returned
     }
 
     // Persist invoice linkage
