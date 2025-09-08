@@ -12,6 +12,10 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  // Add build ID for cache busting
+  generateBuildId: async () => {
+    return `build-${Date.now()}`
+  },
   images: {
     unoptimized: true,
     formats: ['image/webp', 'image/avif'],
@@ -67,6 +71,15 @@ const nextConfig = {
           {
             key: 'Cache-Control',
             value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=0, must-revalidate',
           },
         ],
       },
