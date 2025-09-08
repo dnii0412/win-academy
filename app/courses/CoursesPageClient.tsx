@@ -9,6 +9,7 @@ import Link from "next/link"
 import { Course } from "@/types/course"
 import CourseImage from "@/components/course-image"
 import Breadcrumb from "@/components/breadcrumb"
+import { useLanguage } from "@/contexts/language-context"
 
 interface CoursesPageClientProps {
   courses: Course[]
@@ -16,6 +17,7 @@ interface CoursesPageClientProps {
 
 export default function CoursesPageClient({ courses }: CoursesPageClientProps) {
   const { data: session, status } = useSession()
+  const { t } = useLanguage()
 
   const formatPrice = (price: number) => {
     return `₮${price.toLocaleString()}`
@@ -47,10 +49,10 @@ export default function CoursesPageClient({ courses }: CoursesPageClientProps) {
 
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-[#111111] dark:text-white mb-4">
-            Сургалтууд
+            {t("courses.title")}
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            Манай мэргэжлийн сургалтуудаар сургалтын аялаа эхлээрэй
+            {t("courses.subtitle")}
           </p>
         </div>
 
@@ -62,17 +64,17 @@ export default function CoursesPageClient({ courses }: CoursesPageClientProps) {
               <BookOpen className="h-16 w-16 text-gray-400" />
             </div>
             <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-4">
-              Сургалт олдсонгүй
+              {t("courses.noCourses")}
             </h2>
             <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-lg mx-auto">
-              Одоогоор сургалт байхгүй байна. Удахгүй шинэ сургалтууд нэмэгдэх болно.
+              {t("courses.noCoursesDescription")}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               {session ? (
                 // Logged in users - show Dashboard button only
                 <Link href="/dashboard">
                   <Button className="bg-[#E10600] hover:bg-[#C70500] text-white">
-                    Хяналтын самбар руу буцах
+                    {t("nav.dashboard")}
                   </Button>
                 </Link>
               ) : (
@@ -80,12 +82,12 @@ export default function CoursesPageClient({ courses }: CoursesPageClientProps) {
                 <>
                   <Link href="/">
                     <Button variant="outline" className="border-[#E10600] text-[#E10600] hover:bg-[#E10600] hover:text-white">
-                      Нүүр хуудас руу буцах
+                      {t("nav.home")}
                     </Button>
                   </Link>
                   <Link href="/register">
                     <Button className="bg-[#E10600] hover:bg-[#C70500] text-white">
-                      Бүртгүүлэх
+                      {t("nav.register")}
                     </Button>
                   </Link>
                 </>
@@ -106,7 +108,7 @@ export default function CoursesPageClient({ courses }: CoursesPageClientProps) {
                   />
                   {course.isEnrolled && (
                     <Badge className="absolute top-3 right-3 bg-green-500 hover:bg-green-600 z-10">
-                      Худалдан авсан
+                      {t("home.courses.enrolled")}
                     </Badge>
                   )}
                 </div>
@@ -124,7 +126,7 @@ export default function CoursesPageClient({ courses }: CoursesPageClientProps) {
                   <div className="space-y-3 mb-4">
                     <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
                       <Clock className="h-4 w-4 mr-2" />
-                      <span>{course.duration ? `${course.duration} мин` : 'Duration TBD'}</span>
+                      <span>{course.duration ? `${course.duration} мин` : t("courseCard.duration")}</span>
                     </div>
                     <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
                       <User className="h-4 w-4 mr-2" />
@@ -149,7 +151,7 @@ export default function CoursesPageClient({ courses }: CoursesPageClientProps) {
                         <Link href={`/courses/${course._id}`} className="block">
                           <Button variant="outline" className="w-full border-[#E10600] text-[#E10600] hover:bg-[#E10600] hover:text-white whitespace-normal leading-tight">
                             <BookOpen className="h-4 w-4 mr-2" />
-                            дэлгэрэнгүй
+                            {t("common.details")}
                           </Button>
                         </Link>
                       </div>
@@ -158,14 +160,14 @@ export default function CoursesPageClient({ courses }: CoursesPageClientProps) {
                           <Link href={`/checkout/${course._id}`} className="block">
                             <Button className="w-full bg-[#E10600] hover:bg-[#C70500] text-white whitespace-normal leading-tight">
                               <ShoppingCart className="h-4 w-4 mr-2" />
-                              Худалдаж авах
+                              {t("courseCard.enrollNow")}
                             </Button>
                           </Link>
                         ) : (
                           <Link href={`/login?callbackUrl=${encodeURIComponent(`/checkout/${course._id}`)}`} className="block">
                             <Button className="w-full bg-[#E10600] hover:bg-[#C70500] text-white whitespace-normal leading-tight">
                               <ShoppingCart className="h-4 w-4 mr-2" />
-                              Нэвтэрч худалдаж авах
+                              {t("nav.login")} {t("courseCard.enrollNow")}
                             </Button>
                           </Link>
                         )}

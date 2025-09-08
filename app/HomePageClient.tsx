@@ -10,6 +10,7 @@ import Link from "next/link"
 import { Course } from "@/types/course"
 import CourseImage from "@/components/course-image"
 import PerformanceOptimizer from "@/components/performance-optimizer"
+import { useEffect } from "react"
 
 interface HomePageClientProps {
   featuredCourses: Course[]
@@ -17,69 +18,99 @@ interface HomePageClientProps {
 
 export default function HomePageClient({ featuredCourses }: HomePageClientProps) {
 
-  // Structured data for organization
-  const organizationStructuredData = {
-    "@context": "https://schema.org",
-    "@type": "EducationalOrganization",
-    "name": "WIN Academy",
-    "description": "Mongolia's premier academy for digital professionals offering practical digital skills training in marketing, design, and AI.",
-    "url": "https://winacademy.mn",
-    "logo": "https://winacademy.mn/images/win_logo_main.jpg",
-    "address": {
-      "@type": "PostalAddress",
-      "streetAddress": "Pearl Tower B Corpus, 11th Floor, Room 1101",
-      "addressLocality": "Ulaanbaatar",
-      "addressCountry": "Mongolia"
-    },
-    "contactPoint": {
-      "@type": "ContactPoint",
-      "telephone": "+976-11-123456",
-      "contactType": "customer service",
-      "email": "info@winacademy.mn"
-    },
-    "sameAs": [
-      "https://facebook.com/winacademy",
-      "https://twitter.com/winacademy",
-      "https://linkedin.com/company/winacademy"
-    ],
-    "offers": {
-      "@type": "AggregateOffer",
-      "priceCurrency": "MNT",
-      "lowPrice": "50000",
-      "highPrice": "500000",
-      "offerCount": featuredCourses.length
-    }
-  }
-
-  // Structured data for courses
-  const coursesStructuredData = featuredCourses.map(course => ({
-    "@context": "https://schema.org",
-    "@type": "Course",
-    "name": course.title,
-    "description": course.description,
-    "provider": {
+  // Handle structured data on client side to prevent hydration mismatch
+  useEffect(() => {
+    // Structured data for organization
+    const organizationStructuredData = {
+      "@context": "https://schema.org",
       "@type": "EducationalOrganization",
       "name": "WIN Academy",
-      "url": "https://winacademy.mn"
-    },
-    "courseCode": course._id,
-    "educationalLevel": course.level,
-    "inLanguage": ["mn", "en"],
-    "timeRequired": `PT${course.duration}M`,
-    "offers": {
-      "@type": "Offer",
-      "price": course.price,
-      "priceCurrency": "MNT",
-      "availability": "https://schema.org/InStock"
-    },
-    "image": course.thumbnailUrl,
-    "url": `https://winacademy.mn/courses/${course._id}`,
-    "aggregateRating": {
-      "@type": "AggregateRating",
-      "ratingValue": "4.8",
-      "ratingCount": course.enrolledUsers || 0
+      "description": "Mongolia's premier academy for digital professionals offering practical digital skills training in marketing, design, and AI.",
+      "url": "https://winacademy.mn",
+      "logo": "https://winacademy.mn/images/win_logo_main.jpg",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Pearl Tower B Corpus, 11th Floor, Room 1101",
+        "addressLocality": "Ulaanbaatar",
+        "addressCountry": "Mongolia"
+      },
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "telephone": "+976-11-123456",
+        "contactType": "customer service",
+        "email": "info@winacademy.mn"
+      },
+      "sameAs": [
+        "https://facebook.com/winacademy",
+        "https://twitter.com/winacademy",
+        "https://linkedin.com/company/winacademy"
+      ],
+      "offers": {
+        "@type": "AggregateOffer",
+        "priceCurrency": "MNT",
+        "lowPrice": "50000",
+        "highPrice": "500000",
+        "offerCount": featuredCourses.length
+      }
     }
-  }))
+
+    // Structured data for courses
+    const coursesStructuredData = featuredCourses.map(course => ({
+      "@context": "https://schema.org",
+      "@type": "Course",
+      "name": course.title,
+      "description": course.description,
+      "provider": {
+        "@type": "EducationalOrganization",
+        "name": "WIN Academy",
+        "url": "https://winacademy.mn"
+      },
+      "courseCode": course._id,
+      "educationalLevel": course.level,
+      "inLanguage": ["mn", "en"],
+      "timeRequired": `PT${course.duration}M`,
+      "offers": {
+        "@type": "Offer",
+        "price": course.price,
+        "priceCurrency": "MNT",
+        "availability": "https://schema.org/InStock"
+      },
+      "image": course.thumbnailUrl,
+      "url": `https://winacademy.mn/courses/${course._id}`,
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.8",
+        "ratingCount": course.enrolledUsers || 0
+      }
+    }))
+
+    // Create and append organization script
+    const orgScript = document.createElement('script')
+    orgScript.type = 'application/ld+json'
+    orgScript.textContent = JSON.stringify(organizationStructuredData)
+    document.head.appendChild(orgScript)
+
+    // Create and append course scripts
+    const courseScripts = coursesStructuredData.map(courseData => {
+      const script = document.createElement('script')
+      script.type = 'application/ld+json'
+      script.textContent = JSON.stringify(courseData)
+      document.head.appendChild(script)
+      return script
+    })
+
+    // Cleanup function to remove scripts when component unmounts
+    return () => {
+      if (orgScript.parentNode) {
+        orgScript.parentNode.removeChild(orgScript)
+      }
+      courseScripts.forEach(script => {
+        if (script.parentNode) {
+          script.parentNode.removeChild(script)
+        }
+      })
+    }
+  }, [featuredCourses])
 
   const benefits = [
     {
@@ -121,22 +152,6 @@ export default function HomePageClient({ featuredCourses }: HomePageClientProps)
     <div className="min-h-screen bg-background overflow-x-hidden">
       <PerformanceOptimizer />
 
-      {/* Structured Data */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(organizationStructuredData),
-        }}
-      />
-      {coursesStructuredData.map((courseData, index) => (
-        <script
-          key={index}
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(courseData),
-          }}
-        />
-      ))}
 
       <ScrollProgress />
 

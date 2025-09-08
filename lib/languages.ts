@@ -242,6 +242,7 @@ export const translations = {
       next: "Next",
       submit: "Submit",
       close: "Close",
+      details: "Details",
     },
   },
   mn: {
@@ -480,6 +481,7 @@ export const translations = {
       next: "Дараах",
       submit: "Илгээх",
       close: "Хаах",
+      details: "Дэлгэрэнгүй",
     },
   },
 } as const

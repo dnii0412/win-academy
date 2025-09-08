@@ -13,14 +13,16 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined)
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [currentLanguage, setCurrentLanguage] = useState<Language>("mn")
+  const [currentLanguage, setCurrentLanguage] = useState<Language>("en")
+  const [isHydrated, setIsHydrated] = useState(false)
 
-  // Initialize language from localStorage
+  // Initialize language from localStorage after hydration
   useEffect(() => {
     const savedLanguage = localStorage.getItem("language") as Language
     if (savedLanguage && languages[savedLanguage]) {
       setCurrentLanguage(savedLanguage)
     }
+    setIsHydrated(true)
   }, [])
 
   const setLanguage = (language: Language) => {
@@ -29,8 +31,10 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   }
 
   const t = (key: string): string => {
+    // During SSR and before hydration, always use English to prevent hydration mismatch
+    const language = isHydrated ? currentLanguage : "en"
     const keys = key.split(".")
-    let value: any = translations[currentLanguage]
+    let value: any = translations[language]
 
     for (const k of keys) {
       if (value && typeof value === "object" && k in value) {
