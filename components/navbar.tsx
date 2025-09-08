@@ -55,7 +55,8 @@ export default function Navbar() {
   // Debug mobile menu state changes
   useEffect(() => {
     console.log("Mobile menu state changed to:", isMobileMenuOpen)
-  }, [isMobileMenuOpen])
+    console.log("Navbar height:", navbarHeight)
+  }, [isMobileMenuOpen, navbarHeight])
 
   // Close mobile menu when clicking outside or pressing Escape
   useEffect(() => {
@@ -212,7 +213,7 @@ export default function Navbar() {
       {/* Mobile Menu Dropdown */}
       {isMobileMenuOpen && (
         <div 
-          className="block md:hidden fixed left-0 right-0 z-[9999] bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-lg"
+          className="block md:hidden fixed left-0 right-0 z-[9999] bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-lg min-h-[200px]"
           style={{ top: `${navbarHeight}px` }}
         >
           <div className="px-4 py-6">
