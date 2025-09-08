@@ -147,7 +147,7 @@ export default function CoursesPageClient({ courses }: CoursesPageClientProps) {
                     <div className="space-y-3">
                       <div className="w-full">
                         <Link href={`/courses/${course._id}`} className="block">
-                          <Button variant="outline" className="w-full border-[#E10600] text-[#E10600] hover:bg-[#E10600] hover:text-white">
+                          <Button variant="outline" className="w-full border-[#E10600] text-[#E10600] hover:bg-[#E10600] hover:text-white whitespace-normal leading-tight">
                             <BookOpen className="h-4 w-4 mr-2" />
                             дэлгэрэнгүй
                           </Button>
@@ -156,14 +156,14 @@ export default function CoursesPageClient({ courses }: CoursesPageClientProps) {
                       <div className="w-full">
                         {session?.user ? (
                           <Link href={`/checkout/${course._id}`} className="block">
-                            <Button className="w-full bg-[#E10600] hover:bg-[#C70500] text-white">
+                            <Button className="w-full bg-[#E10600] hover:bg-[#C70500] text-white whitespace-normal leading-tight">
                               <ShoppingCart className="h-4 w-4 mr-2" />
                               Худалдаж авах
                             </Button>
                           </Link>
                         ) : (
                           <Link href={`/login?callbackUrl=${encodeURIComponent(`/checkout/${course._id}`)}`} className="block">
-                            <Button className="w-full bg-[#E10600] hover:bg-[#C70500] text-white">
+                            <Button className="w-full bg-[#E10600] hover:bg-[#C70500] text-white whitespace-normal leading-tight">
                               <ShoppingCart className="h-4 w-4 mr-2" />
                               Нэвтэрч худалдаж авах
                             </Button>

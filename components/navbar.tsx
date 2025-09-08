@@ -64,10 +64,7 @@ export default function Navbar() {
 
   return (
     <nav
-      className={`border-b border-border sticky top-0 z-50 transition-all duration-300 overflow-x-hidden relative ${isScrolled
-        ? "bg-background/80 backdrop-blur-md shadow-lg border-border/50"
-        : "bg-background"
-        }`}
+      className="border-b border-border/50 sticky top-0 z-50 transition-all duration-300 overflow-x-hidden relative bg-background/95 backdrop-blur-md shadow-sm"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         <div
@@ -97,9 +94,6 @@ export default function Navbar() {
 
           {/* Right - User Controls - more gathered and left-sided */}
           <div className="hidden md:flex items-center space-x-3">
-            {/* Language Switcher */}
-            <LanguageSwitcher />
-
             <Button
               variant="ghost"
               size="icon"
@@ -109,6 +103,9 @@ export default function Navbar() {
               {theme === "light" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
               <span className="sr-only">Toggle theme</span>
             </Button>
+
+            {/* Language Switcher - positioned immediately after theme button */}
+            <LanguageSwitcher />
 
             {session ? (
               <DropdownMenu>
@@ -193,11 +190,6 @@ export default function Navbar() {
               </div>
 
               <div className="space-y-4 pt-6 border-t border-border">
-                {/* Language Switcher */}
-                <div className="flex justify-center">
-                  <LanguageSwitcher className="w-full justify-center" />
-                </div>
-
                 <Button
                   variant="ghost"
                   size="icon"
@@ -207,6 +199,11 @@ export default function Navbar() {
                   {theme === "light" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
                   <span className="sr-only">Toggle theme</span>
                 </Button>
+
+                {/* Language Switcher - positioned after theme button */}
+                <div className="flex justify-center">
+                  <LanguageSwitcher className="w-full justify-center" />
+                </div>
 
                 {/* Mobile menu authentication buttons */}
                 {session ? (

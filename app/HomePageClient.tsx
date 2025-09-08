@@ -240,7 +240,7 @@ export default function HomePageClient({ featuredCourses }: HomePageClientProps)
                         <div className="text-lg font-bold text-[#E10600] mb-3">
                           ₮{course.price.toLocaleString()}
                         </div>
-                        <Button className="w-full bg-[#E10600] hover:bg-[#C70500] text-white">
+                        <Button className="w-full bg-[#E10600] hover:bg-[#C70500] text-white whitespace-normal leading-tight">
                           төлбөр төлөх ₮{course.price.toLocaleString()}
                         </Button>
                       </div>

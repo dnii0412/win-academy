@@ -27,18 +27,47 @@ interface ProfileEditButtonProps {
 
 export default function ProfileEditButton({ profile, onProfileUpdated }: ProfileEditButtonProps) {
   console.log("ProfileEditButton rendered with profile:", profile)
-  
+  console.log("Profile data:", {
+    firstName: profile?.firstName,
+    lastName: profile?.lastName,
+    fullName: profile?.fullName,
+    email: profile?.email,
+    phoneNumber: profile?.phoneNumber
+  })
+
   const { data: session, update } = useSession()
   const { toast } = useToast()
   const [isEditing, setIsEditing] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [fullName, setFullName] = useState(profile.fullName || `${profile.firstName} ${profile.lastName}`.trim())
-  const [phoneNumber, setPhoneNumber] = useState(profile.phoneNumber)
+  const [fullName, setFullName] = useState(profile?.fullName || `${profile?.firstName || ''} ${profile?.lastName || ''}`.trim())
+  const [phoneNumber, setPhoneNumber] = useState(profile?.phoneNumber || '')
+
+  // If profile is not loaded yet, show loading state
+  if (!profile) {
+    return (
+      <div className="space-y-6">
+        <div className="animate-pulse">
+          <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
+          <div className="h-12 bg-gray-200 rounded"></div>
+        </div>
+        <div className="animate-pulse">
+          <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
+          <div className="h-12 bg-gray-200 rounded"></div>
+        </div>
+        <div className="animate-pulse">
+          <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
+          <div className="h-12 bg-gray-200 rounded"></div>
+        </div>
+      </div>
+    )
+  }
 
   // Update local state when profile prop changes
   useEffect(() => {
-    setFullName(profile.fullName || `${profile.firstName} ${profile.lastName}`.trim())
-    setPhoneNumber(profile.phoneNumber)
+    if (profile) {
+      setFullName(profile.fullName || `${profile.firstName || ''} ${profile.lastName || ''}`.trim())
+      setPhoneNumber(profile.phoneNumber || '')
+    }
   }, [profile])
 
   console.log("Session:", session?.user?.email)
@@ -109,24 +138,59 @@ export default function ProfileEditButton({ profile, onProfileUpdated }: Profile
   }
 
   const handleCancel = () => {
-    setFullName(profile.fullName || `${profile.firstName} ${profile.lastName}`.trim())
-    setPhoneNumber(profile.phoneNumber)
+    if (profile) {
+      setFullName(profile.fullName || `${profile.firstName || ''} ${profile.lastName || ''}`.trim())
+      setPhoneNumber(profile.phoneNumber || '')
+    }
     setIsEditing(false)
   }
 
   if (!isEditing) {
     return (
-      <div className="pt-4">
-        <Button
-          onClick={() => {
-            console.log("Edit button clicked!")
-            setIsEditing(true)
-          }}
-          className="bg-[#E10600] hover:bg-[#C70500] text-white px-6 py-2"
-        >
-          <Edit className="h-4 w-4 mr-2" />
-          Засварлах
-        </Button>
+      <div className="space-y-6">
+        {/* Full Name Display */}
+        <div>
+          <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+            Бүтэн нэр
+          </Label>
+          <div className="h-12 px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md flex items-center text-gray-900 dark:text-white">
+            {profile?.fullName || `${profile?.firstName || ''} ${profile?.lastName || ''}`.trim() || 'Мэдээлэл олдсонгүй'}
+          </div>
+        </div>
+
+        {/* Email Display */}
+        <div>
+          <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+            И-мэйл
+          </Label>
+          <div className="h-12 px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md flex items-center text-gray-900 dark:text-white">
+            {profile?.email || 'Мэдээлэл олдсонгүй'}
+          </div>
+        </div>
+
+        {/* Phone Number Display */}
+        <div>
+          <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+            Утасны дугаар
+          </Label>
+          <div className="h-12 px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md flex items-center text-gray-900 dark:text-white">
+            {profile?.phoneNumber || "Утасны дугаар оруулаагүй"}
+          </div>
+        </div>
+
+        {/* Edit Button */}
+        <div className="pt-4">
+          <Button
+            onClick={() => {
+              console.log("Edit button clicked!")
+              setIsEditing(true)
+            }}
+            className="bg-[#E10600] hover:bg-[#C70500] text-white px-6 py-2"
+          >
+            <Edit className="h-4 w-4 mr-2" />
+            Засварлах
+          </Button>
+        </div>
       </div>
     )
   }

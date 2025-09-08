@@ -7,6 +7,8 @@ import CourseModel from "@/lib/models/Course"
 import Lesson from "@/lib/models/Lesson"
 import DashboardClient from "./DashboardClient"
 
+export const dynamic = 'force-dynamic'
+
 interface EnrolledCourse {
   _id: string
   title: string

@@ -1,10 +1,12 @@
 import { Course } from "@/types/course"
 import dbConnect from "@/lib/mongoose"
 import CourseModel from "@/lib/models/Course"
-import dynamic from "next/dynamic"
+import dynamicImport from "next/dynamic"
 import type { Metadata } from 'next'
 
-const HomePageClient = dynamic(() => import("@/app/HomePageClient"), {
+export const dynamic = 'force-dynamic'
+
+const HomePageClient = dynamicImport(() => import("@/app/HomePageClient"), {
   loading: () => <div>Loading...</div>
 })
 

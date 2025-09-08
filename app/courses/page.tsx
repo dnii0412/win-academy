@@ -4,10 +4,12 @@ import CourseModel from "@/lib/models/Course"
 import { auth } from "@/auth"
 import CourseAccess from "@/lib/models/CourseAccess"
 import User from "@/lib/models/User"
-import dynamic from "next/dynamic"
+import dynamicImport from "next/dynamic"
 import type { Metadata } from 'next'
 
-const CoursesPageClient = dynamic(() => import("@/app/courses/CoursesPageClient"), {
+export const dynamic = 'force-dynamic'
+
+const CoursesPageClient = dynamicImport(() => import("@/app/courses/CoursesPageClient"), {
   loading: () => <div>Loading...</div>
 })
 

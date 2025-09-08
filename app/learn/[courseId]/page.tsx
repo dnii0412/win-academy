@@ -7,10 +7,11 @@ import { BUNNY_STREAM_CONFIG } from "@/lib/bunny-stream"
 import { auth } from "@/auth"
 import CourseAccess from "@/lib/models/CourseAccess"
 import User from "@/lib/models/User"
-import dynamic from "next/dynamic"
-import mongoose from 'mongoose'
+import dynamicImport from "next/dynamic"
 
-const LearnPageClient = dynamic(() => import("@/app/learn/[courseId]/LearnPageClient"), {
+export const dynamic = 'force-dynamic'
+
+const LearnPageClient = dynamicImport(() => import("@/app/learn/[courseId]/LearnPageClient"), {
   loading: () => <div>Loading...</div>
 })
 

@@ -42,13 +42,13 @@ export default function ProfilePage() {
     console.log("Refreshing profile data...")
     try {
       const [profileRes, statsRes] = await Promise.all([
-        fetch("/api/user/profile", { 
+        fetch("/api/user/profile", {
           cache: 'no-store',
           headers: {
             'Cache-Control': 'no-cache'
           }
         }),
-        fetch("/api/user/lesson-stats", { 
+        fetch("/api/user/lesson-stats", {
           cache: 'no-store',
           headers: {
             'Cache-Control': 'no-cache'
@@ -81,9 +81,9 @@ export default function ProfilePage() {
 
   useEffect(() => {
     console.log("ProfilePage useEffect - status:", status, "session:", session?.user?.email)
-    
+
     if (status === "loading") return
-    
+
     if (!session?.user?.email) {
       console.log("No session, redirecting to login")
       router.push("/login")
@@ -94,13 +94,13 @@ export default function ProfilePage() {
       console.log("Fetching profile data...")
       try {
         const [profileRes, statsRes] = await Promise.all([
-          fetch("/api/user/profile", { 
+          fetch("/api/user/profile", {
             cache: 'no-store',
             headers: {
               'Cache-Control': 'no-cache'
             }
           }),
-          fetch("/api/user/lesson-stats", { 
+          fetch("/api/user/lesson-stats", {
             cache: 'no-store',
             headers: {
               'Cache-Control': 'no-cache'
@@ -189,9 +189,9 @@ export default function ProfilePage() {
                 {/* Profile Picture Placeholder */}
                 <div className="w-24 h-24 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-6">
                   {profile.avatar ? (
-                    <img 
-                      src={profile.avatar} 
-                      alt="Profile" 
+                    <img
+                      src={profile.avatar}
+                      alt="Profile"
                       className="w-full h-full rounded-full object-cover"
                     />
                   ) : (

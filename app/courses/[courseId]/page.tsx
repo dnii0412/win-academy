@@ -5,11 +5,13 @@ import Subcourse from "@/lib/models/Subcourse"
 import { auth } from "@/auth"
 import CourseAccess from "@/lib/models/CourseAccess"
 import User from "@/lib/models/User"
-import dynamic from "next/dynamic"
+import dynamicImport from "next/dynamic"
 import type { Metadata } from 'next'
 import mongoose from 'mongoose'
 
-const CourseOverviewClient = dynamic(() => import("@/app/courses/[courseId]/CourseOverviewClient"), {
+export const dynamic = 'force-dynamic'
+
+const CourseOverviewClient = dynamicImport(() => import("@/app/courses/[courseId]/CourseOverviewClient"), {
   loading: () => <div>Loading...</div>
 })
 
@@ -43,7 +45,7 @@ interface Subcourse {
 async function getCourseData(courseId: string) {
   try {
     await dbConnect()
-    
+
     // Fetch course data
     const course = await CourseModel.findById(courseId).lean()
     if (!course) {
@@ -69,7 +71,7 @@ async function getCourseData(courseId: string) {
           courseId: new mongoose.Types.ObjectId(courseId),
           hasAccess: true
         }).lean()
-        
+
         hasAccess = !!courseAccess
       }
     }
@@ -152,7 +154,7 @@ export default async function CourseOverviewPage({ params }: { params: Promise<{
   const { course, subcourses, hasAccess, error } = await getCourseData(courseId)
 
   return (
-    <CourseOverviewClient 
+    <CourseOverviewClient
       course={course}
       subcourses={subcourses}
       hasAccess={hasAccess}
