@@ -99,14 +99,16 @@ async function getLearnPageData(courseId: string) {
     }
 
     // Check if user has access to this course
+    // Try both user._id.toString() and user.email since orders might use either format
     const courseAccess = await CourseAccess.findOne({
-      userId: user._id.toString(),
-      courseId: new mongoose.Types.ObjectId(courseId),
-      hasAccess: true
+      $or: [
+        { userId: user._id.toString(), courseId: new mongoose.Types.ObjectId(courseId), hasAccess: true },
+        { userId: user.email, courseId: new mongoose.Types.ObjectId(courseId), hasAccess: true }
+      ]
     }).lean()
     
     const hasAccess = !!courseAccess
-    console.log('getLearnPageData: User has access:', hasAccess, 'Access record:', !!courseAccess)
+    console.log('getLearnPageData: User has access:', hasAccess, 'Access record:', !!courseAccess, 'User ID:', user._id.toString(), 'User email:', user.email)
 
     // Fetch subcourses if user has access
     let subcourses: Subcourse[] = []

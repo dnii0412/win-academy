@@ -62,10 +62,12 @@ export async function GET(
     console.log('Found user:', { userId: userObjectId, email: user.email })
 
     // Check unified CourseAccess schema
+    // Try both user._id.toString() and user.email since orders might use either format
     let courseAccess = await CourseAccess.findOne({
-      userId: userObjectId,
-      courseId,
-      hasAccess: true
+      $or: [
+        { userId: userObjectId, courseId, hasAccess: true },
+        { userId: user.email, courseId, hasAccess: true }
+      ]
     })
 
     console.log('Access check results:', {
