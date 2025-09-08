@@ -15,8 +15,8 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [currentLanguage, setCurrentLanguage] = useState<Language>("mn")
 
+  // Initialize language from localStorage
   useEffect(() => {
-    // Load saved language from localStorage
     const savedLanguage = localStorage.getItem("language") as Language
     if (savedLanguage && languages[savedLanguage]) {
       setCurrentLanguage(savedLanguage)
@@ -31,24 +31,15 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const t = (key: string): string => {
     const keys = key.split(".")
     let value: any = translations[currentLanguage]
-    
+
     for (const k of keys) {
       if (value && typeof value === "object" && k in value) {
         value = value[k]
       } else {
-        // Fallback to Mongolian if translation not found
-        value = translations.mn
-        for (const fallbackKey of keys) {
-          if (value && typeof value === "object" && fallbackKey in value) {
-            value = value[fallbackKey]
-          } else {
-            return key // Return key if translation not found
-          }
-        }
-        return key
+        return key // Return key if translation not found
       }
     }
-    
+
     return typeof value === "string" ? value : key
   }
 

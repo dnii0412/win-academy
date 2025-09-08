@@ -7,8 +7,9 @@ import { useTheme } from "next-themes"
 import { Moon, Sun, Menu, X, User, LogOut, Settings } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
 import { useSession, signOut } from "next-auth/react"
-import { useLanguage } from "@/contexts/language-context"
 import Logo from "./logo"
+import LanguageSwitcher from "./language-switcher"
+import { useLanguage } from "@/contexts/language-context"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -96,7 +97,8 @@ export default function Navbar() {
 
           {/* Right - User Controls - more gathered and left-sided */}
           <div className="hidden md:flex items-center space-x-3">
-            {/* Language toggle removed - Mongolian is now default */}
+            {/* Language Switcher */}
+            <LanguageSwitcher />
 
             <Button
               variant="ghost"
@@ -113,7 +115,7 @@ export default function Navbar() {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="hover:bg-accent transition-colors duration-200">
                     <User className="h-4 w-4 mr-2" />
-                    {session.user?.name || "Dashboard"}
+                    {session.user?.name || t("nav.dashboard")}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
@@ -191,7 +193,10 @@ export default function Navbar() {
               </div>
 
               <div className="space-y-4 pt-6 border-t border-border">
-                {/* Language toggle removed - Mongolian is now default */}
+                {/* Language Switcher */}
+                <div className="flex justify-center">
+                  <LanguageSwitcher className="w-full justify-center" />
+                </div>
 
                 <Button
                   variant="ghost"
@@ -213,7 +218,7 @@ export default function Navbar() {
                           className="w-full justify-center hover:bg-accent transition-colors duration-200"
                         >
                           <User className="h-4 w-4 mr-2" />
-                          {session.user?.name || "Dashboard"}
+                          {session.user?.name || t("nav.dashboard")}
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-full">

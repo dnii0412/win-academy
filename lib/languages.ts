@@ -11,6 +11,7 @@ export const translations = {
     nav: {
       home: "Home",
       courses: "Courses",
+      videos: "Videos",
       login: "Login",
       register: "Register",
       dashboard: "Dashboard",
@@ -18,6 +19,8 @@ export const translations = {
       settings: "Settings",
       logout: "Logout",
       careers: "Careers",
+      navigation: "Navigation",
+      contacts: "Contacts",
     },
     // Home page
     home: {
@@ -246,6 +249,7 @@ export const translations = {
     nav: {
       home: "Нүүр",
       courses: "Сургалтууд",
+      videos: "Видеонууд",
       login: "Нэвтрэх",
       register: "Бүртгүүлэх",
       dashboard: "Удирдлага",
@@ -253,11 +257,13 @@ export const translations = {
       settings: "Тохиргоо",
       logout: "Гарах",
       careers: "Карьер",
+      navigation: "Хөтөч",
+      contacts: "Холбоо барих",
     },
     // Home page
     home: {
       hero: {
-        title: "Learn. <span style='color: #E10600;'>Create.</span> Get Hired.",
+        title: "Суралц. <span style='color: #E10600;'>Бүтээ.</span> Ажилд ор.",
         subtitle: "Маркетинг, дизайн, AI-ийн практик ур чадвараар өөрийгөө хөгжүүл. Монголын тэргүүлэгч дижитал мэргэжлийн академид нэгдээрэй.",
         motto: "Дижитал маркетинг, борлуулалт, график дизайн, хиймэл оюуны хамгийн шинэлэг хөтөлбөрүүд",
         studentsHired: "Ажилд орсон сурагчид:",

@@ -3,9 +3,11 @@
 import Link from "next/link"
 import Image from "next/image"
 import Logo from "./logo"
+import { useLanguage } from "@/contexts/language-context"
 
 export default function Footer() {
-
+  const { t } = useLanguage()
+  
   return (
     <footer className="bg-[#111111] text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -36,21 +38,21 @@ export default function Footer() {
           </div>
 
           <div>
-            <h3 className="font-semibold mb-4">Navigation</h3>
+            <h3 className="font-semibold mb-4">{t("nav.navigation")}</h3>
             <ul className="space-y-2 text-gray-400">
               <li>
                 <Link href="/" className="hover:text-[#E10600]">
-                  Home
+                  {t("nav.home")}
                 </Link>
               </li>
               <li>
                 <Link href="/courses" className="hover:text-[#E10600]">
-                  Courses
+                  {t("nav.courses")}
                 </Link>
               </li>
               <li>
                 <Link href="/#contact" className="hover:text-[#E10600]">
-                  Contacts
+                  {t("nav.contacts")}
                 </Link>
               </li>
             </ul>
