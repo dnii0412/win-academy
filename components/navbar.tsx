@@ -218,6 +218,8 @@ export default function Navbar() {
           <div className="px-4 py-6">
             {/* Mobile Menu Content */}
             <div className="space-y-6">
+              {/* Debug: Menu is open */}
+              <div className="text-xs text-gray-500 mb-2">Mobile menu is open</div>
               <div className="space-y-4">
                 <Link
                   href="/"
@@ -310,7 +312,7 @@ export default function Navbar() {
                     </Link>
                   </div>
                 )}
-              </div>``
+              </div>
             </div>
           </div>
         </div>
