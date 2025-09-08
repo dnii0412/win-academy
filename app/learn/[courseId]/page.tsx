@@ -97,6 +97,14 @@ async function getLearnPageData(courseId: string) {
       ]
     }).lean()
     
+    // Also check without hasAccess filter to see if access record exists
+    const anyAccess = await CourseAccess.findOne({
+      $or: [
+        { userId: user._id.toString(), courseId: new mongoose.Types.ObjectId(courseId) },
+        { userId: user.email, courseId: new mongoose.Types.ObjectId(courseId) }
+      ]
+    }).lean()
+    
     const hasAccess = !!courseAccess
 
     // Fetch subcourses if user has access
@@ -144,7 +152,21 @@ async function getLearnPageData(courseId: string) {
         courseId: (subcourse as any).courseId.toString()
       })),
       hasAccess,
-      error: null
+      error: null,
+      // Debug information
+      debug: {
+        userId: user._id.toString(),
+        userEmail: user.email,
+        courseId: courseId,
+        courseAccessExists: !!courseAccess,
+        anyAccessExists: !!anyAccess,
+        courseAccessData: courseAccess ? {
+          userId: courseAccess.userId,
+          hasAccess: courseAccess.hasAccess,
+          accessType: courseAccess.accessType,
+          status: courseAccess.status
+        } : null
+      }
     }
     } catch (error) {
     return { 
@@ -158,7 +180,7 @@ async function getLearnPageData(courseId: string) {
 
 export default async function LearnPage({ params }: { params: Promise<{ courseId: string }> }) {
   const { courseId } = await params
-  const { course, subcourses, hasAccess, error } = await getLearnPageData(courseId)
+  const { course, subcourses, hasAccess, error, debug } = await getLearnPageData(courseId)
     
     return (
     <LearnPageClient 
@@ -167,6 +189,7 @@ export default async function LearnPage({ params }: { params: Promise<{ courseId
       hasAccess={hasAccess}
       error={error}
       courseId={courseId}
+      debug={debug}
     />
   )
 }

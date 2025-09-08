@@ -39,6 +39,7 @@ interface LearnPageClientProps {
   hasAccess: boolean
   error: string | null
   courseId: string
+  debug?: any
 }
 
 export default function LearnPageClient({ 
@@ -46,7 +47,8 @@ export default function LearnPageClient({
   subcourses, 
   hasAccess, 
   error, 
-  courseId 
+  courseId,
+  debug
 }: LearnPageClientProps) {
   const router = useRouter()
   const { data: session } = useSession()
@@ -248,6 +250,27 @@ export default function LearnPageClient({
             <p className="text-xs text-gray-500 text-center mt-2">
               Хэрэв та төлбөр төлсөн бол "Хандах эрх дахин шалгах" товчийг дарж дахин шалгана уу.
             </p>
+            
+            {/* Debug information */}
+            {debug && (
+              <div className="mt-4 p-4 bg-gray-100 rounded text-xs">
+                <h4 className="font-bold mb-2">Debug Information:</h4>
+                <p><strong>User ID:</strong> {debug.userId}</p>
+                <p><strong>User Email:</strong> {debug.userEmail}</p>
+                <p><strong>Course ID:</strong> {debug.courseId}</p>
+                <p><strong>Course Access Exists:</strong> {debug.courseAccessExists ? 'Yes' : 'No'}</p>
+                <p><strong>Any Access Exists:</strong> {debug.anyAccessExists ? 'Yes' : 'No'}</p>
+                {debug.courseAccessData && (
+                  <div className="mt-2">
+                    <p><strong>Access Data:</strong></p>
+                    <p>User ID in access: {debug.courseAccessData.userId}</p>
+                    <p>Has Access: {debug.courseAccessData.hasAccess ? 'Yes' : 'No'}</p>
+                    <p>Access Type: {debug.courseAccessData.accessType}</p>
+                    <p>Status: {debug.courseAccessData.status}</p>
+                  </div>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
