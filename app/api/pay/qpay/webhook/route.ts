@@ -102,12 +102,18 @@ export async function POST(req: NextRequest) {
       console.log('qpay.webhook.ack', { correlationId, decision: 'paid', orderId: order._id })
 
       // Grant access using the CourseAccess model's static method
-      await CourseAccess.grantAccess(
-        order.userId, 
-        order.courseId, 
-        order._id.toString(), 
-        'purchase'
-      )
+      try {
+        const accessResult = await CourseAccess.grantAccess(
+          order.userId, 
+          order.courseId, 
+          order._id.toString(), 
+          'purchase'
+        )
+        console.log('Course access granted successfully:', accessResult._id)
+      } catch (accessError) {
+        console.error('Failed to grant course access:', accessError)
+        // Don't fail the webhook if access granting fails
+      }
 
       return NextResponse.json({ ok: true, paid: true })
     } else {
