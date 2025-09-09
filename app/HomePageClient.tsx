@@ -10,13 +10,59 @@ import Link from "next/link"
 import { Course } from "@/types/course"
 import CourseImage from "@/components/course-image"
 import PerformanceOptimizer from "@/components/performance-optimizer"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
+import { useSession } from "next-auth/react"
+import { Play, ShoppingCart } from "lucide-react"
 
 interface HomePageClientProps {
   featuredCourses: Course[]
+  session: any
 }
 
-export default function HomePageClient({ featuredCourses }: HomePageClientProps) {
+export default function HomePageClient({ featuredCourses, session }: HomePageClientProps) {
+  const { data: clientSession } = useSession()
+  const [courseAccess, setCourseAccess] = useState<Record<string, boolean>>({})
+  const [isCheckingAccess, setIsCheckingAccess] = useState(false)
+
+  // Check course access for all featured courses
+  const checkCourseAccess = async (courseId: string) => {
+    if (!clientSession?.user?.email) return false
+    
+    try {
+      const response = await fetch(`/api/courses/${courseId}/access`)
+      if (response.ok) {
+        const data = await response.json()
+        return data.hasAccess
+      }
+    } catch (error) {
+      console.error('Error checking course access:', error)
+    }
+    return false
+  }
+
+  // Check access for all courses when component mounts or session changes
+  useEffect(() => {
+    const checkAllCourseAccess = async () => {
+      if (!clientSession?.user?.email) return
+      
+      setIsCheckingAccess(true)
+      const accessPromises = featuredCourses.map(async (course) => {
+        const hasAccess = await checkCourseAccess(course._id)
+        return { courseId: course._id, hasAccess }
+      })
+      
+      const results = await Promise.all(accessPromises)
+      const accessMap = results.reduce((acc, { courseId, hasAccess }) => {
+        acc[courseId] = hasAccess
+        return acc
+      }, {} as Record<string, boolean>)
+      
+      setCourseAccess(accessMap)
+      setIsCheckingAccess(false)
+    }
+
+    checkAllCourseAccess()
+  }, [clientSession?.user?.email, featuredCourses])
 
   // Handle structured data on client side to prevent hydration mismatch
   useEffect(() => {
@@ -232,10 +278,13 @@ export default function HomePageClient({ featuredCourses }: HomePageClientProps)
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {featuredCourses.map((course, index) => (
-                <AnimatedSection key={course._id} animation="fadeUp" className={`delay-${index * 100}`}>
-                  <Link href={`/courses/${course._id}`}>
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer group">
+              {featuredCourses.map((course, index) => {
+                const hasAccess = courseAccess[course._id] || false
+                const isLoggedIn = !!clientSession?.user?.email
+                
+                return (
+                  <AnimatedSection key={course._id} animation="fadeUp" className={`delay-${index * 100}`}>
+                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group">
                       <div className="mb-4">
                         <CourseImage
                           thumbnailUrl={course.thumbnailUrl}
@@ -255,14 +304,35 @@ export default function HomePageClient({ featuredCourses }: HomePageClientProps)
                         <div className="text-lg font-bold text-[#E10600] mb-3">
                           ₮{course.price.toLocaleString()}
                         </div>
-                        <Button className="w-full bg-[#E10600] hover:bg-[#C70500] text-white whitespace-normal leading-tight">
-                          төлбөр төлөх ₮{course.price.toLocaleString()}
-                        </Button>
+                        
+                        {/* Conditional Button */}
+                        {hasAccess ? (
+                          <Link href={`/learn/${course._id}`} className="block">
+                            <Button className="w-full bg-green-600 hover:bg-green-700 text-white whitespace-normal leading-tight">
+                              <Play className="h-4 w-4 mr-2" />
+                              Үргэлжлүүлэх
+                            </Button>
+                          </Link>
+                        ) : isLoggedIn ? (
+                          <Link href={`/checkout/${course._id}`} className="block">
+                            <Button className="w-full bg-[#E10600] hover:bg-[#C70500] text-white whitespace-normal leading-tight">
+                              <ShoppingCart className="h-4 w-4 mr-2" />
+                              төлбөр төлөх ₮{course.price.toLocaleString()}
+                            </Button>
+                          </Link>
+                        ) : (
+                          <Link href={`/login?callbackUrl=${encodeURIComponent(`/checkout/${course._id}`)}`} className="block">
+                            <Button className="w-full bg-[#E10600] hover:bg-[#C70500] text-white whitespace-normal leading-tight">
+                              <ShoppingCart className="h-4 w-4 mr-2" />
+                              Нэвтрэх / төлбөр төлөх ₮{course.price.toLocaleString()}
+                            </Button>
+                          </Link>
+                        )}
                       </div>
                     </div>
-                  </Link>
-                </AnimatedSection>
-              ))}
+                  </AnimatedSection>
+                )
+              })}
             </div>
           )}
           <AnimatedSection className="text-center mt-12">

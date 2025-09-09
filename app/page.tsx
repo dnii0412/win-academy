@@ -3,6 +3,7 @@ import dbConnect from "@/lib/mongoose"
 import CourseModel from "@/lib/models/Course"
 import dynamicImport from "next/dynamic"
 import type { Metadata } from 'next'
+import { auth } from "@/auth"
 
 export const dynamic = 'force-dynamic'
 
@@ -85,6 +86,7 @@ async function getFeaturedCourses(): Promise<Course[]> {
 
 export default async function HomePage() {
   const featuredCourses = await getFeaturedCourses()
+  const session = await auth()
 
-  return <HomePageClient featuredCourses={featuredCourses} />
+  return <HomePageClient featuredCourses={featuredCourses} session={session} />
 }
