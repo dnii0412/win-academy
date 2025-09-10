@@ -8,7 +8,7 @@
  * This script checks the status of a video in Bunny.net and provides
  * detailed information about its processing state.
  * 
- * FIXED: Now checks if video actually received bytes from TUS upload
+ * Checks if video actually received bytes from upload
  */
 
 import { BUNNY_STREAM_CONFIG } from '../lib/bunny-stream'
@@ -154,12 +154,12 @@ async function checkBunnyVideo(videoId: string): Promise<void> {
     console.log(`  Embed URL: ${embedUrl}`)
     console.log('')
 
-    // Check if video received bytes (critical for TUS uploads)
+    // Check if video received bytes (critical for uploads)
     const hasBytes = video.length > 0 || video.storageSize > 0
     if (!hasBytes) {
-      console.log('❌ CRITICAL: Video has no bytes! TUS upload failed.')
+      console.log('❌ CRITICAL: Video has no bytes! Upload failed.')
       console.log('   This means the file never reached Bunny.net')
-      console.log('   Check that TUS uploads go to https://video.bunnycdn.com/tusupload')
+      console.log('   Check that uploads go to the correct Bunny.net endpoint')
       console.log('   with proper AuthorizationSignature headers')
     } else {
       console.log('✅ Video received bytes from upload')

@@ -29,24 +29,8 @@ export const BUNNY_STREAM_CONFIG = {
   baseUrl: 'https://video.bunnycdn.com',
   streamUrl: 'https://iframe.mediadelivery.net',
   uploadUrl: 'https://video.bunnycdn.com',
-  // Enhanced configuration for better TUS uploads
-  maxChunkSize: 16 * 1024 * 1024, // 16MB chunks
-  uploadTimeout: 1800000, // 30 minutes for large files
-  retryAttempts: 3,
-  retryDelay: 1000 // 1 second
 }
 
-// Enhanced TUS upload configuration
-export const TUS_CONFIG = {
-  version: '1.0.0',
-  maxFileSize: 10 * 1024 * 1024 * 1024, // 10GB max
-  supportedExtensions: ['mp4', 'avi', 'mov', 'wmv', 'flv', 'webm', 'mkv'],
-  supportedMimeTypes: [
-    'video/mp4', 'video/avi', 'video/mov', 'video/wmv', 
-    'video/flv', 'video/webm', 'video/x-msvideo', 
-    'video/quicktime', 'video/x-ms-wmv', 'video/x-flv'
-  ]
-}
 
 export const getBunnyStreamUrl = (videoId: string) => {
   // Use the correct Bunny.net Stream embed URL format
@@ -181,14 +165,3 @@ export const createBunnyVideo = async (title: string, description?: string) => {
   }
 }
 
-export const getTusUploadUrl = (videoId: string) => {
-  return `${BUNNY_STREAM_CONFIG.uploadUrl}/library/${BUNNY_STREAM_CONFIG.libraryId}/videos/${videoId}/tusupload`
-}
-
-export const getTusUploadHeaders = () => {
-  return {
-    'AccessKey': BUNNY_STREAM_CONFIG.apiKey,
-    'Tus-Resumable': '1.0.0',
-    'Upload-Offset': '0'
-  }
-}

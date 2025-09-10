@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
+import { Checkbox } from "@/components/ui/checkbox"
 import { 
   Plus, 
   Edit, 
@@ -15,11 +16,14 @@ import {
   Calendar,
   Shield,
   Users,
-  BookOpen
+  BookOpen,
+  CheckSquare,
+  Square
 } from "lucide-react"
 import Link from "next/link"
 import UserForm from "./components/UserForm"
 import CourseAccessManager from "./components/CourseAccessManager"
+import BulkCourseAccessManager from "./components/BulkCourseAccessManager"
 
 interface AdminUser {
   _id: string
@@ -41,6 +45,8 @@ export default function AdminUsersPage() {
   const [showEditForm, setShowEditForm] = useState(false)
   const [showCourseAccess, setShowCourseAccess] = useState(false)
   const [selectedUserForAccess, setSelectedUserForAccess] = useState<AdminUser | null>(null)
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([])
+  const [showBulkAccess, setShowBulkAccess] = useState(false)
 
   useEffect(() => {
     fetchUsers()
@@ -172,6 +178,35 @@ export default function AdminUsersPage() {
     setShowCourseAccess(true)
   }
 
+  const handleSelectUser = (userId: string) => {
+    setSelectedUsers(prev => 
+      prev.includes(userId) 
+        ? prev.filter(id => id !== userId)
+        : [...prev, userId]
+    )
+  }
+
+  const handleSelectAll = () => {
+    if (selectedUsers.length === filteredUsers.length) {
+      setSelectedUsers([])
+    } else {
+      setSelectedUsers(filteredUsers.map(user => user._id))
+    }
+  }
+
+  const handleBulkAccessClick = () => {
+    if (selectedUsers.length === 0) {
+      alert("Please select at least one user")
+      return
+    }
+    setShowBulkAccess(true)
+  }
+
+  const handleBulkAccessSuccess = () => {
+    setSelectedUsers([])
+    fetchUsers() // Refresh users to show updated access
+  }
+
   const filteredUsers = users.filter(user =>
     user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -215,7 +250,7 @@ export default function AdminUsersPage() {
 
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Search and Add User Button */}
+        {/* Search and Action Buttons */}
         <div className="mb-6 flex justify-between items-center">
           <div className="relative max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -226,95 +261,137 @@ export default function AdminUsersPage() {
               className="pl-10"
             />
           </div>
-          <Button
-            onClick={() => setShowAddForm(true)}
-            className="bg-green-600 hover:bg-green-700"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add User
-          </Button>
+          <div className="flex gap-2">
+            {selectedUsers.length > 0 && (
+              <Button
+                onClick={handleBulkAccessClick}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <Users className="h-4 w-4 mr-2" />
+                Give Course Access ({selectedUsers.length})
+              </Button>
+            )}
+            <Button
+              onClick={() => setShowAddForm(true)}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add User
+            </Button>
+          </div>
         </div>
 
-        {/* Users Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredUsers.map((user) => (
-            <Card key={user._id} className="overflow-hidden hover:shadow-lg transition-shadow">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg line-clamp-2">
-                      {user.fullName}
-                    </CardTitle>
-                    <CardDescription className="line-clamp-2 mt-2">
-                      {user.email}
-                    </CardDescription>
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <Badge variant={getRoleBadgeVariant(user.role)}>
-                      {user.role}
-                    </Badge>
-                    <Badge variant={getStatusBadgeVariant(user.status)}>
-                      {user.status}
-                    </Badge>
-                  </div>
-                </div>
-              </CardHeader>
-
-              <CardContent className="pt-0">
-                <div className="space-y-3 mb-4">
-                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                    <User className="h-4 w-4 mr-2" />
-                    <span>{user.fullName}</span>
-                  </div>
-                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                    <Mail className="h-4 w-4 mr-2" />
-                    <span>{user.email}</span>
-                  </div>
-                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                    <Calendar className="h-4 w-4 mr-2" />
-                    <span>{new Date(user.createdAt).toLocaleDateString()}</span>
-                  </div>
-                  {user.lastLogin && (
-                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                      <Shield className="h-4 w-4 mr-2" />
-                      <span>Last: {new Date(user.lastLogin).toLocaleDateString()}</span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1"
-                    onClick={() => handleEditClick(user)}
-                  >
-                    <Edit className="h-4 w-4 mr-2" />
-                    Edit
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1"
-                    onClick={() => handleCourseAccessClick(user)}
-                  >
-                    <BookOpen className="h-4 w-4 mr-2" />
-                    Courses
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-red-600 border-red-600 hover:bg-red-50"
-                    onClick={() => handleDeleteUser(user._id)}
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Delete
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        {/* Users Table */}
+        <Card>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 dark:bg-gray-800">
+                  <tr>
+                    <th className="px-6 py-3 text-left">
+                      <Checkbox
+                        checked={selectedUsers.length === filteredUsers.length && filteredUsers.length > 0}
+                        onCheckedChange={handleSelectAll}
+                      />
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      User
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Role
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Created
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Last Login
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                  {filteredUsers.map((user) => (
+                    <tr key={user._id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <Checkbox
+                          checked={selectedUsers.includes(user._id)}
+                          onCheckedChange={() => handleSelectUser(user._id)}
+                        />
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-10 w-10">
+                            <div className="h-10 w-10 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
+                              <User className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                            </div>
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900 dark:text-white">
+                              {user.fullName}
+                            </div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                              {user.email}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <Badge variant={getRoleBadgeVariant(user.role)}>
+                          {user.role}
+                        </Badge>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <Badge variant={getStatusBadgeVariant(user.status)}>
+                          {user.status}
+                        </Badge>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        {new Date(user.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                        {user.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : 'Never'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditClick(user)}
+                          >
+                            <Edit className="h-4 w-4 mr-1" />
+                            Edit
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleCourseAccessClick(user)}
+                          >
+                            <BookOpen className="h-4 w-4 mr-1" />
+                            Courses
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-red-600 border-red-600 hover:bg-red-50"
+                            onClick={() => handleDeleteUser(user._id)}
+                          >
+                            <Trash2 className="h-4 w-4 mr-1" />
+                            Delete
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
 
         {filteredUsers.length === 0 && (
           <div className="text-center py-12">
@@ -358,6 +435,15 @@ export default function AdminUsersPage() {
             setShowCourseAccess(false)
             setSelectedUserForAccess(null)
           }}
+        />
+      )}
+
+      {/* Bulk Course Access Manager Modal */}
+      {showBulkAccess && (
+        <BulkCourseAccessManager
+          selectedUsers={filteredUsers.filter(user => selectedUsers.includes(user._id))}
+          onClose={() => setShowBulkAccess(false)}
+          onSuccess={handleBulkAccessSuccess}
         />
       )}
     </div>

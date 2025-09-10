@@ -28,8 +28,11 @@ export async function GET(
     // Connect to database
     await dbConnect()
 
-    // Get user's course access from unified schema
-    const courseAccess = await CourseAccess.find({ userId })
+    // Get user's course access from unified schema (only active access)
+    const courseAccess = await CourseAccess.find({ 
+      userId,
+      hasAccess: true  // Only show courses with active access
+    })
       .populate('courseId', 'title titleMn description descriptionMn price status')
       .populate('orderId', 'orderNumber status')
       .populate('accessGrantedBy', 'firstName lastName email')
@@ -91,31 +94,16 @@ export async function POST(
 
     const userStringId = user._id.toString()
 
-    // Check if access already exists
-    const existingAccess = await CourseAccess.findOne({
-      userId: userStringId,
-      courseId: body.courseId
-    })
-
-    if (existingAccess) {
-      return NextResponse.json({ error: "User already has access to this course" }, { status: 400 })
-    }
-
-    // Create new CourseAccess record with admin grant
+    // Grant or update access using the grantAccess method (handles upsert)
     const courseAccess = await CourseAccess.grantAccess(
       userStringId,
       body.courseId,
       undefined, // No orderId for admin grants
       'admin_grant',
       decoded.userId || decoded.sub, // grantedBy
-      body.notes || '' // notes
+      body.notes || '', // notes
+      body.expiresAt // expiresAt
     )
-
-    // Set expiry if provided
-    if (body.expiresAt) {
-      courseAccess.expiresAt = new Date(body.expiresAt)
-      await courseAccess.save()
-    }
 
     // Update status if provided
     if (body.status) {
@@ -128,7 +116,7 @@ export async function POST(
     await courseAccess.populate('accessGrantedBy', 'firstName lastName')
 
     return NextResponse.json({
-      message: "Course access granted successfully",
+      message: "Course access granted/updated successfully",
       courseAccess,
       accessType: 'admin_grant'
     }, { status: 201 })
@@ -226,8 +214,8 @@ export async function DELETE(
     // Connect to database
     await dbConnect()
 
-    // Find access record
-    const courseAccess = await CourseAccess.findOne({
+    // Find and delete access record
+    const courseAccess = await CourseAccess.findOneAndDelete({
       _id: accessId,
       userId
     })
@@ -235,9 +223,6 @@ export async function DELETE(
     if (!courseAccess) {
       return NextResponse.json({ error: "Course access not found" }, { status: 404 })
     }
-
-    // Revoke access
-    await CourseAccess.revokeAccess(userId, courseAccess.courseId.toString())
 
     return NextResponse.json({ message: "Course access revoked successfully" })
 

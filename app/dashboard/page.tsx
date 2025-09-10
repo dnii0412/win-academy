@@ -21,6 +21,9 @@ interface EnrolledCourse {
   completedLessons?: number
   instructor: string
   instructorMn?: string
+  expiresAt?: string
+  accessType?: string
+  status?: string
 }
 
 async function getEnrolledCourses(userEmail: string): Promise<EnrolledCourse[]> {
@@ -33,13 +36,38 @@ async function getEnrolledCourses(userEmail: string): Promise<EnrolledCourse[]> 
       return []
     }
 
-    // Get enrolled courses
+    // Get enrolled courses with access details
     const courseAccesses = await CourseAccess.find({
       userId: user._id.toString(),
       hasAccess: true
+    }).select({
+      courseId: 1,
+      expiresAt: 1,
+      accessType: 1,
+      status: 1,
+      grantedAt: 1
     }).lean()
 
+    console.log('🔍 Raw course access data from DB:', courseAccesses.map(access => ({
+      courseId: access.courseId,
+      expiresAt: access.expiresAt,
+      accessType: access.accessType,
+      status: access.status
+    })))
+
     const courseIds = courseAccesses.map(access => access.courseId)
+    
+    // Create a map of courseId to access details
+    const accessMap = new Map()
+    courseAccesses.forEach(access => {
+      accessMap.set(access.courseId.toString(), {
+        expiresAt: access.expiresAt,
+        accessType: access.accessType,
+        status: access.status,
+        grantedAt: access.grantedAt
+      })
+    })
+
 
     // Fetch course details
     const courses = await CourseModel.find({
@@ -71,7 +99,10 @@ async function getEnrolledCourses(userEmail: string): Promise<EnrolledCourse[]> 
         const completedLessons = 0
         const progress = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0
 
-        return {
+        // Get access details for this course
+        const accessDetails = accessMap.get((course._id as any).toString()) || {}
+
+        const courseData = {
           ...course,
           _id: (course._id as any).toString(),
           title: course.title || "",
@@ -83,8 +114,14 @@ async function getEnrolledCourses(userEmail: string): Promise<EnrolledCourse[]> 
           instructorMn: course.instructorMn || "",
           totalLessons,
           completedLessons,
-          progress
+          progress,
+          expiresAt: accessDetails.expiresAt,
+          accessType: accessDetails.accessType,
+          status: accessDetails.status
         }
+
+
+        return courseData
       })
     )
 

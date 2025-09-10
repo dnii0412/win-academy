@@ -19,6 +19,9 @@ interface EnrolledCourse {
   completedLessons?: number
   instructor: string
   instructorMn?: string
+  expiresAt?: string
+  accessType?: string
+  status?: string
 }
 
 interface DashboardClientProps {
@@ -30,6 +33,38 @@ interface DashboardClientProps {
 }
 
 export default function DashboardClient({ enrolledCourses, user }: DashboardClientProps) {
+  // Debug logging
+  console.log('📊 DashboardClient received courses:', enrolledCourses.map(course => ({
+    id: course._id,
+    title: course.title,
+    expiresAt: course.expiresAt,
+    accessType: course.accessType,
+    status: course.status
+  })))
+
+  // Function to calculate time remaining
+  const getTimeRemaining = (expiresAt?: string) => {
+    if (!expiresAt) return null
+    
+    const now = new Date()
+    const expiry = new Date(expiresAt)
+    const diff = expiry.getTime() - now.getTime()
+    
+    if (diff <= 0) return { expired: true, text: "Хугацаа дууссан" }
+    
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+    
+    if (days > 0) {
+      return { expired: false, text: `${days} хоног үлдлээ` }
+    } else if (hours > 0) {
+      return { expired: false, text: `${hours} цаг үлдлээ` }
+    } else {
+      return { expired: false, text: `${minutes} минут үлдлээ` }
+    }
+  }
+
   return (
     <div>
       <div className="max-w-6xl mx-auto">
@@ -170,6 +205,27 @@ export default function DashboardClient({ enrolledCourses, user }: DashboardClie
                           {course.progress || 0}%
                         </span>
                       </div>
+
+                      {/* Time Remaining Display */}
+                      {course.expiresAt && (
+                        <div className="text-center">
+                          {(() => {
+                            const timeRemaining = getTimeRemaining(course.expiresAt)
+                            if (!timeRemaining) return null
+                            
+                            return (
+                              <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                                timeRemaining.expired 
+                                  ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' 
+                                  : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                              }`}>
+                                <Clock className="h-4 w-4 mr-1" />
+                                {timeRemaining.text}
+                              </div>
+                            )
+                          })()}
+                        </div>
+                      )}
 
                       <div className="flex space-x-2">
                         <Link href={`/learn/${course._id}`} className="flex-1">

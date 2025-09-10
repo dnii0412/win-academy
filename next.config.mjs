@@ -23,7 +23,6 @@ const nextConfig = {
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
   // Configure external packages that should not be bundled
-  serverExternalPackages: ['tus-js-client'],
   // Configure for large file uploads
   experimental: {
     serverActions: {

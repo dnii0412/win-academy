@@ -88,7 +88,7 @@ courseAccessSchema.virtual('isValid').get(function () {
 
 // Static methods interface
 interface CourseAccessModel extends mongoose.Model<any> {
-  grantAccess(userId: string, courseId: string, orderId?: string, accessType?: string, grantedBy?: string, notes?: string): Promise<any>
+  grantAccess(userId: string, courseId: string, orderId?: string, accessType?: string, grantedBy?: string, notes?: string, expiresAt?: string): Promise<any>
   revokeAccess(userId: string, courseId: string): Promise<any>
   hasAccess(userId: string, courseId: string): Promise<boolean>
   updateProgress(userId: string, courseId: string, progress: number): Promise<any>
@@ -96,7 +96,7 @@ interface CourseAccessModel extends mongoose.Model<any> {
 }
 
 // Static method to grant access
-courseAccessSchema.statics.grantAccess = async function (userId: string, courseId: string, orderId?: string, accessType: string = 'purchase', grantedBy?: string, notes?: string) {
+courseAccessSchema.statics.grantAccess = async function (userId: string, courseId: string, orderId?: string, accessType: string = 'purchase', grantedBy?: string, notes?: string, expiresAt?: string) {
   return this.findOneAndUpdate(
     { userId, courseId },
     {
@@ -107,7 +107,8 @@ courseAccessSchema.statics.grantAccess = async function (userId: string, courseI
       grantedAt: new Date(),
       lastAccessedAt: new Date(),
       accessGrantedBy: grantedBy,
-      notes: notes || ''
+      notes: notes || '',
+      expiresAt: expiresAt ? new Date(expiresAt) : null
     },
     { upsert: true, new: true }
   )

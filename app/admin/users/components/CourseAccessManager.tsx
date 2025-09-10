@@ -95,6 +95,12 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
 
       if (enrollmentsResponse.ok) {
         const data = await enrollmentsResponse.json()
+        console.log('📚 Course access data received:', data.courseAccess?.map((access: any) => ({
+          courseId: access.courseId,
+          expiresAt: access.expiresAt,
+          accessType: access.accessType,
+          status: access.status
+        })))
         setCourseAccess(data.courseAccess || [])
       }
 
@@ -365,6 +371,62 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
                           {"Олгосон"}
                         </Label>
                         <p>{access.accessGrantedBy ? `${access.accessGrantedBy.firstName} ${access.accessGrantedBy.lastName}` : 'N/A'}</p>
+                      </div>
+                    </div>
+                    <div className="mt-4">
+                      <Label className="text-gray-600 dark:text-gray-400">
+                        {"Дуусах огноо"}
+                      </Label>
+                      <div className="flex items-center space-x-2 mt-1">
+                        {access.expiresAt ? (
+                          <>
+                            <p className="text-sm">{formatDate(access.expiresAt)}</p>
+                            {(() => {
+                            const now = new Date()
+                            const expiry = new Date(access.expiresAt)
+                            const diff = expiry.getTime() - now.getTime()
+                            const isExpired = diff <= 0
+                            
+                            if (isExpired) {
+                              return (
+                                <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+                                  Expired
+                                </span>
+                              )
+                            }
+                            
+                            const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+                            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+                            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+                            
+                            let timeText = ''
+                            let badgeColor = ''
+                            
+                            if (days > 0) {
+                              timeText = `${days} day${days !== 1 ? 's' : ''} left`
+                              badgeColor = days <= 7 
+                                ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                                : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                            } else if (hours > 0) {
+                              timeText = `${hours} hour${hours !== 1 ? 's' : ''} left`
+                              badgeColor = 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                            } else {
+                              timeText = `${minutes} minute${minutes !== 1 ? 's' : ''} left`
+                              badgeColor = 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                            }
+                            
+                            return (
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${badgeColor}`}>
+                                {timeText}
+                              </span>
+                            )
+                          })()}
+                          </>
+                        ) : (
+                          <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200">
+                            No expiration
+                          </span>
+                        )}
                       </div>
                     </div>
                     {access.notes && (
