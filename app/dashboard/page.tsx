@@ -54,6 +54,8 @@ async function getEnrolledCourses(userEmail: string): Promise<EnrolledCourse[]> 
       accessType: access.accessType,
       status: access.status
     })))
+    
+    console.log('🚀 TESTING - This should appear in terminal if changes are working!')
 
     const courseIds = courseAccesses.map(access => access.courseId)
     
@@ -141,6 +143,9 @@ export default async function DashboardPage() {
   }
 
   const enrolledCourses = await getEnrolledCourses(session.user.email)
+
+  console.log('📊 DashboardPage - About to pass to DashboardClient:')
+  console.log('📊 First course data:', enrolledCourses[0])
 
   return (
     <DashboardClient 

@@ -33,15 +33,6 @@ interface DashboardClientProps {
 }
 
 export default function DashboardClient({ enrolledCourses, user }: DashboardClientProps) {
-  // Debug logging
-  console.log('📊 DashboardClient received courses:', enrolledCourses.map(course => ({
-    id: course._id,
-    title: course.title,
-    expiresAt: course.expiresAt,
-    accessType: course.accessType,
-    status: course.status
-  })))
-
   // Function to calculate time remaining
   const getTimeRemaining = (expiresAt?: string) => {
     if (!expiresAt) return null
@@ -67,6 +58,9 @@ export default function DashboardClient({ enrolledCourses, user }: DashboardClie
 
   return (
     <div>
+      <div className="bg-red-500 text-white p-4 text-center text-xl font-bold">
+        🚀 DASHBOARD CLIENT IS RENDERING! Courses: {enrolledCourses?.length || 0}
+      </div>
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-[#111111] dark:text-white mb-2">
@@ -204,6 +198,19 @@ export default function DashboardClient({ enrolledCourses, user }: DashboardClie
                         <span className="text-2xl font-bold text-[#E10600]">
                           {course.progress || 0}%
                         </span>
+                      </div>
+
+                      {/* Debug Display */}
+                      <div className="text-center text-xs text-gray-500">
+                        DEBUG: expiresAt = {course.expiresAt ? course.expiresAt : 'null'}
+                      </div>
+
+                      {/* Test Hardcoded Expiration */}
+                      <div className="text-center">
+                        <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                          <Clock className="h-4 w-4 mr-1" />
+                          TEST: 5 минут үлдлээ
+                        </div>
                       </div>
 
                       {/* Time Remaining Display */}
