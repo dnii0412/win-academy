@@ -100,6 +100,10 @@ const lessonSchema = new mongoose.Schema({
       default: 0
     }
   },
+  videoUrl: {
+    type: String,
+    trim: true
+  },
   order: {
     type: Number,
     default: 0

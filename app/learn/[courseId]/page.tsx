@@ -125,16 +125,31 @@ async function getLearnPageData(courseId: string) {
           
           return {
             ...subcourse,
-            lessons: lessons.map(lesson => ({
-              ...lesson,
-              _id: (lesson._id as any).toString(),
-              subcourseId: (lesson.subcourseId as any).toString(),
-              courseId: (lesson.courseId as any).toString(),
-              // Map video properties to match the expected interface
-              videoUrl: lesson.video?.videoId ? `https://iframe.mediadelivery.net/embed/${BUNNY_STREAM_CONFIG.libraryId}/${lesson.video.videoId}` : undefined,
-              videoStatus: lesson.video?.status || 'processing',
-              duration: lesson.video?.duration || lesson.durationSec || 0
-            }))
+            lessons: lessons.map(lesson => {
+              const mappedLesson = {
+                ...lesson,
+                _id: (lesson._id as any).toString(),
+                subcourseId: (lesson.subcourseId as any).toString(),
+                courseId: (lesson.courseId as any).toString(),
+                // Map video properties to match the expected interface
+                videoUrl: lesson.videoUrl || (lesson.video?.videoId ? `https://iframe.mediadelivery.net/embed/${BUNNY_STREAM_CONFIG.libraryId}/${lesson.video.videoId}` : undefined),
+                videoStatus: lesson.videoUrl ? 'ready' : (lesson.video?.status || 'processing'),
+                duration: lesson.video?.duration || lesson.durationSec || 0
+              }
+              
+              // Debug logging for video data
+              console.log('📹 Lesson video data:', {
+                lessonId: mappedLesson._id,
+                title: (lesson as any).title,
+                
+                videoUrl: mappedLesson.videoUrl,
+                videoStatus: mappedLesson.videoStatus,
+                originalVideoUrl: lesson.videoUrl,
+                originalVideo: lesson.video
+              })
+              
+              return mappedLesson
+            })
           }
         })
       )
@@ -161,10 +176,10 @@ async function getLearnPageData(courseId: string) {
         courseAccessExists: !!courseAccess,
         anyAccessExists: !!anyAccess,
         courseAccessData: courseAccess ? {
-          userId: courseAccess.userId,
-          hasAccess: courseAccess.hasAccess,
-          accessType: courseAccess.accessType,
-          status: courseAccess.status
+          userId: (courseAccess as any).userId,
+          hasAccess: (courseAccess as any).hasAccess,
+          accessType: (courseAccess as any).accessType,
+          status: (courseAccess as any).status
         } : null
       }
     }

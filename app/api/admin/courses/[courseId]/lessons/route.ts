@@ -103,7 +103,19 @@ export async function POST(
       video: body.video,
       hasVideo: !!body.video,
       videoId: body.video?.videoId,
-      videoStatus: body.video?.status
+      videoStatus: body.video?.status,
+      videoUrl: body.videoUrl,
+      hasVideoUrl: !!body.videoUrl
+    })
+    
+    console.log('🔍 Detailed videoUrl analysis:', {
+      videoUrl: body.videoUrl,
+      videoUrlType: typeof body.videoUrl,
+      videoUrlLength: body.videoUrl?.length,
+      isString: typeof body.videoUrl === 'string',
+      isEmpty: body.videoUrl === '',
+      isUndefined: body.videoUrl === undefined,
+      isNull: body.videoUrl === null
     })
 
     // Validate required fields
@@ -167,6 +179,7 @@ export async function POST(
       durationSec: body.durationSec || 0,
       content: body.content || "",
       contentMn: body.contentMn || "",
+      videoUrl: body.videoUrl || "",
       video: body.video || {
         status: 'processing',
         videoId: '',
@@ -178,10 +191,29 @@ export async function POST(
     console.log('📝 Creating lesson with video data:', {
       videoId: body.video?.videoId,
       status: body.video?.status,
-      hasVideo: !!body.video
+      hasVideo: !!body.video,
+      videoUrl: body.videoUrl,
+      hasVideoUrl: !!body.videoUrl
     })
 
     await lesson.save()
+
+    console.log('✅ Lesson saved successfully:', {
+      lessonId: lesson._id,
+      videoUrl: lesson.videoUrl,
+      hasVideoUrl: !!lesson.videoUrl,
+      videoUrlType: typeof lesson.videoUrl,
+      videoUrlLength: lesson.videoUrl?.length
+    })
+    
+    // Verify the lesson was saved correctly by fetching it back
+    const savedLesson = await Lesson.findById(lesson._id)
+    console.log('🔍 Verification - fetched lesson from DB:', {
+      lessonId: savedLesson?._id,
+      videoUrl: savedLesson?.videoUrl,
+      hasVideoUrl: !!savedLesson?.videoUrl,
+      videoUrlType: typeof savedLesson?.videoUrl
+    })
 
     // Update subcourse total lessons count
     await Subcourse.findByIdAndUpdate(body.subcourseId, {

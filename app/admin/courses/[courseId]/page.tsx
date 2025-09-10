@@ -520,7 +520,9 @@ export default function CourseTreePage() {
           url: `/api/admin/courses/${courseId}/lessons`,
           method: 'POST',
           requestData,
-          hasToken: !!adminToken
+          hasToken: !!adminToken,
+          videoUrl: requestData.videoUrl,
+          hasVideoUrl: !!requestData.videoUrl
         })
         
         const response = await fetch(`/api/admin/courses/${courseId}/lessons`, {
@@ -742,6 +744,8 @@ export default function CourseTreePage() {
           isDragging={isDragging}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
+          onToggleLessonStatus={() => {}}
+          onToggleSubcourseStatus={() => {}}
         />
       </div>
 

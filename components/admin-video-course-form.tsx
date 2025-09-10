@@ -20,7 +20,7 @@ interface VideoCourseFormData {
   price: number
   thumbnailUrl?: string
   thumbnailPublicId?: string
-  videoId?: string
+  videoUrl?: string
 }
 
 interface AdminVideoCourseFormProps {
@@ -37,7 +37,6 @@ export default function AdminVideoCourseForm({ onCourseCreated }: AdminVideoCour
     price: 0,
   })
   
-  const [videoFile, setVideoFile] = useState<File | null>(null)
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
@@ -47,30 +46,6 @@ export default function AdminVideoCourseForm({ onCourseCreated }: AdminVideoCour
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
-  const handleVideoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0]
-    if (selectedFile) {
-      if (!selectedFile.type.startsWith('video/')) {
-        toast({
-          title: "Invalid file type",
-          description: "Please select a video file",
-          variant: "destructive",
-        })
-        return
-      }
-      
-      if (selectedFile.size > 500 * 1024 * 1024) { // 500MB limit
-        toast({
-          title: "File too large",
-          description: "Please select a video file smaller than 500MB",
-          variant: "destructive",
-        })
-        return
-      }
-      
-      setVideoFile(selectedFile)
-    }
-  }
 
   const handleThumbnailFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
@@ -119,10 +94,10 @@ export default function AdminVideoCourseForm({ onCourseCreated }: AdminVideoCour
   }
 
   const createVideoCourse = async () => {
-    if (!formData.title || !formData.description || !videoFile) {
+    if (!formData.title || !formData.description || !formData.videoUrl) {
       toast({
         title: "Missing information",
-        description: "Please fill in all required fields and select a video file",
+        description: "Please fill in all required fields and enter a Bunny video link",
         variant: "destructive",
       })
       return
@@ -135,59 +110,17 @@ export default function AdminVideoCourseForm({ onCourseCreated }: AdminVideoCour
       // Step 1: Upload thumbnail if provided
       let thumbnailUrl = formData.thumbnailUrl
       if (thumbnailFile && !thumbnailUrl) {
-        thumbnailUrl = await uploadThumbnail()
-        if (!thumbnailUrl) {
+        const uploadedThumbnail = await uploadThumbnail()
+        if (!uploadedThumbnail) {
           throw new Error("Failed to upload thumbnail")
         }
+        thumbnailUrl = uploadedThumbnail
       }
-      setUploadProgress(20)
+      setUploadProgress(50)
 
-      // Step 2: Create video entry in Bunny.net
-      const createVideoResponse = await fetch('/api/videos', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          title: formData.title,
-          description: formData.description 
-        }),
-      })
-
-      const createVideoResult = await createVideoResponse.json()
-      if (!createVideoResult.success) {
-        throw new Error(createVideoResult.error || 'Failed to create video')
-      }
-
-      const videoId = createVideoResult.videoId
-      setUploadProgress(40)
-
-      // Step 3: Get upload URL for video
-      const uploadUrlResponse = await fetch(`/api/videos/${videoId}/upload`)
-      const uploadUrlResult = await uploadUrlResponse.json()
-      if (!uploadUrlResult.success) {
-        throw new Error(uploadUrlResult.error || 'Failed to get upload URL')
-      }
-      setUploadProgress(60)
-
-      // Step 4: Upload video to Bunny.net
-      const formData = new FormData()
-      formData.append('video', videoFile)
-
-      const uploadResponse = await fetch(uploadUrlResult.uploadUrl, {
-        method: 'POST',
-        body: formData,
-      })
-
-      if (!uploadResponse.ok) {
-        throw new Error('Failed to upload video file')
-      }
-      setUploadProgress(80)
-
-      // Step 5: Create course entry in database
+      // Step 2: Create course entry in database with Bunny video link
       const courseData = {
         ...formData,
-        videoId,
         thumbnailUrl,
         thumbnailPublicId: formData.thumbnailPublicId,
         status: 'inactive' // Courses start as inactive until approved
@@ -222,7 +155,6 @@ export default function AdminVideoCourseForm({ onCourseCreated }: AdminVideoCour
         duration: "",
         price: 0,
       })
-      setVideoFile(null)
       setThumbnailFile(null)
       
       // Notify parent component
@@ -345,36 +277,19 @@ export default function AdminVideoCourseForm({ onCourseCreated }: AdminVideoCour
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="video">Video File *</Label>
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
-            <input
-              type="file"
-              id="video"
-              accept="video/*"
-              onChange={handleVideoFileChange}
-              className="hidden"
-              disabled={isSubmitting}
-            />
-            <label htmlFor="video" className="cursor-pointer">
-              <div className="flex flex-col items-center gap-2">
-                <Upload className="h-8 w-8 text-gray-400" />
-                <div>
-                  <p className="text-sm text-gray-600">
-                    {videoFile ? videoFile.name : "Click to select video file"}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    Max size: 500MB
-                  </p>
-                </div>
-              </div>
-            </label>
-          </div>
-          {videoFile && (
-            <div className="flex items-center gap-2 text-sm text-green-600">
-              <CheckCircle className="h-4 w-4" />
-              {videoFile.name} selected
-            </div>
-          )}
+          <Label htmlFor="videoUrl">Bunny Video URL *</Label>
+          <Input
+            id="videoUrl"
+            type="url"
+            value={formData.videoUrl || ""}
+            onChange={(e) => handleInputChange("videoUrl", e.target.value)}
+            placeholder="https://www.youtube.com/watch?v=... or https://iframe.mediadelivery.net/embed/..."
+            disabled={isSubmitting}
+            required
+          />
+          <p className="text-xs text-gray-500">
+            Paste YouTube or Bunny Stream URL here (e.g., https://www.youtube.com/watch?v=... or https://iframe.mediadelivery.net/embed/...)
+          </p>
         </div>
 
         <div className="space-y-2">
@@ -438,7 +353,7 @@ export default function AdminVideoCourseForm({ onCourseCreated }: AdminVideoCour
 
         <Button
           onClick={createVideoCourse}
-          disabled={isSubmitting || !formData.title || !formData.description || !videoFile}
+          disabled={isSubmitting || !formData.title || !formData.description || !formData.videoUrl}
           className="w-full"
         >
           {isSubmitting ? (

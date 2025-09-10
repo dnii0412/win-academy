@@ -47,6 +47,7 @@ export async function PUT(
         durationSec: body.durationSec || 0,
         content: body.content || "",
         contentMn: body.contentMn || "",
+        videoUrl: body.videoUrl || "",
         video: body.video || {
           status: 'processing',
           videoId: '',

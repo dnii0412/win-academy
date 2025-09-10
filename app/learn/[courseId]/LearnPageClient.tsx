@@ -9,6 +9,23 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, Lock, Play, BookOpen, Clock, CheckCircle, ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from "lucide-react"
 import { Course } from "@/types/course"
 
+// Helper functions for video URL handling
+function isYouTubeUrl(url: string): boolean {
+  return url.includes('youtube.com') || url.includes('youtu.be')
+}
+
+function convertYouTubeToEmbed(url: string): string {
+  let videoId = ''
+  
+  if (url.includes('youtube.com/watch?v=')) {
+    videoId = url.split('v=')[1]?.split('&')[0] || ''
+  } else if (url.includes('youtu.be/')) {
+    videoId = url.split('youtu.be/')[1]?.split('?')[0] || ''
+  }
+  
+  return `https://www.youtube.com/embed/${videoId}`
+}
+
 interface Lesson {
   _id: string
   title: string
@@ -302,7 +319,9 @@ export default function LearnPageClient({
       allLessonsLength: allLessons.length,
       currentLessonIndex,
       currentLesson: currentLesson ? 'exists' : 'undefined',
-      currentLessonId: currentLesson?._id
+      currentLessonId: currentLesson?._id,
+      videoUrl: currentLesson?.videoUrl,
+      videoStatus: currentLesson?.videoStatus
     })
 
     // Create a safe reference to currentLesson
@@ -354,14 +373,31 @@ export default function LearnPageClient({
             <div className="lg:col-span-2">
               <Card>
                 <CardContent className="p-0">
-                  {safeCurrentLesson?.videoUrl && safeCurrentLesson?.videoStatus === 'ready' ? (
+                  {safeCurrentLesson?.videoUrl ? (
                     <div className="aspect-video">
-                      <iframe
-                        src={safeCurrentLesson?.videoUrl}
-                        className="w-full h-full rounded-lg"
-                        allowFullScreen
-                        title={safeCurrentLesson?.titleMn || safeCurrentLesson?.title}
-                      />
+                      {(() => {
+                        console.log('🎬 Rendering video:', {
+                          videoUrl: safeCurrentLesson.videoUrl,
+                          isYouTube: isYouTubeUrl(safeCurrentLesson.videoUrl),
+                          embedUrl: isYouTubeUrl(safeCurrentLesson.videoUrl) ? convertYouTubeToEmbed(safeCurrentLesson.videoUrl) : safeCurrentLesson.videoUrl
+                        })
+                        return null
+                      })()}
+                      {isYouTubeUrl(safeCurrentLesson.videoUrl) ? (
+                        <iframe
+                          src={convertYouTubeToEmbed(safeCurrentLesson.videoUrl)}
+                          className="w-full h-full rounded-lg"
+                          allowFullScreen
+                          title={safeCurrentLesson?.titleMn || safeCurrentLesson?.title}
+                        />
+                      ) : (
+                        <iframe
+                          src={safeCurrentLesson.videoUrl}
+                          className="w-full h-full rounded-lg"
+                          allowFullScreen
+                          title={safeCurrentLesson?.titleMn || safeCurrentLesson?.title}
+                        />
+                      )}
                     </div>
                   ) : (
                     <div className="aspect-video bg-muted flex items-center justify-center rounded-lg">
@@ -369,6 +405,9 @@ export default function LearnPageClient({
                         <Play className="w-12 h-12 text-muted-foreground mx-auto mb-2" />
                         <p className="text-muted-foreground">
                           Видео бэлэн биш байна
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Video URL: {safeCurrentLesson?.videoUrl || 'None'}
                         </p>
                       </div>
                     </div>
