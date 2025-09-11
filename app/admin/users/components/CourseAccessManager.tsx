@@ -218,7 +218,11 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
     }
   }
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, hasAccess: boolean) => {
+    if (!hasAccess) {
+      return <Badge variant="destructive" className="bg-red-100 text-red-800">Access Revoked</Badge>
+    }
+    
     switch (status) {
       case 'completed':
         return <Badge variant="default" className="bg-green-100 text-green-800">Completed</Badge>
@@ -319,7 +323,7 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
                         </p>
                       </div>
                       <div className="flex items-center space-x-2">
-                        {getStatusBadge(access.status)}
+                        {getStatusBadge(access.status, access.hasAccess)}
                         {getAccessTypeBadge(access.accessType)}
                         <Button
                           variant="outline"

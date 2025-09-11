@@ -22,6 +22,7 @@ interface EnrolledCourse {
   instructor: string
   instructorMn?: string
   expiresAt?: string
+  timeRemaining?: { expired: boolean; text: string } | null
   accessType?: string
   status?: string
 }
@@ -36,10 +37,36 @@ async function getEnrolledCourses(userEmail: string): Promise<EnrolledCourse[]> 
       return []
     }
 
-    // Get enrolled courses with access details
+    // First, check and revoke expired course access
+    const now = new Date()
+    const expiredAccess = await CourseAccess.find({
+      userId: user._id.toString(),
+      hasAccess: true,
+      expiresAt: { $lt: now }
+    })
+
+    // Revoke access for expired courses
+    if (expiredAccess.length > 0) {
+      const result = await CourseAccess.updateMany(
+        { _id: { $in: expiredAccess.map(access => access._id) } },
+        { 
+          hasAccess: false,
+          status: 'expired'
+        }
+      )
+      console.log(`🕒 Revoked access for ${expiredAccess.length} expired courses. Updated ${result.modifiedCount} records.`)
+      
+      // Log the specific courses that were expired
+      expiredAccess.forEach(access => {
+        console.log(`   - Course ${access.courseId} expired at ${access.expiresAt}`)
+      })
+    }
+
+    // Get enrolled courses with access details (only active ones)
     const courseAccesses = await CourseAccess.find({
       userId: user._id.toString(),
-      hasAccess: true
+      hasAccess: true,
+      status: { $ne: 'expired' }
     }).select({
       courseId: 1,
       expiresAt: 1,
@@ -47,15 +74,7 @@ async function getEnrolledCourses(userEmail: string): Promise<EnrolledCourse[]> 
       status: 1,
       grantedAt: 1
     }).lean()
-
-    console.log('🔍 Raw course access data from DB:', courseAccesses.map(access => ({
-      courseId: access.courseId,
-      expiresAt: access.expiresAt,
-      accessType: access.accessType,
-      status: access.status
-    })))
     
-    console.log('🚀 TESTING - This should appear in terminal if changes are working!')
 
     const courseIds = courseAccesses.map(access => access.courseId)
     
@@ -63,7 +82,7 @@ async function getEnrolledCourses(userEmail: string): Promise<EnrolledCourse[]> 
     const accessMap = new Map()
     courseAccesses.forEach(access => {
       accessMap.set(access.courseId.toString(), {
-        expiresAt: access.expiresAt,
+        expiresAt: access.expiresAt ? access.expiresAt.toISOString() : null,
         accessType: access.accessType,
         status: access.status,
         grantedAt: access.grantedAt
@@ -104,6 +123,30 @@ async function getEnrolledCourses(userEmail: string): Promise<EnrolledCourse[]> 
         // Get access details for this course
         const accessDetails = accessMap.get((course._id as any).toString()) || {}
 
+        // Calculate time remaining on server side
+        let timeRemaining = null
+        if (accessDetails.expiresAt) {
+          const now = new Date()
+          const expiry = new Date(accessDetails.expiresAt)
+          const diff = expiry.getTime() - now.getTime()
+          
+          if (diff > 0) {
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+            
+            if (days > 0) {
+              timeRemaining = { expired: false, text: `${days} хоног үлдлээ` }
+            } else if (hours > 0) {
+              timeRemaining = { expired: false, text: `${hours} цаг үлдлээ` }
+            } else {
+              timeRemaining = { expired: false, text: `${minutes} минут үлдлээ` }
+            }
+          } else {
+            timeRemaining = { expired: true, text: "Хугацаа дууссан" }
+          }
+        }
+
         const courseData = {
           ...course,
           _id: (course._id as any).toString(),
@@ -118,10 +161,10 @@ async function getEnrolledCourses(userEmail: string): Promise<EnrolledCourse[]> 
           completedLessons,
           progress,
           expiresAt: accessDetails.expiresAt,
+          timeRemaining: timeRemaining,
           accessType: accessDetails.accessType,
-          status: accessDetails.status
+          status: accessDetails.status,
         }
-
 
         return courseData
       })
@@ -143,9 +186,7 @@ export default async function DashboardPage() {
   }
 
   const enrolledCourses = await getEnrolledCourses(session.user.email)
-
-  console.log('📊 DashboardPage - About to pass to DashboardClient:')
-  console.log('📊 First course data:', enrolledCourses[0])
+  
 
   return (
     <DashboardClient 

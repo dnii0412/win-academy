@@ -28,10 +28,10 @@ export async function GET(
     // Connect to database
     await dbConnect()
 
-    // Get user's course access from unified schema (only active access)
+    // Get user's course access from unified schema (all access records)
     const courseAccess = await CourseAccess.find({ 
-      userId,
-      hasAccess: true  // Only show courses with active access
+      userId
+      // Show all access records including expired ones for admin visibility
     })
       .populate('courseId', 'title titleMn description descriptionMn price status')
       .populate('orderId', 'orderNumber status')
