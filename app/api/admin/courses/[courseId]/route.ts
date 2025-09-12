@@ -90,24 +90,38 @@ export async function PUT(
 
     console.log("Updating course:", courseId)
     console.log("Update data:", JSON.stringify(body, null, 2))
+    console.log("Pricing fields received:", {
+      price45Days: body.price45Days,
+      price90Days: body.price90Days,
+      originalPrice45Days: body.originalPrice45Days,
+      originalPrice90Days: body.originalPrice90Days
+    })
 
     // Connect to database
     await dbConnect()
 
     // Validate required fields
-    if (!body.title || !body.titleMn || !body.description || !body.descriptionMn || body.price === undefined) {
+    if (!body.title || !body.titleMn || !body.description || !body.descriptionMn || 
+        body.price45Days === undefined || body.price90Days === undefined) {
       return NextResponse.json({ 
         error: "Missing required fields", 
-        required: ["title", "titleMn", "description", "descriptionMn", "price"],
+        required: ["title", "titleMn", "description", "descriptionMn", "price45Days", "price90Days"],
         received: Object.keys(body)
       }, { status: 400 })
     }
 
-    // Ensure price is a number
-    if (typeof body.price !== 'number' || body.price < 0) {
+    // Ensure prices are numbers and valid
+    if (typeof body.price45Days !== 'number' || isNaN(body.price45Days) || body.price45Days < 50) {
       return NextResponse.json({ 
-        error: "Price must be a positive number",
-        received: body.price
+        error: "45-day price must be a number >= 50",
+        received: body.price45Days
+      }, { status: 400 })
+    }
+
+    if (typeof body.price90Days !== 'number' || isNaN(body.price90Days) || body.price90Days < 50) {
+      return NextResponse.json({ 
+        error: "90-day price must be a number >= 50",
+        received: body.price90Days
       }, { status: 400 })
     }
 
@@ -123,6 +137,13 @@ export async function PUT(
     }
 
     console.log("Course updated successfully:", updatedCourse._id)
+    console.log("Updated pricing fields:", {
+      price45Days: updatedCourse.price45Days,
+      price90Days: updatedCourse.price90Days,
+      originalPrice45Days: updatedCourse.originalPrice45Days,
+      originalPrice90Days: updatedCourse.originalPrice90Days
+    })
+    
     return NextResponse.json({ course: updatedCourse })
   } catch (error) {
     console.error("Error updating course:", error)

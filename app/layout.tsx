@@ -111,6 +111,7 @@ export default function RootLayout({
         <meta name="theme-color" content="#E10600" />
         <meta name="msapplication-TileColor" content="#E10600" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+        <meta httpEquiv="Permissions-Policy" content="autoplay=*, encrypted-media=*, accelerometer=*, gyroscope=*, fullscreen=*" />
       </head>
       <body className="font-sans overflow-x-hidden">
         <LanguageProvider>

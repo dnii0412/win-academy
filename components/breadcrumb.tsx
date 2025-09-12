@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { ChevronRight, Home } from 'lucide-react'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 interface BreadcrumbItem {
   label: string
@@ -15,8 +15,12 @@ interface BreadcrumbProps {
 }
 
 export default function Breadcrumb({ items, className = '' }: BreadcrumbProps) {
+  const [isHydrated, setIsHydrated] = useState(false)
+
   // Handle structured data on client side to prevent hydration mismatch
   useEffect(() => {
+    setIsHydrated(true)
+    
     const breadcrumbStructuredData = {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",

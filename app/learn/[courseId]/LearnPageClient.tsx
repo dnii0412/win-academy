@@ -1,17 +1,21 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2, Lock, Play, BookOpen, Clock, CheckCircle, ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from "lucide-react"
+import { Loader2, Lock, Play, BookOpen, Clock, CheckCircle, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, AlertCircle } from "lucide-react"
 import { Course } from "@/types/course"
 
 // Helper functions for video URL handling
 function isYouTubeUrl(url: string): boolean {
   return url.includes('youtube.com') || url.includes('youtu.be')
+}
+
+function isBunnyStreamUrl(url: string): boolean {
+  return url.includes('iframe.mediadelivery.net') || url.includes('bunnyinfra.net') || url.includes('mediadelivery.net')
 }
 
 function convertYouTubeToEmbed(url: string): string {
@@ -24,6 +28,30 @@ function convertYouTubeToEmbed(url: string): string {
   }
   
   return `https://www.youtube.com/embed/${videoId}`
+}
+
+function optimizeBunnyStreamUrl(url: string, retryCount: number = 0): string {
+  // If it's already a Bunny Stream URL, optimize it
+  if (url.includes('iframe.mediadelivery.net') || url.includes('bunnyinfra.net')) {
+    const baseUrl = url.split('?')[0] // Remove existing query params
+    const params = new URLSearchParams({
+      autoplay: 'false',
+      muted: 'false',
+      controls: 'true',
+      preload: 'metadata',
+      responsive: 'true',
+      aspectRatio: '16:9',
+      fit: 'cover',
+      background: '000000',
+      width: '100%',
+      height: '100%',
+      retry: retryCount.toString()
+    })
+    return `${baseUrl}?${params.toString()}`
+  }
+  
+  // For other URLs, return as-is
+  return url
 }
 
 interface Lesson {
@@ -75,6 +103,48 @@ export default function LearnPageClient({
   const [currentLessonIndex, setCurrentLessonIndex] = useState(0)
   const [isLearning, setIsLearning] = useState(false)
   const [expandedSubcourses, setExpandedSubcourses] = useState<Set<string>>(new Set())
+  const [videoError, setVideoError] = useState<string | null>(null)
+  const [videoRetryCount, setVideoRetryCount] = useState(0)
+  const [useDirectVideo, setUseDirectVideo] = useState(false)
+  const previousLessonsRef = useRef<Lesson[]>([])
+
+  // Handle video errors and retry mechanism
+  const handleVideoError = () => {
+    console.error('Video playback error detected')
+    
+    // Try direct video element as fallback for non-YouTube videos
+    const currentLesson = allLessons[currentLessonIndex]
+    if (!useDirectVideo && currentLesson?.videoUrl && !isYouTubeUrl(currentLesson.videoUrl)) {
+      console.log('Trying direct video element as fallback for:', currentLesson.videoUrl)
+      setUseDirectVideo(true)
+      setVideoError(null)
+      return
+    }
+    
+    setVideoError('Video playback failed. Please try refreshing the page.')
+    
+    // Auto-retry after 3 seconds
+    if (videoRetryCount < 3) {
+      setTimeout(() => {
+        setVideoRetryCount(prev => prev + 1)
+        setVideoError(null)
+      }, 3000)
+    }
+  }
+
+  const retryVideo = () => {
+    setVideoError(null)
+    setVideoRetryCount(0)
+    setUseDirectVideo(false)
+  }
+
+  // Reset video error when lesson changes
+  useEffect(() => {
+    console.log('Lesson changed to index:', currentLessonIndex)
+    setVideoError(null)
+    setVideoRetryCount(0)
+    setUseDirectVideo(false)
+  }, [currentLessonIndex])
 
   const recheckAccess = async () => {
     if (!session?.user?.email) return false
@@ -151,24 +221,41 @@ export default function LearnPageClient({
 
   // Initialize lessons when subcourses are available
   useEffect(() => {
+    console.log('useEffect triggered:', { hasAccess, subcoursesLength: subcourses.length, isLearning, currentLessonIndex })
+    
     if (hasAccess && subcourses.length > 0) {
       const allLessonsFromSubcourses = subcourses.flatMap((subcourse: Subcourse) => subcourse.lessons)
-      setAllLessons(allLessonsFromSubcourses)
       
-      if (allLessonsFromSubcourses.length > 0) {
-        console.log('Auto-starting learning mode')
-        setCurrentLessonIndex(0)
-        setIsLearning(true)
+      // Only update if lessons have actually changed
+      if (allLessonsFromSubcourses.length !== previousLessonsRef.current.length || 
+          allLessonsFromSubcourses.some((lesson, index) => lesson._id !== previousLessonsRef.current[index]?._id)) {
+        console.log('Lessons changed, updating allLessons')
+        setAllLessons(allLessonsFromSubcourses)
+        previousLessonsRef.current = allLessonsFromSubcourses
+        
+        // Only reset lesson index if we're not already learning or if current index is invalid
+        if (allLessonsFromSubcourses.length > 0) {
+          if (!isLearning || currentLessonIndex >= allLessonsFromSubcourses.length) {
+            console.log('Auto-starting learning mode or resetting invalid index')
+            setCurrentLessonIndex(0)
+            setIsLearning(true)
+          } else {
+            console.log('Keeping current lesson index:', currentLessonIndex)
+          }
+        }
+      } else {
+        console.log('Lessons unchanged, skipping update')
       }
     }
-  }, [hasAccess, subcourses])
+  }, [hasAccess, subcourses, isLearning, currentLessonIndex])
 
   // Ensure currentLessonIndex is within bounds when allLessons changes
   useEffect(() => {
     if (allLessons.length > 0 && currentLessonIndex >= allLessons.length) {
+      console.log('Current lesson index out of bounds, resetting to 0')
       setCurrentLessonIndex(0)
     }
-  }, [allLessons, currentLessonIndex])
+  }, [allLessons.length, currentLessonIndex])
 
   if (error) {
     return (
@@ -371,32 +458,133 @@ export default function LearnPageClient({
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Video/Content Area */}
             <div className="lg:col-span-2">
-              <Card>
-                <CardContent className="p-0">
+              <Card className="overflow-hidden">
+                <CardContent className="p-0 bg-transparent">
                   {safeCurrentLesson?.videoUrl ? (
-                    <div className="aspect-video">
+                    <div 
+                      className="aspect-video w-full relative" 
+                      style={{ 
+                        minHeight: '400px',
+                        backgroundColor: '#000'
+                      }}
+                    >
                       {(() => {
+                        const isYouTube = isYouTubeUrl(safeCurrentLesson.videoUrl)
+                        const isBunny = isBunnyStreamUrl(safeCurrentLesson.videoUrl)
                         console.log('🎬 Rendering video:', {
                           videoUrl: safeCurrentLesson.videoUrl,
-                          isYouTube: isYouTubeUrl(safeCurrentLesson.videoUrl),
-                          embedUrl: isYouTubeUrl(safeCurrentLesson.videoUrl) ? convertYouTubeToEmbed(safeCurrentLesson.videoUrl) : safeCurrentLesson.videoUrl
+                          isYouTube,
+                          isBunny,
+                          useDirectVideo,
+                          videoType: isYouTube ? 'YouTube' : isBunny ? 'Bunny Stream' : 'Other',
+                          embedUrl: isYouTube ? convertYouTubeToEmbed(safeCurrentLesson.videoUrl) : safeCurrentLesson.videoUrl,
+                          retryCount: videoRetryCount
                         })
                         return null
                       })()}
-                      {isYouTubeUrl(safeCurrentLesson.videoUrl) ? (
+                      
+                      {videoError ? (
+                        <div className="w-full h-full bg-muted flex items-center justify-center rounded-lg">
+                          <div className="text-center p-6">
+                            <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+                            <h3 className="text-lg font-medium mb-2">Video Playback Error</h3>
+                            <p className="text-sm text-muted-foreground mb-4">{videoError}</p>
+                            <div className="space-x-2">
+                              <Button onClick={retryVideo} variant="outline" size="sm">
+                                Try Again
+                              </Button>
+                              {!isYouTubeUrl(safeCurrentLesson?.videoUrl || '') && !useDirectVideo && (
+                                <Button onClick={() => setUseDirectVideo(true)} variant="outline" size="sm">
+                                  Use Direct Video
+                                </Button>
+                              )}
+                              <Button 
+                                onClick={() => {
+                                  console.log('🔍 Video Debug Info:', {
+                                    url: safeCurrentLesson?.videoUrl,
+                                    isYouTube: isYouTubeUrl(safeCurrentLesson?.videoUrl || ''),
+                                    isBunny: isBunnyStreamUrl(safeCurrentLesson?.videoUrl || ''),
+                                    useDirectVideo,
+                                    retryCount: videoRetryCount
+                                  })
+                                }} 
+                                variant="outline" 
+                                size="sm"
+                              >
+                                Debug Info
+                              </Button>
+                              <Button onClick={() => window.location.reload()} variant="default" size="sm">
+                                Refresh Page
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ) : useDirectVideo ? (
+                        <video
+                          src={safeCurrentLesson.videoUrl}
+                          className="w-full h-full rounded-lg"
+                          controls
+                          preload="metadata"
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            minHeight: '400px',
+                            objectFit: 'contain'
+                          }}
+                          onError={handleVideoError}
+                        >
+                          Your browser does not support the video tag.
+                        </video>
+                      ) : isBunnyStreamUrl(safeCurrentLesson.videoUrl) ? (
+                        <iframe
+                          src={optimizeBunnyStreamUrl(safeCurrentLesson.videoUrl, videoRetryCount)}
+                          className="w-full h-full border-0 rounded-lg"
+                          allowFullScreen
+                          allow="autoplay; encrypted-media; accelerometer; gyroscope; fullscreen; picture-in-picture"
+                          title={safeCurrentLesson?.titleMn || safeCurrentLesson?.title}
+                          loading="lazy"
+                          referrerPolicy="no-referrer-when-downgrade"
+                          sandbox="allow-scripts allow-same-origin allow-presentation allow-forms allow-popups"
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            minHeight: '400px',
+                            border: 'none',
+                            borderRadius: '8px',
+                            background: 'transparent',
+                            display: 'block',
+                            objectFit: 'cover',
+                            position: 'relative',
+                            zIndex: 1,
+                            backgroundColor: 'transparent',
+                            overflow: 'hidden'
+                          }}
+                          onError={handleVideoError}
+                        />
+                      ) : isYouTubeUrl(safeCurrentLesson.videoUrl) ? (
                         <iframe
                           src={convertYouTubeToEmbed(safeCurrentLesson.videoUrl)}
                           className="w-full h-full rounded-lg"
                           allowFullScreen
+                          allow="autoplay; encrypted-media; accelerometer; gyroscope; fullscreen"
                           title={safeCurrentLesson?.titleMn || safeCurrentLesson?.title}
+                          loading="lazy"
+                          referrerPolicy="no-referrer-when-downgrade"
+                          onError={handleVideoError}
                         />
                       ) : (
-                        <iframe
-                          src={safeCurrentLesson.videoUrl}
-                          className="w-full h-full rounded-lg"
-                          allowFullScreen
-                          title={safeCurrentLesson?.titleMn || safeCurrentLesson?.title}
-                        />
+                        <div className="w-full h-full bg-muted flex items-center justify-center rounded-lg">
+                          <div className="text-center p-6">
+                            <AlertCircle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
+                            <h3 className="text-lg font-medium mb-2">Unsupported Video Format</h3>
+                            <p className="text-sm text-muted-foreground mb-4">
+                              This video format is not supported. URL: {safeCurrentLesson.videoUrl}
+                            </p>
+                            <Button onClick={() => setUseDirectVideo(true)} variant="outline" size="sm">
+                              Try Direct Video
+                            </Button>
+                          </div>
+                        </div>
                       )}
                     </div>
                   ) : (

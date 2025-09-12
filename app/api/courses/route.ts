@@ -27,7 +27,6 @@ export async function GET(request: NextRequest) {
       thumbnailUrl: 1,
       featured: 1,
       totalLessons: 1,
-      enrolledUsers: 1,
       createdAt: 1,
       status: 1
     }).sort({ featured: -1, createdAt: -1 })

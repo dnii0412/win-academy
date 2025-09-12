@@ -9,6 +9,7 @@ interface CreateInvoiceRequest {
   courseId: string
   amount?: number
   description?: string
+  accessDuration?: '45' | '90'
   forceNew?: boolean // Force creating a new invoice even if one exists
 }
 
@@ -20,17 +21,30 @@ export async function POST(request: NextRequest) {
     
     // Get user session first
     const session = await auth()
-    if (!session?.user?.email || !session?.user?.id) {
+    if (!session?.user?.email) {
       return NextResponse.json({
         error: 'Unauthorized',
         details: 'User session required'
       }, { status: 401 })
     }
 
+    await dbConnect()
+
+    // Find user in database to get consistent user ID
+    const User = require('@/lib/models/User').default
+    const user = await User.findOne({ email: session.user.email })
+    if (!user) {
+      return NextResponse.json({
+        error: 'User not found',
+        details: 'User not found in database'
+      }, { status: 404 })
+    }
+
+    const userId = user._id.toString()
+
     // Parse request body
     const body: CreateInvoiceRequest = await request.json()
-    const { courseId, amount, description, forceNew = false } = body
-    const userId = session.user.id
+    const { courseId, amount, description, accessDuration = '45', forceNew = false } = body
 
     // Validate required fields
     if (!courseId) {
@@ -52,18 +66,21 @@ export async function POST(request: NextRequest) {
       }, { status: 404 })
     }
 
-    // Use course price from database (server-side validation)
-    const coursePrice = course.price
+    // Use course price based on access duration (server-side validation)
+    const coursePrice = accessDuration === '90' 
+      ? (course.price90Days || course.price)
+      : (course.price45Days || course.price)
+    
     if (!coursePrice || coursePrice <= 0) {
       return NextResponse.json({
         error: 'Invalid course price',
-        details: 'Course price must be greater than 0'
+        details: `Course price for ${accessDuration} days must be greater than 0`
       }, { status: 400 })
     }
 
     // Override client amount with server-side price for security
     const finalAmount = coursePrice
-    const finalDescription = description || `Course: ${course.titleMn || course.title}`
+    const finalDescription = description || `${course.titleMn || course.title} - ${accessDuration} хоног`
 
     console.log('Course validation:', {
       correlationId,
@@ -171,6 +188,7 @@ export async function POST(request: NextRequest) {
       status: 'NEW',
       userId,
       courseId,
+      accessDuration,
       expiresAt
     })
 

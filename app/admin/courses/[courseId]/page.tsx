@@ -685,7 +685,7 @@ export default function CourseTreePage() {
                 )}
                 <div className="flex items-center gap-2">
                   <Users className="w-4 h-4" />
-                  <span>{course.enrolledUsers} {"сурагч"}</span>
+                  <span>0 {"сурагч"}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <DollarSign className="w-4 h-4" />

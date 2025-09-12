@@ -38,6 +38,18 @@ export async function GET(
       .populate('accessGrantedBy', 'firstName lastName email')
       .sort({ grantedAt: -1 })
 
+    // Debug: Log course access data to identify null courseId issues
+    console.log('Course access records found:', courseAccess.length)
+    courseAccess.forEach((access, index) => {
+      if (!access.courseId) {
+        console.log(`⚠️  Course access ${index + 1} has null courseId:`, {
+          accessId: access._id,
+          courseId: access.courseId,
+          userId: access.userId
+        })
+      }
+    })
+
     return NextResponse.json({ 
       courseAccess,
       totalAccess: courseAccess.length

@@ -50,4 +50,5 @@ export interface CheckoutFormData {
     lastName: string
     paymentMethod: 'byl' | 'qpay'
     agreeToTerms: boolean
+    accessDuration: '45' | '90'
 }

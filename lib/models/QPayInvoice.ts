@@ -28,6 +28,7 @@ export interface IQPayInvoice extends Document {
   // Application fields
   userId: string
   courseId: string
+  accessDuration?: '45' | '90'
   orderId?: string
   
   // Timestamps
@@ -117,6 +118,12 @@ const QPayInvoiceSchema = new Schema<IQPayInvoice>({
     required: true,
     index: true
   },
+  accessDuration: {
+    type: String,
+    enum: ['45', '90'],
+    default: '45',
+    index: true
+  },
   orderId: {
     type: String,
     index: true
@@ -186,11 +193,20 @@ QPayInvoiceSchema.methods.markAsPaid = async function(paymentId: string) {
   try {
     const CourseAccess = require('./CourseAccess').default
     const mongoose = require('mongoose')
+    
+    // Calculate expiry date based on access duration
+    const accessDuration = this.accessDuration || '45'
+    const days = parseInt(accessDuration)
+    const expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000)
+    
     const accessResult = await CourseAccess.grantAccess(
       this.userId,
       new mongoose.Types.ObjectId(this.courseId),
       this._id.toString(),
-      'qpay_purchase'
+      'qpay_purchase',
+      undefined,
+      `QPay purchase - ${accessDuration} days access`,
+      expiresAt.toISOString()
     )
     console.log('Course access granted after payment:', {
       userId: this.userId,

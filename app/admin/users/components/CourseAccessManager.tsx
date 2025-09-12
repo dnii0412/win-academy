@@ -33,7 +33,7 @@ interface Course {
 
 interface CourseAccess {
   _id: string
-  courseId: Course
+  courseId: Course | null
   hasAccess: boolean
   accessType: 'purchase' | 'enrollment' | 'admin_grant' | 'free'
   status: 'active' | 'suspended' | 'expired' | 'completed'
@@ -310,48 +310,58 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
                 </CardContent>
               </Card>
             ) : (
-              courseAccess.map((access) => (
-                <Card key={access._id}>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <CardTitle className="text-lg">
-                          {access.courseId.titleMn || access.courseId.title}
-                        </CardTitle>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                          {access.courseId.descriptionMn || access.courseId.description}
-                        </p>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        {getStatusBadge(access.status, access.hasAccess)}
-                        {getAccessTypeBadge(access.accessType)}
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setEditingAccess(access)
-                            setEditForm({
-                              status: access.status,
-                              expiresAt: access.expiresAt ? new Date(access.expiresAt).toISOString().split('T')[0] : "",
-                              notes: access.notes
-                            })
-                          }}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="text-red-600 border-red-600 hover:bg-red-50"
-                          onClick={() => handleRevokeAccess(access._id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              <div>
+                {courseAccess.filter(access => !access.courseId).length > 0 && (
+                  <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                    <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                      ⚠️ {courseAccess.filter(access => !access.courseId).length} course access record(s) have missing course data and are hidden.
+                    </p>
+                  </div>
+                )}
+                {courseAccess
+                  .filter(access => access.courseId) // Filter out records with null courseId
+                  .map((access) => (
+                    <Card key={access._id}>
+                      <CardHeader>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <CardTitle className="text-lg">
+                              {access.courseId?.titleMn || access.courseId?.title || 'Course Not Found'}
+                            </CardTitle>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                              {access.courseId?.descriptionMn || access.courseId?.description || 'Course information unavailable'}
+                            </p>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            {getStatusBadge(access.status, access.hasAccess)}
+                            {getAccessTypeBadge(access.accessType)}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setEditingAccess(access)
+                                setEditForm({
+                                  status: access.status,
+                                  expiresAt: access.expiresAt ? new Date(access.expiresAt).toISOString().split('T')[0] : "",
+                                  notes: access.notes
+                                })
+                              }}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-red-600 border-red-600 hover:bg-red-50"
+                              onClick={() => handleRevokeAccess(access._id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                       <div>
                         <Label className="text-gray-600 dark:text-gray-400">
                           {"Олгосон огноо"}
@@ -443,7 +453,8 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
                     )}
                   </CardContent>
                 </Card>
-              ))
+                  ))}
+              </div>
             )}
           </div>
 

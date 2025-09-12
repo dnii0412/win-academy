@@ -14,32 +14,18 @@ export async function GET(
     }
 
     const { courseId } = await params
-    const userId = session.user.id || session.user.email
-
-
-    // If we don't have a userId, we can't check access
-    if (!userId) {
-      return NextResponse.json({ 
-        hasAccess: false,
-        error: 'User ID not found in session',
-        courseId,
-        userId: null,
-        accessSource: 'none',
-        accessDetails: { courseAccess: null, enrollment: null }
-      })
-    }
 
     await dbConnect()
 
-    // Import User model to find user by email if needed
+    // Import User model to find user by email
     const User = require('@/lib/models/User').default
 
-    // Find user by email first to get consistent user ID
+    // Find user by email to get consistent user ID
     const user = await User.findOne({ email: session.user.email })
     if (!user) {
       return NextResponse.json({ 
         hasAccess: false,
-        error: 'User not found',
+        error: 'User not found in database',
         courseId,
         userId: null,
         accessSource: 'none',
@@ -49,13 +35,11 @@ export async function GET(
 
     const userObjectId = user._id.toString()
 
-    // Check unified CourseAccess schema
-    // Try both user._id.toString() and user.email since orders might use either format
+    // Check unified CourseAccess schema using consistent user ID
     let courseAccess = await CourseAccess.findOne({
-      $or: [
-        { userId: userObjectId, courseId, hasAccess: true },
-        { userId: user.email, courseId, hasAccess: true }
-      ]
+      userId: userObjectId,
+      courseId,
+      hasAccess: true
     })
 
 
@@ -64,7 +48,7 @@ export async function GET(
     return NextResponse.json({
       hasAccess,
       courseId,
-      userId,
+      userId: userObjectId,
       accessSource: courseAccess ? 'CourseAccess' : 'none',
       accessDetails: {
         courseAccess: courseAccess ? {

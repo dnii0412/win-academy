@@ -5,6 +5,7 @@ import User from "@/lib/models/User"
 import CourseAccess from "@/lib/models/CourseAccess"
 import CourseModel from "@/lib/models/Course"
 import Lesson from "@/lib/models/Lesson"
+import { getMultipleCourseEnrollmentCounts } from "@/lib/course-enrollment"
 import DashboardClient from "./DashboardClient"
 
 export const dynamic = 'force-dynamic'
@@ -103,9 +104,11 @@ async function getEnrolledCourses(userEmail: string): Promise<EnrolledCourse[]> 
       instructor: 1,
       instructorMn: 1,
       totalLessons: 1,
-      enrolledUsers: 1,
       createdAt: 1
     }).lean()
+
+    // Get enrollment counts for these courses
+    const enrollmentCounts = await getMultipleCourseEnrollmentCounts(courseIds.map(id => id.toString()))
 
     // Get lesson counts and progress for each course
     const coursesWithStats = await Promise.all(
@@ -160,6 +163,7 @@ async function getEnrolledCourses(userEmail: string): Promise<EnrolledCourse[]> 
           totalLessons,
           completedLessons,
           progress,
+          enrolledUsers: enrollmentCounts.get((course._id as any).toString()) || 0,
           expiresAt: accessDetails.expiresAt,
           timeRemaining: timeRemaining,
           accessType: accessDetails.accessType,

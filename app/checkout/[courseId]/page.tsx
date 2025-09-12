@@ -33,6 +33,7 @@ export default function CheckoutPage() {
         lastName: "",
         paymentMethod: "qpay",
         agreeToTerms: false,
+        accessDuration: "45", // Default to 45 days
     })
 
     useEffect(() => {
@@ -100,6 +101,29 @@ export default function CheckoutPage() {
             ...prev,
             agreeToTerms: checked,
         }))
+    }
+
+    const handleAccessDurationChange = (value: string) => {
+        setFormData(prev => ({
+            ...prev,
+            accessDuration: value as "45" | "90",
+        }))
+    }
+
+    // Calculate the current price based on selected duration
+    const getCurrentPrice = () => {
+        if (!course) return 0
+        return formData.accessDuration === "90" 
+            ? (course.price90Days || course.price || 0)
+            : (course.price45Days || course.price || 0)
+    }
+
+    // Calculate the original price based on selected duration
+    const getOriginalPrice = () => {
+        if (!course) return 0
+        return formData.accessDuration === "90" 
+            ? (course.originalPrice90Days || course.originalPrice || 0)
+            : (course.originalPrice45Days || course.originalPrice || 0)
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -191,12 +215,72 @@ export default function CheckoutPage() {
                                 </div>
                             </div>
 
+                            {/* Access Duration Selection */}
+                            <div className="border-t pt-4 mt-6">
+                                <h4 className="text-lg font-semibold mb-3">Хандалтын хугацаа сонгох</h4>
+                                <RadioGroup 
+                                    value={formData.accessDuration} 
+                                    onValueChange={handleAccessDurationChange}
+                                    className="space-y-3"
+                                >
+                                    <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50">
+                                        <RadioGroupItem value="45" id="45" />
+                                        <Label htmlFor="45" className="flex-1 cursor-pointer">
+                                            <div className="flex justify-between items-center">
+                                                <div>
+                                                    <span className="font-medium">45 хоног</span>
+                                                    <p className="text-sm text-gray-500">Богино хугацааны хандалт</p>
+                                                </div>
+                                                <div className="text-right">
+                                                    <span className="text-lg font-bold text-[#E10600]">
+                                                        ₮{(course.price45Days || course.price).toLocaleString()}
+                                                    </span>
+                                                    {course.originalPrice45Days && course.originalPrice45Days > (course.price45Days || course.price) && (
+                                                        <p className="text-sm text-gray-500 line-through">
+                                                            ₮{course.originalPrice45Days.toLocaleString()}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </Label>
+                                    </div>
+                                    <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50">
+                                        <RadioGroupItem value="90" id="90" />
+                                        <Label htmlFor="90" className="flex-1 cursor-pointer">
+                                            <div className="flex justify-between items-center">
+                                                <div>
+                                                    <span className="font-medium">90 хоног</span>
+                                                    <p className="text-sm text-gray-500">Урт хугацааны хандалт</p>
+                                                </div>
+                                                <div className="text-right">
+                                                    <span className="text-lg font-bold text-[#E10600]">
+                                                        ₮{(course.price90Days || course.price).toLocaleString()}
+                                                    </span>
+                                                    {course.originalPrice90Days && course.originalPrice90Days > (course.price90Days || course.price) && (
+                                                        <p className="text-sm text-gray-500 line-through">
+                                                            ₮{course.originalPrice90Days.toLocaleString()}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </Label>
+                                    </div>
+                                </RadioGroup>
+                            </div>
+
                             <div className="border-t pt-4 mt-6">
                                 <div className="flex justify-between items-center">
-                                    <span className="text-lg font-semibold">Total</span>
-                                    <span className="text-2xl font-bold text-[#E10600]">
-                                        ₮{course.price.toLocaleString()}
-                                    </span>
+                                    <span className="text-lg font-semibold">Нийт дүн</span>
+                                    <div className="text-right">
+                                        <span className="text-2xl font-bold text-[#E10600]">
+                                            ₮{getCurrentPrice().toLocaleString()}
+                                        </span>
+                                        {getOriginalPrice() > 0 && getOriginalPrice() > getCurrentPrice() && (
+                                            <p className="text-sm text-gray-500 line-through">
+                                                ₮{getOriginalPrice().toLocaleString()}
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </CardContent>
@@ -206,8 +290,9 @@ export default function CheckoutPage() {
                     <div>
                         <CheckoutPayment
                             courseId={courseId}
-                            amount={course.price}
-                            description={course.titleMn || course.title}
+                            amount={getCurrentPrice()}
+                            description={`${course.titleMn || course.title} - ${formData.accessDuration} хоног`}
+                            accessDuration={formData.accessDuration}
                             onPaymentSuccess={async (invoiceId) => {
                                 if (isRedirecting) {
                                     console.log('Already redirecting, ignoring duplicate payment success')

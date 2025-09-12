@@ -39,7 +39,11 @@ export interface Course {
   coverUrl?: string
   thumbnailUrl?: string
   price: number
+  price45Days: number
+  price90Days: number
   originalPrice?: number
+  originalPrice45Days?: number
+  originalPrice90Days?: number
   category: string
   categoryMn: string
   level: string

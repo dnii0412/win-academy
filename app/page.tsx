@@ -69,7 +69,6 @@ async function getFeaturedCourses(): Promise<Course[]> {
       thumbnailUrl: 1,
       featured: 1,
       totalLessons: 1,
-      enrolledUsers: 1,
       createdAt: 1,
       status: 1
     }).sort({ featured: -1, createdAt: -1 }).limit(6).lean()

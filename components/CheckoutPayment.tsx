@@ -11,6 +11,7 @@ interface CheckoutPaymentProps {
   courseId: string
   amount: number
   description: string
+  accessDuration?: '45' | '90'
   onPaymentSuccess?: (invoiceId: string) => void
   onPaymentError?: (error: string) => void
 }
@@ -33,6 +34,7 @@ export default function CheckoutPayment({
   courseId,
   amount,
   description,
+  accessDuration = '45',
   onPaymentSuccess,
   onPaymentError
 }: CheckoutPaymentProps) {
@@ -52,7 +54,8 @@ export default function CheckoutPayment({
         body: JSON.stringify({
           courseId,
           amount,
-          description
+          description,
+          accessDuration
         })
       })
 

@@ -126,7 +126,7 @@ export default function HomePageClient({ featuredCourses, session }: HomePageCli
       "aggregateRating": {
         "@type": "AggregateRating",
         "ratingValue": "4.8",
-        "ratingCount": course.enrolledUsers || 0
+        "ratingCount": 0
       }
     }))
 

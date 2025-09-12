@@ -10,6 +10,7 @@ import { Course } from "@/types/course"
 import CourseImage from "@/components/course-image"
 import Breadcrumb from "@/components/breadcrumb"
 import { useLanguage } from "@/contexts/language-context"
+import { useState, useEffect } from "react"
 
 interface CoursesPageClientProps {
   courses: Course[]
@@ -18,6 +19,12 @@ interface CoursesPageClientProps {
 export default function CoursesPageClient({ courses }: CoursesPageClientProps) {
   const { data: session, status } = useSession()
   const { t } = useLanguage()
+  const [isHydrated, setIsHydrated] = useState(false)
+
+  // Ensure hydration is complete before rendering dynamic content
+  useEffect(() => {
+    setIsHydrated(true)
+  }, [])
 
   const formatPrice = (price: number) => {
     return `₮${price.toLocaleString()}`
@@ -39,20 +46,22 @@ export default function CoursesPageClient({ courses }: CoursesPageClientProps) {
   return (
     <div className="p-8">
       <div className="max-w-6xl mx-auto">
-        {/* Breadcrumb */}
-        <Breadcrumb
-          items={[
-            { label: 'Courses', href: '/courses' }
-          ]}
-          className="mb-6"
-        />
+        {/* Breadcrumb - only render after hydration to prevent mismatch */}
+        {isHydrated && (
+          <Breadcrumb
+            items={[
+              { label: 'Courses', href: '/courses' }
+            ]}
+            className="mb-6"
+          />
+        )}
 
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-[#111111] dark:text-white mb-4">
-            {t("courses.title")}
+            {isHydrated ? t("courses.title") : "All Courses"}
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            {t("courses.subtitle")}
+            {isHydrated ? t("courses.subtitle") : "Discover our comprehensive digital skills training programs"}
           </p>
         </div>
 
@@ -64,17 +73,17 @@ export default function CoursesPageClient({ courses }: CoursesPageClientProps) {
               <BookOpen className="h-16 w-16 text-gray-400" />
             </div>
             <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-4">
-              {t("courses.noCourses")}
+              {isHydrated ? t("courses.noCourses") : "No Courses Available"}
             </h2>
             <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-lg mx-auto">
-              {t("courses.noCoursesDescription")}
+              {isHydrated ? t("courses.noCoursesDescription") : "We're working on adding new courses. Please check back soon!"}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               {session ? (
                 // Logged in users - show Dashboard button only
                 <Link href="/dashboard">
                   <Button className="bg-[#E10600] hover:bg-[#C70500] text-white">
-                    {t("nav.dashboard")}
+                    {isHydrated ? t("nav.dashboard") : "Dashboard"}
                   </Button>
                 </Link>
               ) : (
@@ -82,12 +91,12 @@ export default function CoursesPageClient({ courses }: CoursesPageClientProps) {
                 <>
                   <Link href="/">
                     <Button variant="outline" className="border-[#E10600] text-[#E10600] hover:bg-[#E10600] hover:text-white">
-                      {t("nav.home")}
+                      {isHydrated ? t("nav.home") : "Home"}
                     </Button>
                   </Link>
                   <Link href="/register">
                     <Button className="bg-[#E10600] hover:bg-[#C70500] text-white">
-                      {t("nav.register")}
+                      {isHydrated ? t("nav.register") : "Register"}
                     </Button>
                   </Link>
                 </>
@@ -108,7 +117,7 @@ export default function CoursesPageClient({ courses }: CoursesPageClientProps) {
                   />
                   {course.isEnrolled && (
                     <Badge className="absolute top-3 right-3 bg-green-500 hover:bg-green-600 z-10">
-                      {t("home.courses.enrolled")}
+                      {isHydrated ? t("home.courses.enrolled") : "Enrolled"}
                     </Badge>
                   )}
                 </div>
@@ -126,7 +135,7 @@ export default function CoursesPageClient({ courses }: CoursesPageClientProps) {
                   <div className="space-y-3 mb-4">
                     <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
                       <Clock className="h-4 w-4 mr-2" />
-                      <span>{course.duration ? `${course.duration} мин` : t("courseCard.duration")}</span>
+                      <span>{course.duration ? `${course.duration} мин` : (isHydrated ? t("courseCard.duration") : "Duration")}</span>
                     </div>
                     <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
                       <User className="h-4 w-4 mr-2" />
@@ -151,7 +160,7 @@ export default function CoursesPageClient({ courses }: CoursesPageClientProps) {
                         <Link href={`/courses/${course._id}`} className="block">
                           <Button variant="outline" className="w-full border-[#E10600] text-[#E10600] hover:bg-[#E10600] hover:text-white whitespace-normal leading-tight">
                             <BookOpen className="h-4 w-4 mr-2" />
-                            {t("common.details")}
+                            {isHydrated ? t("common.details") : "Details"}
                           </Button>
                         </Link>
                       </div>
@@ -160,21 +169,21 @@ export default function CoursesPageClient({ courses }: CoursesPageClientProps) {
                           <Link href={`/learn/${course._id}`} className="block">
                             <Button className="w-full bg-green-600 hover:bg-green-700 text-white whitespace-normal leading-tight">
                               <Play className="h-4 w-4 mr-2" />
-                              {t("courseCard.continue")}
+                              {isHydrated ? t("courseCard.continue") : "Continue"}
                             </Button>
                           </Link>
                         ) : session?.user ? (
                           <Link href={`/checkout/${course._id}`} className="block">
                             <Button className="w-full bg-[#E10600] hover:bg-[#C70500] text-white whitespace-normal leading-tight">
                               <ShoppingCart className="h-4 w-4 mr-2" />
-                              {t("courseCard.enrollNow")}
+                              {isHydrated ? t("courseCard.enrollNow") : "Enroll Now"}
                             </Button>
                           </Link>
                         ) : (
                           <Link href={`/login?callbackUrl=${encodeURIComponent(`/checkout/${course._id}`)}`} className="block">
                             <Button className="w-full bg-[#E10600] hover:bg-[#C70500] text-white whitespace-normal leading-tight">
                               <ShoppingCart className="h-4 w-4 mr-2" />
-                              {t("nav.login")} {t("courseCard.enrollNow")}
+                              {isHydrated ? `${t("nav.login")} ${t("courseCard.enrollNow")}` : "Login to Enroll"}
                             </Button>
                           </Link>
                         )}

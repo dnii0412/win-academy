@@ -30,10 +30,13 @@ interface Course {
   shortDescription?: string
   shortDescriptionMn?: string
   price: number
+  price45Days: number
+  price90Days: number
   originalPrice?: number
+  originalPrice45Days?: number
+  originalPrice90Days?: number
   instructor: string
   instructorMn?: string
-  enrolledUsers: number
   createdAt: string
   updatedAt?: string
   category?: string
@@ -243,12 +246,11 @@ export default function AdminCoursesPage() {
               <CardContent className="pt-0">
                 <div className="space-y-3 mb-4">
                   <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                    <Users className="h-4 w-4 mr-2 flex-shrink-0" />
-                    <span>{course.enrolledUsers} хэрэглэгч</span>
-                  </div>
-                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
                     <DollarSign className="h-4 w-4 mr-2 flex-shrink-0" />
-                    <span>₮{course.price.toLocaleString()}</span>
+                    <div className="flex flex-col">
+                      <span>45 хоног: ₮{course.price45Days?.toLocaleString() || course.price.toLocaleString()}</span>
+                      <span>90 хоног: ₮{course.price90Days?.toLocaleString() || course.price.toLocaleString()}</span>
+                    </div>
                   </div>
                   <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
                     <Calendar className="h-4 w-4 mr-2 flex-shrink-0" />

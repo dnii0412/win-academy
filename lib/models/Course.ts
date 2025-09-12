@@ -156,7 +156,25 @@ const courseSchema = new mongoose.Schema({
     required: true,
     min: 50
   },
+  price45Days: {
+    type: Number,
+    required: true,
+    min: 50
+  },
+  price90Days: {
+    type: Number,
+    required: true,
+    min: 50
+  },
   originalPrice: {
+    type: Number,
+    min: 0
+  },
+  originalPrice45Days: {
+    type: Number,
+    min: 0
+  },
+  originalPrice90Days: {
     type: Number,
     min: 0
   },
@@ -184,10 +202,6 @@ const courseSchema = new mongoose.Schema({
   },
   modules: [moduleSchema],
   totalLessons: {
-    type: Number,
-    default: 0
-  },
-  enrolledUsers: {
     type: Number,
     default: 0
   },

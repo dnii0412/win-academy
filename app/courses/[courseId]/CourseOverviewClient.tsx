@@ -159,7 +159,7 @@ export default function CourseOverviewClient({
             </div>
             <div className="flex items-center space-x-2">
               <Users className="w-4 h-4" />
-              <span>{course.enrolledUsers} суралцагч</span>
+              <span>0 суралцагч</span>
             </div>
             <div className="text-blue-600 font-semibold text-lg">
               {formatPrice(course.price)}

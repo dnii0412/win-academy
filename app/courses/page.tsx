@@ -2,8 +2,8 @@ import { Course } from "@/types/course"
 import dbConnect from "@/lib/mongoose"
 import CourseModel from "@/lib/models/Course"
 import { auth } from "@/auth"
-import CourseAccess from "@/lib/models/CourseAccess"
 import User from "@/lib/models/User"
+import { getMultipleCourseEnrollmentCounts, getUserEnrolledCourses } from "@/lib/course-enrollment"
 import dynamicImport from "next/dynamic"
 import type { Metadata } from 'next'
 
@@ -62,6 +62,11 @@ async function getCoursesWithEnrollment(): Promise<Course[]> {
       description: 1,
       descriptionMn: 1,
       price: 1,
+      price45Days: 1,
+      price90Days: 1,
+      originalPrice: 1,
+      originalPrice45Days: 1,
+      originalPrice90Days: 1,
       category: 1,
       categoryMn: 1,
       level: 1,
@@ -72,44 +77,40 @@ async function getCoursesWithEnrollment(): Promise<Course[]> {
       thumbnailUrl: 1,
       featured: 1,
       totalLessons: 1,
-      enrolledUsers: 1,
       createdAt: 1,
       status: 1
     }).sort({ featured: -1, createdAt: -1 }).lean()
 
-    // Get session to check enrollment status
-    const session = await auth()
+    const courseIds = courses.map(course => (course._id as any).toString())
     
-        if (session?.user?.email) {
+    // Get enrollment counts for all courses
+    const enrollmentCounts = await getMultipleCourseEnrollmentCounts(courseIds)
+    
+    // Get session to check user enrollment status
+    const session = await auth()
+    let userEnrolledCourses: string[] = []
+    
+    if (session?.user?.email) {
       // Find user by email
       const user = await User.findOne({ email: session.user.email })
       if (user) {
-        // Get enrolled course IDs
-        const enrolledCourses = await CourseAccess.find({
-          userId: user._id.toString(),
-          hasAccess: true
-        }).select('courseId').lean()
-        
-        const enrolledCourseIds = enrolledCourses.map(access => access.courseId.toString())
-        
-        // Add enrollment status to courses
-        const coursesWithEnrollment = courses.map(course => ({
-          ...course,
-          _id: (course._id as any).toString(),
-          isEnrolled: enrolledCourseIds.includes((course._id as any).toString())
-        }))
-        
-        
-        return coursesWithEnrollment as unknown as Course[]
+        // Get user's enrolled course IDs
+        userEnrolledCourses = await getUserEnrolledCourses(user._id.toString())
       }
     }
     
-    // If no session or user not found, return courses without enrollment status
-    return courses.map(course => ({
-      ...course,
-      _id: (course._id as any).toString(),
-      isEnrolled: false
-    })) as unknown as Course[]
+    // Add enrollment data to courses
+    const coursesWithEnrollment = courses.map(course => {
+      const courseId = (course._id as any).toString()
+      return {
+        ...course,
+        _id: courseId,
+        enrolledUsers: enrollmentCounts.get(courseId) || 0,
+        isEnrolled: userEnrolledCourses.includes(courseId)
+      }
+    })
+    
+    return coursesWithEnrollment as unknown as Course[]
     
   } catch (error) {
     console.error('Error fetching courses:', error)

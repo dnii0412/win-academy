@@ -43,7 +43,6 @@ export async function GET(request: NextRequest) {
       instructor: 1,
       instructorMn: 1,
       totalLessons: 1,
-      enrolledUsers: 1,
       createdAt: 1
     }).lean()
 

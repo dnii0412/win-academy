@@ -86,7 +86,12 @@ export async function POST(request: NextRequest) {
       descriptionMn, 
       shortDescription,
       shortDescriptionMn,
-      price, 
+      price,
+      price45Days,
+      price90Days,
+      originalPrice,
+      originalPrice45Days,
+      originalPrice90Days,
       status,
       category,
       categoryMn,
@@ -107,12 +112,33 @@ export async function POST(request: NextRequest) {
     const finalTitle = titleMn || title
     const finalDescription = descriptionMn || description
     
-    if (!finalTitle || !finalDescription || !price) {
+    if (!finalTitle || !finalDescription || !price45Days || !price90Days) {
       return NextResponse.json(
         { 
           message: "Missing required fields",
-          required: ["titleMn (or title)", "descriptionMn (or description)", "price"],
-          received: { title, titleMn, description, descriptionMn, price }
+          required: ["titleMn (or title)", "descriptionMn (or description)", "price45Days", "price90Days"],
+          received: { title, titleMn, description, descriptionMn, price45Days, price90Days }
+        },
+        { status: 400 }
+      )
+    }
+
+    // Validate pricing
+    if (typeof price45Days !== 'number' || price45Days < 50) {
+      return NextResponse.json(
+        { 
+          message: "45-day price must be a number >= 50",
+          received: price45Days
+        },
+        { status: 400 }
+      )
+    }
+
+    if (typeof price90Days !== 'number' || price90Days < 50) {
+      return NextResponse.json(
+        { 
+          message: "90-day price must be a number >= 50",
+          received: price90Days
         },
         { status: 400 }
       )
@@ -122,14 +148,19 @@ export async function POST(request: NextRequest) {
     await dbConnect()
 
     // Create new course - use final values with fallbacks
-    const newCourse = new Course({
+    const courseData = {
       title: title || finalTitle,
       titleMn: titleMn || finalTitle,
       description: description || finalDescription,
       descriptionMn: descriptionMn || finalDescription,
       shortDescription: shortDescription || (description || finalDescription).substring(0, 150),
       shortDescriptionMn: shortDescriptionMn || (descriptionMn || finalDescription).substring(0, 150),
-      price: parseFloat(price),
+      price: price45Days, // Use 45-day price as default price
+      price45Days: Number(price45Days),
+      price90Days: Number(price90Days),
+      originalPrice: originalPrice ? Number(originalPrice) : undefined,
+      originalPrice45Days: originalPrice45Days ? Number(originalPrice45Days) : undefined,
+      originalPrice90Days: originalPrice90Days ? Number(originalPrice90Days) : undefined,
       status: status || "inactive",
       category,
       categoryMn,
@@ -145,8 +176,9 @@ export async function POST(request: NextRequest) {
       thumbnailUrl: thumbnailUrl || "",
       thumbnailPublicId: thumbnailPublicId || "",
       modules: []
-    })
+    }
 
+    const newCourse = new Course(courseData)
     const savedCourse = await newCourse.save()
 
     return NextResponse.json({
