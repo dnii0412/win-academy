@@ -15,7 +15,27 @@ function isYouTubeUrl(url: string): boolean {
 }
 
 function isBunnyStreamUrl(url: string): boolean {
-  return url.includes('iframe.mediadelivery.net') || url.includes('bunnyinfra.net') || url.includes('mediadelivery.net')
+  if (!url) return false
+  
+  // Check for various Bunny Stream URL patterns
+  const bunnyPatterns = [
+    'iframe.mediadelivery.net',
+    'bunnyinfra.net', 
+    'mediadelivery.net',
+    'bunny.net',
+    'bunnycdn.com',
+    'video.bunnycdn.com'
+  ]
+  
+  const isBunny = bunnyPatterns.some(pattern => url.toLowerCase().includes(pattern.toLowerCase()))
+  
+  console.log('🔍 Bunny URL detection:', {
+    url,
+    isBunny,
+    patterns: bunnyPatterns
+  })
+  
+  return isBunny
 }
 
 function convertYouTubeToEmbed(url: string): string {
@@ -31,7 +51,11 @@ function convertYouTubeToEmbed(url: string): string {
 }
 
 function optimizeBunnyStreamUrl(url: string, retryCount: number = 0): string {
-  // If it's already a Bunny Stream URL, optimize it
+  console.log('🔧 Optimizing Bunny URL:', { url, retryCount })
+  
+  if (!url) return url
+  
+  // If it's already a Bunny Stream embed URL, optimize it
   if (url.includes('iframe.mediadelivery.net') || url.includes('bunnyinfra.net')) {
     const baseUrl = url.split('?')[0] // Remove existing query params
     const params = new URLSearchParams({
@@ -47,10 +71,55 @@ function optimizeBunnyStreamUrl(url: string, retryCount: number = 0): string {
       height: '100%',
       retry: retryCount.toString()
     })
-    return `${baseUrl}?${params.toString()}`
+    const optimizedUrl = `${baseUrl}?${params.toString()}`
+    console.log('✅ Optimized Bunny URL:', optimizedUrl)
+    return optimizedUrl
   }
   
-  // For other URLs, return as-is
+  // If it's a direct Bunny video URL, convert to embed format
+  if (url.includes('bunny.net') || url.includes('bunnycdn.com') || url.includes('mediadelivery.net')) {
+    // Try to extract video ID from various URL formats
+    let videoId = ''
+    
+    // Pattern 1: https://iframe.mediadelivery.net/embed/486981/video-id
+    const embedMatch = url.match(/\/embed\/\d+\/([^/?]+)/)
+    if (embedMatch) {
+      videoId = embedMatch[1]
+    }
+    
+    // Pattern 2: https://video.bunnycdn.com/library/486981/videos/video-id
+    const libraryMatch = url.match(/\/videos\/([^/?]+)/)
+    if (libraryMatch) {
+      videoId = libraryMatch[1]
+    }
+    
+    // Pattern 3: Direct video ID
+    if (!videoId && url.length < 50 && !url.includes('http')) {
+      videoId = url
+    }
+    
+    if (videoId) {
+      const embedUrl = `https://iframe.mediadelivery.net/embed/486981/${videoId}`
+      const params = new URLSearchParams({
+        autoplay: 'false',
+        muted: 'false',
+        controls: 'true',
+        preload: 'metadata',
+        responsive: 'true',
+        aspectRatio: '16:9',
+        fit: 'cover',
+        background: '000000',
+        width: '100%',
+        height: '100%',
+        retry: retryCount.toString()
+      })
+      const optimizedUrl = `${embedUrl}?${params.toString()}`
+      console.log('✅ Converted to Bunny embed URL:', optimizedUrl)
+      return optimizedUrl
+    }
+  }
+  
+  console.log('⚠️ Could not optimize URL, returning as-is:', url)
   return url
 }
 
@@ -500,13 +569,18 @@ export default function LearnPageClient({
                               )}
                               <Button 
                                 onClick={() => {
-                                  console.log('🔍 Video Debug Info:', {
+                                  const debugInfo = {
                                     url: safeCurrentLesson?.videoUrl,
                                     isYouTube: isYouTubeUrl(safeCurrentLesson?.videoUrl || ''),
                                     isBunny: isBunnyStreamUrl(safeCurrentLesson?.videoUrl || ''),
                                     useDirectVideo,
-                                    retryCount: videoRetryCount
-                                  })
+                                    retryCount: videoRetryCount,
+                                    optimizedUrl: isBunnyStreamUrl(safeCurrentLesson?.videoUrl || '') ? 
+                                      optimizeBunnyStreamUrl(safeCurrentLesson?.videoUrl || '', videoRetryCount) : 
+                                      'N/A'
+                                  }
+                                  console.log('🔍 Video Debug Info:', debugInfo)
+                                  alert(`Video Debug Info:\n\nURL: ${debugInfo.url}\nIs YouTube: ${debugInfo.isYouTube}\nIs Bunny: ${debugInfo.isBunny}\nUse Direct: ${debugInfo.useDirectVideo}\nRetry Count: ${debugInfo.retryCount}\nOptimized URL: ${debugInfo.optimizedUrl}`)
                                 }} 
                                 variant="outline" 
                                 size="sm"
@@ -536,31 +610,54 @@ export default function LearnPageClient({
                           Your browser does not support the video tag.
                         </video>
                       ) : isBunnyStreamUrl(safeCurrentLesson.videoUrl) ? (
-                        <iframe
-                          src={optimizeBunnyStreamUrl(safeCurrentLesson.videoUrl, videoRetryCount)}
-                          className="w-full h-full border-0 rounded-lg"
-                          allowFullScreen
-                          allow="autoplay; encrypted-media; accelerometer; gyroscope; fullscreen; picture-in-picture"
-                          title={safeCurrentLesson?.titleMn || safeCurrentLesson?.title}
-                          loading="lazy"
-                          referrerPolicy="no-referrer-when-downgrade"
-                          sandbox="allow-scripts allow-same-origin allow-presentation allow-forms allow-popups"
-                          style={{
-                            width: '100%',
-                            height: '100%',
-                            minHeight: '400px',
-                            border: 'none',
-                            borderRadius: '8px',
-                            background: 'transparent',
-                            display: 'block',
-                            objectFit: 'cover',
-                            position: 'relative',
-                            zIndex: 1,
-                            backgroundColor: 'transparent',
-                            overflow: 'hidden'
-                          }}
-                          onError={handleVideoError}
-                        />
+                        <div className="w-full h-full">
+                          <iframe
+                            src={optimizeBunnyStreamUrl(safeCurrentLesson.videoUrl, videoRetryCount)}
+                            className="w-full h-full border-0 rounded-lg"
+                            allowFullScreen
+                            allow="autoplay; encrypted-media; accelerometer; gyroscope; fullscreen; picture-in-picture"
+                            title={safeCurrentLesson?.titleMn || safeCurrentLesson?.title}
+                            loading="lazy"
+                            referrerPolicy="no-referrer-when-downgrade"
+                            sandbox="allow-scripts allow-same-origin allow-presentation allow-forms allow-popups"
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              minHeight: '400px',
+                              border: 'none',
+                              borderRadius: '8px',
+                              background: 'transparent',
+                              display: 'block',
+                              objectFit: 'cover',
+                              position: 'relative',
+                              zIndex: 1,
+                              backgroundColor: 'transparent',
+                              overflow: 'hidden'
+                            }}
+                            onError={() => {
+                              console.error('❌ Bunny iframe error')
+                              handleVideoError()
+                            }}
+                            onLoad={() => {
+                              console.log('✅ Bunny iframe loaded successfully')
+                            }}
+                          />
+                          
+                          {/* Fallback message if iframe fails */}
+                          <div className="absolute inset-0 bg-black bg-opacity-75 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300">
+                            <div className="text-center text-white p-4">
+                              <p className="text-sm mb-2">If video doesn't load, try:</p>
+                              <Button 
+                                onClick={() => setUseDirectVideo(true)} 
+                                variant="outline" 
+                                size="sm"
+                                className="text-white border-white hover:bg-white hover:text-black"
+                              >
+                                Use Direct Video
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
                       ) : isYouTubeUrl(safeCurrentLesson.videoUrl) ? (
                         <iframe
                           src={convertYouTubeToEmbed(safeCurrentLesson.videoUrl)}

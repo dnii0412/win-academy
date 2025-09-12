@@ -148,7 +148,7 @@ export default function Navbar() {
             </Button>
 
             {/* Language Switcher - positioned immediately after theme button */}
-            <LanguageSwitcher />
+            
 
             {session ? (
               <DropdownMenu>
