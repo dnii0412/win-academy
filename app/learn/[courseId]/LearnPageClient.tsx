@@ -64,7 +64,6 @@ function optimizeBunnyStreamUrl(url: string, retryCount: number = 0): string {
       controls: 'true',
       preload: 'metadata',
       responsive: 'true',
-      aspectRatio: '16:9',
       fit: 'cover',
       background: '000000',
       width: '100%',
@@ -106,7 +105,6 @@ function optimizeBunnyStreamUrl(url: string, retryCount: number = 0): string {
         controls: 'true',
         preload: 'metadata',
         responsive: 'true',
-        aspectRatio: '16:9',
         fit: 'cover',
         background: '000000',
         width: '100%',
@@ -531,8 +529,9 @@ export default function LearnPageClient({
                 <CardContent className="p-0 bg-transparent">
                   {safeCurrentLesson?.videoUrl ? (
                     <div 
-                      className="aspect-video w-full relative" 
+                      className="w-full relative" 
                       style={{ 
+                        aspectRatio: '16/9',
                         minHeight: '400px',
                         backgroundColor: '#000'
                       }}
@@ -610,10 +609,18 @@ export default function LearnPageClient({
                           Your browser does not support the video tag.
                         </video>
                       ) : isBunnyStreamUrl(safeCurrentLesson.videoUrl) ? (
-                        <div className="w-full h-full">
+                        <div 
+                          className="w-full h-full relative" 
+                          style={{ 
+                            width: '100%', 
+                            height: '100%',
+                            minHeight: '400px',
+                            position: 'relative'
+                          }}
+                        >
                           <iframe
                             src={optimizeBunnyStreamUrl(safeCurrentLesson.videoUrl, videoRetryCount)}
-                            className="w-full h-full border-0 rounded-lg"
+                            className="absolute inset-0 w-full h-full border-0 rounded-lg"
                             allowFullScreen
                             allow="autoplay; encrypted-media; accelerometer; gyroscope; fullscreen; picture-in-picture"
                             title={safeCurrentLesson?.titleMn || safeCurrentLesson?.title}
@@ -621,15 +628,15 @@ export default function LearnPageClient({
                             referrerPolicy="no-referrer-when-downgrade"
                             sandbox="allow-scripts allow-same-origin allow-presentation allow-forms allow-popups"
                             style={{
+                              position: 'absolute',
+                              top: 0,
+                              left: 0,
                               width: '100%',
                               height: '100%',
-                              minHeight: '400px',
                               border: 'none',
                               borderRadius: '8px',
                               background: 'transparent',
                               display: 'block',
-                              objectFit: 'cover',
-                              position: 'relative',
                               zIndex: 1,
                               backgroundColor: 'transparent',
                               overflow: 'hidden'
@@ -640,6 +647,16 @@ export default function LearnPageClient({
                             }}
                             onLoad={() => {
                               console.log('✅ Bunny iframe loaded successfully')
+                              console.log('🔍 Bunny iframe dimensions:', {
+                                iframe: {
+                                  offsetWidth: (document.querySelector('iframe[title*="' + (safeCurrentLesson?.titleMn || safeCurrentLesson?.title) + '"]') as HTMLElement)?.offsetWidth,
+                                  offsetHeight: (document.querySelector('iframe[title*="' + (safeCurrentLesson?.titleMn || safeCurrentLesson?.title) + '"]') as HTMLElement)?.offsetHeight
+                                },
+                                container: {
+                                  offsetWidth: (document.querySelector('iframe[title*="' + (safeCurrentLesson?.titleMn || safeCurrentLesson?.title) + '"]')?.parentElement as HTMLElement)?.offsetWidth,
+                                  offsetHeight: (document.querySelector('iframe[title*="' + (safeCurrentLesson?.titleMn || safeCurrentLesson?.title) + '"]')?.parentElement as HTMLElement)?.offsetHeight
+                                }
+                              })
                             }}
                           />
                           
@@ -697,24 +714,20 @@ export default function LearnPageClient({
                       </div>
                     </div>
                   )}
+                  
+                  {/* Lesson Description - Now inside the same Card */}
+                  {(safeCurrentLesson && (safeCurrentLesson.description || safeCurrentLesson.descriptionMn)) && (
+                    <div className="p-6 border-t">
+                      <h3 className="text-lg font-semibold mb-3">
+                        Хичээлийн тайлбар
+                      </h3>
+                      <p className="text-muted-foreground">
+                        {safeCurrentLesson?.descriptionMn || safeCurrentLesson?.description}
+                      </p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
-              
-              {/* Lesson Description */}
-              {(safeCurrentLesson && (safeCurrentLesson.description || safeCurrentLesson.descriptionMn)) && (
-                <Card className="mt-4">
-                  <CardHeader>
-                    <CardTitle className="text-lg">
-                      Хичээлийн тайлбар
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground">
-                      {safeCurrentLesson?.descriptionMn || safeCurrentLesson?.description}
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
             </div>
 
             {/* Subcourses and Lessons List */}

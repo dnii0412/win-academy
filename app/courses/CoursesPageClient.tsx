@@ -22,32 +22,46 @@ export default function CoursesPageClient({ courses }: CoursesPageClientProps) {
   const { data: session, status } = useSession()
   const { t } = useLanguage()
   const [isHydrated, setIsHydrated] = useState(false)
+  const [filteredCourses, setFilteredCourses] = useState<Course[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")
+  const [selectedLevel, setSelectedLevel] = useState("all")
 
   // Ensure hydration is complete before rendering dynamic content
   useEffect(() => {
     setIsHydrated(true)
   }, [])
 
-  // Get unique categories for filter dropdown
-  const categories = Array.from(new Set(courses.map(course => course.category))).sort()
-  
-  // Filter courses based on search term and category
-  const filteredCourses = courses.filter(course => {
-    const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      course.titleMn?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      course.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      course.descriptionMn?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      course.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      course.categoryMn?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      course.instructor.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      course.instructorMn?.toLowerCase().includes(searchTerm.toLowerCase())
-    
-    const matchesCategory = selectedCategory === "all" || course.category === selectedCategory
-    
-    return matchesSearch && matchesCategory
-  })
+  useEffect(() => {
+    filterCourses()
+  }, [courses, searchTerm, selectedCategory, selectedLevel])
+
+  const filterCourses = () => {
+    let filtered = courses
+
+    // Filter by search term
+    if (searchTerm) {
+      filtered = filtered.filter(course => {
+        const title = course.titleMn || course.title
+        const description = course.descriptionMn || course.description
+        return title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          description.toLowerCase().includes(searchTerm.toLowerCase())
+      })
+    }
+
+    // Filter by category
+    if (selectedCategory && selectedCategory !== "all") {
+      filtered = filtered.filter(course => course.category === selectedCategory)
+    }
+
+    // Filter by level
+    if (selectedLevel && selectedLevel !== "all") {
+      filtered = filtered.filter(course => course.level === selectedLevel)
+    }
+
+    setFilteredCourses(filtered)
+  }
+
 
   const formatPrice = (price: number) => {
     return `₮${price.toLocaleString()}`
@@ -83,44 +97,46 @@ export default function CoursesPageClient({ courses }: CoursesPageClientProps) {
           <h1 className="text-4xl font-bold text-[#111111] dark:text-white mb-4">
             {isHydrated ? t("courses.title") : "All Courses"}
           </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-8">
+          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
             {isHydrated ? t("courses.subtitle") : "Discover our comprehensive digital skills training programs"}
           </p>
-          
-          {/* Search and Filter Controls */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center max-w-4xl mx-auto">
-            {/* Search Bar */}
-            <div className="relative w-full sm:flex-1 max-w-md sm:max-w-lg">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+        </div>
+
+        {/* Search and Filters */}
+        <div className="mb-8 space-y-4">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
-                placeholder={isHydrated ? t("courses.searchPlaceholder") || "Сургалт хайх..." : "Search courses..."}
+                placeholder={isHydrated ? t("courses.search") || "Сургалт хайх..." : "Search courses..."}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 h-12 text-base border-2 border-gray-200 dark:border-gray-700 focus:border-[#E10600] dark:focus:border-[#E10600] rounded-lg"
+                className="pl-10"
               />
             </div>
-            
-            {/* Category Filter */}
-            <div className="w-full sm:w-auto min-w-[200px]">
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="h-12 text-base border-2 border-gray-200 dark:border-gray-700 focus:border-[#E10600] dark:focus:border-[#E10600] rounded-lg">
-                  <div className="flex items-center">
-                    <Filter className="h-4 w-4 mr-2 text-gray-400" />
-                    <SelectValue placeholder={isHydrated ? t("courses.filterCategory") || "Ангилал" : "Category"} />
-                  </div>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">
-                    {isHydrated ? t("courses.allCategories") || "Бүгд" : "All Categories"}
-                  </SelectItem>
-                  {categories.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger className="w-full sm:w-48">
+                <SelectValue placeholder={isHydrated ? t("courses.all") || "Бүгд" : "All"} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{isHydrated ? t("courses.all") || "Бүгд" : "All"}</SelectItem>
+                <SelectItem value="design">Дизайн</SelectItem>
+                <SelectItem value="marketing">Маркетинг</SelectItem>
+                <SelectItem value="programming">Програмчлал</SelectItem>
+                <SelectItem value="business">Бизнес</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={selectedLevel} onValueChange={setSelectedLevel}>
+              <SelectTrigger className="w-full sm:w-48">
+                <SelectValue placeholder={isHydrated ? t("courses.all") || "Бүгд" : "All"} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{isHydrated ? t("courses.all") || "Бүгд" : "All"}</SelectItem>
+                <SelectItem value="beginner">{isHydrated ? t("courses.beginner") || "Эхлэгч" : "Beginner"}</SelectItem>
+                <SelectItem value="intermediate">{isHydrated ? t("courses.intermediate") || "Дунд" : "Intermediate"}</SelectItem>
+                <SelectItem value="advanced">{isHydrated ? t("courses.advanced") || "Ахисан" : "Advanced"}</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -132,16 +148,10 @@ export default function CoursesPageClient({ courses }: CoursesPageClientProps) {
               <BookOpen className="h-16 w-16 text-gray-400" />
             </div>
             <h2 className="text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-4">
-              {searchTerm ? 
-                (isHydrated ? t("courses.noSearchResults") || "No courses found" : "No courses found") : 
-                (isHydrated ? t("courses.noCourses") : "No Courses Available")
-              }
+              {isHydrated ? t("courses.noCourses") : "No Courses Available"}
             </h2>
             <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-lg mx-auto">
-              {searchTerm ? 
-                (isHydrated ? t("courses.noSearchResultsDescription") || "Try adjusting your search terms" : "Try adjusting your search terms") : 
-                (isHydrated ? t("courses.noCoursesDescription") : "We're working on adding new courses. Please check back soon!")
-              }
+              {isHydrated ? t("courses.noCoursesDescription") : "We're working on adding new courses. Please check back soon!"}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               {session ? (
@@ -169,35 +179,9 @@ export default function CoursesPageClient({ courses }: CoursesPageClientProps) {
             </div>
           </div>
         ) : (
-          <>
-            {/* Search Results Info */}
-            {(searchTerm || selectedCategory !== "all") && (
-              <div className="mb-6 text-center">
-                <p className="text-gray-600 dark:text-gray-400">
-                  {isHydrated ? 
-                    `${filteredCourses.length} ${t("courses.searchResults") || "courses found"}` : 
-                    `${filteredCourses.length} courses found`
-                  }
-                  {searchTerm && ` for "${searchTerm}"`}
-                  {selectedCategory !== "all" && ` in ${selectedCategory}`}
-                </p>
-                {(searchTerm || selectedCategory !== "all") && (
-                  <button
-                    onClick={() => {
-                      setSearchTerm("")
-                      setSelectedCategory("all")
-                    }}
-                    className="mt-2 text-sm text-[#E10600] hover:underline"
-                  >
-                    {isHydrated ? t("courses.clearFilters") || "Clear filters" : "Clear filters"}
-                  </button>
-                )}
-              </div>
-            )}
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredCourses.map((course) => (
-              <Card key={course._id} className="overflow-hidden hover:shadow-lg transition-shadow group">
+              <Card key={course._id} className="overflow-hidden hover:shadow-lg transition-shadow group h-full flex flex-col">
                 <div className="relative">
                   <CourseImage
                     thumbnailUrl={course.thumbnailUrl}
@@ -222,31 +206,14 @@ export default function CoursesPageClient({ courses }: CoursesPageClientProps) {
                   </CardDescription>
                 </CardHeader>
 
-                <CardContent className="pt-0">
-                  <div className="space-y-3 mb-4">
-                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                      <Clock className="h-4 w-4 mr-2" />
-                      <span>{course.duration ? `${course.duration} мин` : (isHydrated ? t("courseCard.duration") : "Duration")}</span>
-                    </div>
-                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                      <User className="h-4 w-4 mr-2" />
-                      <span>{course.instructorMn || course.instructor}</span>
-                    </div>
-                    <div className="flex items-center justify-start">
-                      <Badge variant="secondary">
-                        {course.categoryMn || course.category}
-                      </Badge>
-                    </div>
+                <CardContent className="pt-0 flex flex-col flex-grow">
+                  <div className="text-center mb-4">
+                    <span className="text-2xl font-bold text-[#E10600]">
+                      {formatPrice(course.price)}
+                    </span>
                   </div>
 
-                  <div className="space-y-3">
-                    <div className="text-center">
-                      <span className="text-2xl font-bold text-[#E10600]">
-                        {formatPrice(course.price)}
-                      </span>
-                    </div>
-
-                    <div className="space-y-3">
+                  <div className="space-y-3 mt-auto">
                       <div className="w-full">
                         <Link href={`/courses/${course._id}`} className="block">
                           <Button variant="outline" className="w-full border-[#E10600] text-[#E10600] hover:bg-[#E10600] hover:text-white whitespace-normal leading-tight">
@@ -274,19 +241,17 @@ export default function CoursesPageClient({ courses }: CoursesPageClientProps) {
                           <Link href={`/login?callbackUrl=${encodeURIComponent(`/checkout/${course._id}`)}`} className="block">
                             <Button className="w-full bg-[#E10600] hover:bg-[#C70500] text-white whitespace-normal leading-tight">
                               <ShoppingCart className="h-4 w-4 mr-2" />
-                              {isHydrated ? `${t("nav.login")} ${t("courseCard.enrollNow")}` : "Login to Enroll"}
+                              {isHydrated ? t("courseCard.enrollNow") : "Buy"}
                             </Button>
                           </Link>
                         )}
                       </div>
-                    </div>
                   </div>
                 </CardContent>
               </Card>
             ))}
-            </div>
-          </>
-        )}
+          </div>
+        )} 
       </div>
     </div>
   )

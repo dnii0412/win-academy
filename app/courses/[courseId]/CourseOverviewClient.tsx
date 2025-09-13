@@ -69,6 +69,8 @@ export default function CourseOverviewClient({
   console.log('CourseOverviewClient - hasAccess:', hasAccess)
   console.log('CourseOverviewClient - subcourses:', subcourses)
   console.log('CourseOverviewClient - subcourses length:', subcourses?.length)
+  console.log('CourseOverviewClient - course:', course)
+  console.log('CourseOverviewClient - course modules:', course?.modules)
 
   const formatPrice = (price: number) => {
     return `₮${price.toLocaleString()}`
@@ -188,92 +190,79 @@ export default function CourseOverviewClient({
               <h2 className="text-2xl font-bold text-foreground">
                 Хичээлийн агуулга
               </h2>
+              
 
-              {hasAccess ? (
-                subcourses && subcourses.length > 0 ? (
-                  <div className="space-y-4">
-                    {subcourses
-                      .sort((a, b) => a.order - b.order)
-                      .map((subcourse, subcourseIndex) => (
-                        <div key={subcourse._id} className="border border-border rounded-lg p-4 bg-card">
-                          <div className="flex items-center space-x-3 mb-3">
-                            <div className="w-8 h-8 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center text-sm font-semibold text-red-600 dark:text-red-200">
-                              {subcourseIndex + 1}
-                            </div>
-                            <h3 className="font-semibold text-foreground">
-                              {subcourse.titleMn || subcourse.title}
-                            </h3>
+              {subcourses && subcourses.length > 0 ? (
+                <div className="space-y-4">
+                  {subcourses
+                    .sort((a, b) => (a.order || 0) - (b.order || 0))
+                    .map((subcourse, subcourseIndex) => (
+                      <div key={subcourse._id} className="border border-border rounded-lg p-4 bg-card">
+                        <div className="flex items-center space-x-3 mb-3">
+                          <div className="w-8 h-8 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center text-sm font-semibold text-red-600 dark:text-red-200">
+                            {subcourseIndex + 1}
                           </div>
-                          {subcourse.description && (
-                            <p className="text-muted-foreground text-sm mb-3">
-                              {subcourse.descriptionMn || subcourse.description}
-                            </p>
-                          )}
-
-                          {subcourse.lessons && subcourse.lessons.length > 0 ? (
-                            <div className="space-y-2">
-                              {subcourse.lessons
-                                .sort((a, b) => a.order - b.order)
-                                .map((lesson, lessonIndex) => (
-                                  <div key={lesson._id} className="flex items-center space-x-3 p-2 bg-muted rounded">
-                                    <div className="w-5 h-5 bg-muted-foreground/20 rounded-full flex items-center justify-center text-xs font-semibold text-muted-foreground">
-                                      {lessonIndex + 1}
-                                    </div>
-                                    <div className="flex-1">
-                                      <h4 className="font-medium text-sm text-foreground">
-                                        {lesson.titleMn || lesson.title}
-                                      </h4>
-                                      {lesson.description && (
-                                        <p className="text-xs text-muted-foreground mt-1">
-                                          {lesson.descriptionMn || lesson.description}
-                                        </p>
-                                      )}
-                                    </div>
-                                    <div className="flex items-center space-x-2 text-xs text-muted-foreground">
-                                      {lesson.duration > 0 && (
-                                        <span>{formatVideoDuration(lesson.duration)}</span>
-                                      )}
-                                      <Play className="w-3 h-3" />
-                                      {lesson.videoStatus === 'ready' && lesson.videoUrl && (
-                                        <span className="text-green-600">✓</span>
-                                      )}
-                                    </div>
-                                  </div>
-                                ))}
-                            </div>
-                          ) : (
-                            <div className="text-center py-8 text-muted-foreground">
-                              <p className="text-sm">
-                                Энэ дэд хэсэгт одоогоор хичээл байхгүй байна
-                              </p>
-                            </div>
-                          )}
+                          <h3 className="font-semibold text-foreground">
+                            {subcourse.titleMn || subcourse.title}
+                          </h3>
                         </div>
-                      ))}
-                  </div>
-                ) : (
-                  <div className="border border-border rounded-lg p-12 text-center bg-card">
-                    <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
-                      <Play className="h-12 w-12 text-muted-foreground" />
-                    </div>
-                    <h3 className="text-xl font-semibold text-foreground mb-4">
-                      Хичээлийн агуулга удахгүй нэмэгдэх болно
-                    </h3>
-                    <p className="text-muted-foreground max-w-md mx-auto">
-                      Манай багш нар одоогоор хичээлийн агуулгыг бэлтгэж байна. Удахгүй шинэ хичээлүүд нэмэгдэх болно.
-                    </p>
-                  </div>
-                )
+                        {subcourse.description && (
+                          <p className="text-muted-foreground text-sm mb-3">
+                            {subcourse.descriptionMn || subcourse.description}
+                          </p>
+                        )}
+
+                        {subcourse.lessons && subcourse.lessons.length > 0 ? (
+                          <div className="space-y-2">
+                            {subcourse.lessons
+                              .sort((a, b) => a.order - b.order)
+                              .map((lesson, lessonIndex) => (
+                                <div key={lesson._id} className="flex items-center space-x-3 p-2 bg-muted rounded">
+                                  <div className="w-5 h-5 bg-muted-foreground/20 rounded-full flex items-center justify-center text-xs font-semibold text-muted-foreground">
+                                    {lessonIndex + 1}
+                                  </div>
+                                  <div className="flex-1">
+                                    <h4 className="font-medium text-sm text-foreground">
+                                      {lesson.titleMn || lesson.title}
+                                    </h4>
+                                    {lesson.description && (
+                                      <p className="text-xs text-muted-foreground mt-1">
+                                        {lesson.descriptionMn || lesson.description}
+                                      </p>
+                                    )}
+                                  </div>
+                                  <div className="flex items-center space-x-2 text-xs text-muted-foreground">
+                                    {lesson.duration > 0 && (
+                                      <span>{formatVideoDuration(lesson.duration)}</span>
+                                    )}
+                                    <Play className="w-3 h-3" />
+                                    {lesson.videoStatus === 'ready' && lesson.videoUrl && (
+                                      <span className="text-green-600">✓</span>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                          </div>
+                        ) : (
+                          <div className="text-center py-8 text-muted-foreground">
+                            <p className="text-sm">
+                              Энэ дэд хэсэгт одоогоор хичээл байхгүй байна
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                </div>
               ) : (
                 <div className="border border-border rounded-lg p-12 text-center bg-card">
                   <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
-                    <Lock className="h-12 w-12 text-muted-foreground" />
+                    <Play className="h-12 w-12 text-muted-foreground" />
                   </div>
                   <h3 className="text-xl font-semibold text-foreground mb-4">
-                    Хичээлийн агуулгыг үзэхийн тулд худалдаж авах шаардлагатай
+                    Хичээлийн агуулга удахгүй нэмэгдэх болно
                   </h3>
                   <p className="text-muted-foreground max-w-md mx-auto">
-                    Энэ хичээлийн бүрэн агуулгыг үзэхийн тулд эхлээд худалдаж авах шаардлагатай.
+                    Манай багш нар одоогоор хичээлийн агуулгыг бэлтгэж байна. Удахгүй шинэ хичээлүүд нэмэгдэх болно.
                   </p>
                 </div>
               )}
@@ -307,19 +296,7 @@ export default function CourseOverviewClient({
             </div>
 
             {/* Purchase/Access Section */}
-            {hasAccess ? (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <div className="flex items-center space-x-2 mb-2">
-                  <Play className="w-5 h-5 text-green-600" />
-                  <span className="font-semibold text-green-700">
-                    Хандалттай
-                  </span>
-                </div>
-                <p className="text-sm text-green-600">
-                  Та энэ хичээлийг үзэх эрхтэй
-                </p>
-              </div>
-            ) : (
+            {!hasAccess && (
               <div className="bg-pink-50 border border-pink-200 rounded-lg p-4">
                 <div className="flex items-center space-x-2 mb-2">
                   <ShoppingCart className="w-5 h-5 text-red-600" />

@@ -7,8 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { X, Plus, Upload } from "lucide-react"
+import { Plus, Upload, X } from "lucide-react"
 import { useEffect } from "react"
 import ImageUpload from "@/components/ImageUpload"
 
@@ -35,14 +34,10 @@ export default function CourseForm({ isOpen, onClose, onSubmit, course, mode }: 
     originalPrice45Days: course?.originalPrice45Days !== undefined ? course.originalPrice45Days : "",
     originalPrice90Days: course?.originalPrice90Days !== undefined ? course.originalPrice90Days : "",
     status: course?.status || "inactive",
-    tags: course?.tags || [],
-    tagsMn: course?.tagsMn || [],
     thumbnailUrl: course?.thumbnailUrl || "",
     thumbnailPublicId: course?.thumbnailPublicId || ""
   })
 
-  const [newTag, setNewTag] = useState("")
-  const [newTagMn, setNewTagMn] = useState("")
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({
@@ -51,25 +46,6 @@ export default function CourseForm({ isOpen, onClose, onSubmit, course, mode }: 
     }))
   }
 
-  const addTag = () => {
-    if (newTagMn.trim()) {
-      setFormData(prev => ({
-        ...prev,
-        tags: [...prev.tags, newTagMn.trim()], // Use Mongolian as both
-        tagsMn: [...prev.tagsMn, newTagMn.trim()]
-      }))
-      setNewTag("")
-      setNewTagMn("")
-    }
-  }
-
-  const removeTag = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      tags: prev.tags.filter((_: any, i: number) => i !== index),
-      tagsMn: prev.tagsMn.filter((_: any, i: number) => i !== index)
-    }))
-  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -99,8 +75,6 @@ export default function CourseForm({ isOpen, onClose, onSubmit, course, mode }: 
       descriptionMn: formData.descriptionMn, // Keep Mongolian description
       shortDescription: formData.shortDescriptionMn || formData.descriptionMn, // Use Mongolian short description or fallback to description
       shortDescriptionMn: formData.shortDescriptionMn || formData.descriptionMn, // Keep Mongolian short description
-      tags: formData.tagsMn, // Use Mongolian tags as English tags
-      tagsMn: formData.tagsMn, // Keep Mongolian tags
       price: Number(formData.price45Days), // Use 45-day price as default price
       price45Days: Number(formData.price45Days),
       price90Days: Number(formData.price90Days),
@@ -128,8 +102,6 @@ export default function CourseForm({ isOpen, onClose, onSubmit, course, mode }: 
         originalPrice45Days: course.originalPrice45Days !== undefined ? course.originalPrice45Days : "",
         originalPrice90Days: course.originalPrice90Days !== undefined ? course.originalPrice90Days : "",
         status: course.status || "inactive",
-        tags: course.tags || [],
-        tagsMn: course.tagsMn || [],
         thumbnailUrl: course.thumbnailUrl || "",
         thumbnailPublicId: course.thumbnailPublicId || ""
       })
@@ -319,43 +291,6 @@ export default function CourseForm({ isOpen, onClose, onSubmit, course, mode }: 
 
 
 
-            {/* Tags */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Tags</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label>Tag (Mongolian)</Label>
-                  <Input
-                    value={newTagMn}
-                    onChange={(e) => setNewTagMn(e.target.value)}
-                    placeholder="Монгол хэл дээр бичнэ үү"
-                  />
-                </div>
-                <Button type="button" onClick={addTag} variant="outline" size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Tag
-                </Button>
-
-                <div className="flex flex-wrap gap-2">
-                  {formData.tagsMn.map((tag: string, index: number) => (
-                    <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                      {tag}
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeTag(index)}
-                        className="h-4 w-4 p-0 ml-1"
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
 
 
 

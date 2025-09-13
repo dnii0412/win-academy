@@ -60,14 +60,14 @@ export default function CheckoutPayment({
       })
 
       if (!response.ok) {
-        throw new Error('Failed to create invoice')
+        throw new Error('Төлбөрийн баримт үүсгэхэд алдаа гарлаа')
       }
 
       const data = await response.json()
       setPaymentStatus(data.invoice)
       console.log('Invoice created successfully - Manual checking only')
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to create invoice'
+      const errorMessage = err instanceof Error ? err.message : 'Төлбөрийн баримт үүсгэхэд алдаа гарлаа'
       setError(errorMessage)
       onPaymentError?.(errorMessage)
     } finally {
@@ -89,7 +89,7 @@ export default function CheckoutPayment({
       })
 
       if (!response.ok) {
-        throw new Error('Failed to check payment status')
+        throw new Error('Төлбөрийн төлөв шалгахад алдаа гарлаа')
       }
 
       const data = await response.json()
@@ -107,11 +107,11 @@ export default function CheckoutPayment({
           invoiceStatus: data.invoice_status
         })
         if (data.invoice_status === 'CANCELLED') {
-          setError('Invoice has expired. Please create a new payment.')
+          setError('Төлбөрийн баримт хугацаа дууссан. Шинэ төлбөр үүсгэнэ үү.')
         }
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to check payment status'
+      const errorMessage = err instanceof Error ? err.message : 'Төлбөрийн төлөв шалгахад алдаа гарлаа'
       setError(errorMessage)
       onPaymentError?.(errorMessage)
     } finally {
@@ -122,13 +122,13 @@ export default function CheckoutPayment({
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'PAID':
-        return <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-sm">Paid</span>
+        return <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-sm">Төлсөн</span>
       case 'EXPIRED':
-        return <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-sm">Expired</span>
+        return <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-sm">Хугацаа дууссан</span>
       case 'CANCELLED':
-        return <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-sm">Cancelled</span>
+        return <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-sm">Цуцлагдсан</span>
       default:
-        return <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">Pending</span>
+        return <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">Хүлээгдэж байна</span>
     }
   }
 
@@ -137,13 +137,13 @@ export default function CheckoutPayment({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <CreditCard className="w-5 h-5" />
-          Payment
+          Төлбөр
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {!paymentStatus ? (
           <div className="text-center space-y-4">
-            <p className="text-gray-600">Click the button below to create a payment invoice</p>
+            <p className="text-gray-600">Төлбөр үүсгэхэд доорх товчийг дарна уу</p>
             <Button 
               onClick={createInvoice} 
               disabled={isLoading}
@@ -152,17 +152,17 @@ export default function CheckoutPayment({
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Creating Invoice...
+                  Төлбөр үүсгэж байна...
                 </>
               ) : (
-                'Create Payment Invoice'
+                'Төлбөр үүсгэх'
               )}
             </Button>
           </div>
         ) : (
           <div className="space-y-4">
             <div className="text-center">
-              <CardTitle>Payment Status</CardTitle>
+              <CardTitle>Төлбөрийн төлөв</CardTitle>
               {getStatusBadge(paymentStatus.status)}
             </div>
 
@@ -174,7 +174,7 @@ export default function CheckoutPayment({
             {paymentStatus.status === 'PAID' && (
               <div className="text-center text-green-600">
                 <CheckCircle className="w-8 h-8 mx-auto mb-2" />
-                <p className="font-semibold">Payment Successful!</p>
+                <p className="font-semibold">Төлбөр амжилттай!</p>
               </div>
             )}
 
@@ -200,19 +200,19 @@ export default function CheckoutPayment({
                   {isChecking ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Checking...
+                      Шалгаж байна...
                     </>
                   ) : (
                     <>
                       <RefreshCw className="w-4 h-4 mr-2" />
-                      Check Payment Status
+                      Төлбөрийн төлөв шалгах
                     </>
                   )}
                 </Button>
 
                 {paymentStatus.expires_at && (
                   <p className="text-xs text-gray-500 text-center">
-                    Expires: {new Date(paymentStatus.expires_at).toLocaleString()}
+                    Хугацаа дуусах: {new Date(paymentStatus.expires_at).toLocaleString()}
                   </p>
                 )}
               </div>
@@ -221,13 +221,13 @@ export default function CheckoutPayment({
             {(paymentStatus.status === 'EXPIRED' || paymentStatus.status === 'CANCELLED') && (
               <div className="text-center text-red-600">
                 <XCircle className="w-8 h-8 mx-auto mb-2" />
-                <p className="font-semibold">Payment {paymentStatus.status.toLowerCase()}</p>
+                <p className="font-semibold">Төлбөр {paymentStatus.status === 'EXPIRED' ? 'хугацаа дууссан' : 'цуцлагдсан'}</p>
                 <Button 
                   onClick={createInvoice} 
                   className="mt-2"
                   variant="outline"
                 >
-                  Create New Invoice
+                  Шинэ төлбөр үүсгэх
                 </Button>
               </div>
             )}

@@ -54,11 +54,11 @@ export default function CheckoutPage() {
                     const courseData = await response.json()
                     setCourse(courseData.course)
                 } else {
-                    setError("Course not found")
+                    setError("Сургалт олдсонгүй")
                 }
             } catch (error) {
                 console.error('Error fetching course:', error)
-                setError("Failed to load course information")
+                setError("Сургалтын мэдээлэл ачаалахад алдаа гарлаа")
             }
         }
 
@@ -130,7 +130,7 @@ export default function CheckoutPage() {
         e.preventDefault()
 
         if (!course || !formData.agreeToTerms) {
-            setError("Please agree to the terms and conditions")
+            setError("Үйлчилгээний нөхцөлтэй санал нийлэх шаардлагатай")
             return
         }
 
@@ -147,8 +147,8 @@ export default function CheckoutPage() {
             
         } catch (err) {
             console.error('Checkout error:', err)
-            const errorMessage = err instanceof Error ? err.message : "Payment failed"
-            setError(`Payment Error: ${errorMessage}`)
+            const errorMessage = err instanceof Error ? err.message : "Төлбөр амжилтгүй боллоо"
+            setError(`Төлбөрийн алдаа: ${errorMessage}`)
         } finally {
             setIsLoading(false)
         }
@@ -161,7 +161,7 @@ export default function CheckoutPage() {
                 <div className="text-center">
                     <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
                     <h1 className="text-xl font-medium text-gray-900">
-                        Checking authentication...
+                        Нэвтрэх эрх шалгаж байна...
                     </h1>
                 </div>
             </div>
@@ -174,11 +174,11 @@ export default function CheckoutPage() {
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
                     <h1 className="text-2xl font-bold text-gray-900 mb-4">
-                        {error || "Loading course..."}
+                        {error || "Сургалт ачаалж байна..."}
                     </h1>
                     {error && (
                         <Button onClick={() => router.push("/courses")}>
-                            Back to Courses
+                            Сургалтууд руу буцах
                         </Button>
                     )}
                 </div>
@@ -193,7 +193,7 @@ export default function CheckoutPage() {
                     {/* Course Summary */}
                     <Card className="bg-card border-2 border-border/50">
                         <CardHeader>
-                            <CardTitle>Order Summary</CardTitle>
+                            <CardTitle>Захиалгын дэлгэрэнгүй</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="flex items-start space-x-4">
@@ -205,13 +205,9 @@ export default function CheckoutPage() {
                                     className="w-20 h-20 rounded-lg"
                                 />
                                 <div className="flex-1">
-                                    <h3 className="font-semibold text-lg">{course.title}</h3>
-                                    <p className="text-gray-600 text-sm mt-1">{course.description}</p>
-                                    <div className="mt-2 space-y-1 text-sm text-gray-500">
-                                        <p>Duration: {course.duration}</p>
-                                        <p>Instructor: {course.instructor}</p>
-                                        <p>Level: {course.level}</p>
-                                    </div>
+                                    <h3 className="font-semibold text-lg">{course.titleMn || course.title}</h3>
+                                    <p className="text-gray-600 text-sm mt-1">{course.descriptionMn || course.description}</p>
+                                    
                                 </div>
                             </div>
 
@@ -226,20 +222,21 @@ export default function CheckoutPage() {
                                     <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50">
                                         <RadioGroupItem value="45" id="45" />
                                         <Label htmlFor="45" className="flex-1 cursor-pointer">
-                                            <div className="flex justify-between items-center">
-                                                <div>
+                                            <div className="flex justify-between items-center w-full">
+                                                <div className="flex-1">
                                                     <span className="font-medium">45 хоног</span>
-                                                    <p className="text-sm text-gray-500">Богино хугацааны хандалт</p>
                                                 </div>
-                                                <div className="text-right">
-                                                    <span className="text-lg font-bold text-[#E10600]">
-                                                        ₮{(course.price45Days || course.price).toLocaleString()}
-                                                    </span>
-                                                    {course.originalPrice45Days && course.originalPrice45Days > (course.price45Days || course.price) && (
-                                                        <p className="text-sm text-gray-500 line-through">
-                                                            ₮{course.originalPrice45Days.toLocaleString()}
-                                                        </p>
-                                                    )}
+                                                <div className="ml-auto">
+                                                    <div className="flex flex-col items-end">
+                                                        <span className="text-lg font-bold text-[#E10600]">
+                                                            ₮{(course.price45Days || course.price).toLocaleString()}
+                                                        </span>
+                                                        {course.originalPrice45Days && course.originalPrice45Days > (course.price45Days || course.price) && (
+                                                            <span className="text-sm text-gray-500 line-through">
+                                                                ₮{course.originalPrice45Days.toLocaleString()}
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </Label>
@@ -247,20 +244,21 @@ export default function CheckoutPage() {
                                     <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50">
                                         <RadioGroupItem value="90" id="90" />
                                         <Label htmlFor="90" className="flex-1 cursor-pointer">
-                                            <div className="flex justify-between items-center">
-                                                <div>
+                                            <div className="flex justify-between items-center w-full">
+                                                <div className="flex-1">
                                                     <span className="font-medium">90 хоног</span>
-                                                    <p className="text-sm text-gray-500">Урт хугацааны хандалт</p>
                                                 </div>
-                                                <div className="text-right">
-                                                    <span className="text-lg font-bold text-[#E10600]">
-                                                        ₮{(course.price90Days || course.price).toLocaleString()}
-                                                    </span>
-                                                    {course.originalPrice90Days && course.originalPrice90Days > (course.price90Days || course.price) && (
-                                                        <p className="text-sm text-gray-500 line-through">
-                                                            ₮{course.originalPrice90Days.toLocaleString()}
-                                                        </p>
-                                                    )}
+                                                <div className="ml-auto">
+                                                    <div className="flex flex-col items-end">
+                                                        <span className="text-lg font-bold text-[#E10600]">
+                                                            ₮{(course.price90Days || course.price).toLocaleString()}
+                                                        </span>
+                                                        {course.originalPrice90Days && course.originalPrice90Days > (course.price90Days || course.price) && (
+                                                            <span className="text-sm text-gray-500 line-through">
+                                                                ₮{course.originalPrice90Days.toLocaleString()}
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </Label>

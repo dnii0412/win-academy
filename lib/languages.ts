@@ -346,7 +346,7 @@ export const translations = {
     },
     // Course cards
     courseCard: {
-      enrollNow: "Бүртгүүлэх",
+      enrollNow: "Худалдаж авах",
       continue: "Үргэлжлүүлэх",
       duration: "Үргэлжлэх хугацаа",
       instructor: "Багш",

@@ -56,6 +56,9 @@ async function getCourseData(courseId: string) {
     const subcourses = await Subcourse.find({ courseId })
       .sort({ order: 1 })
       .lean()
+    
+    console.log('Server: Found subcourses for course', courseId, ':', subcourses.length)
+    console.log('Server: Subcourses data:', subcourses)
 
     // Get session to check access
     const session = await auth()
