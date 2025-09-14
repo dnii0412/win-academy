@@ -309,20 +309,20 @@ export default function Navbar() {
                   </div>
                 </div>
               ) : (
-                <div className={`space-y-4 ${
+                <div className={`${
                   isMobileMenuOpen ? 'animate-in slide-in-from-right-2 duration-300 delay-300' : ''
                 }`}>
-                  <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Link href="/login" onClick={() => setIsMobileMenuOpen(false)} className="block mb-6">
                     <Button
                       variant="outline"
-                      className="w-full border-2 border-[#FF344A] text-[#FF344A] hover:bg-[#FF344A] hover:text-white bg-transparent transition-all duration-300 transform hover:scale-105 rounded-xl py-4 text-lg font-semibold"
+                      className="w-full border-2 border-[#FF344A] text-[#FF344A] hover:bg-[#FF344A] hover:text-white bg-transparent transition-all duration-300 transform hover:scale-105 rounded-xl py-3 text-base font-medium"
                     >
                       {t("nav.login")}
                     </Button>
                   </Link>
-                  <Link href="/register" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Link href="/register" onClick={() => setIsMobileMenuOpen(false)} className="block">
                     <Button
-                      className="w-full bg-[#FF344A] hover:bg-[#E02A3C] text-white transition-all duration-300 transform hover:scale-105 rounded-xl py-4 text-lg font-semibold shadow-lg"
+                      className="w-full bg-[#FF344A] hover:bg-[#E02A3C] text-white transition-all duration-300 transform hover:scale-105 rounded-xl py-3 text-base font-medium shadow-lg"
                     >
                       {t("nav.register")}
                     </Button>
