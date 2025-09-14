@@ -103,7 +103,7 @@ export default function Navbar() {
 
   return (
     <nav
-      className="border-b border-border/50 sticky top-0 z-50 transition-all duration-300 overflow-x-hidden relative bg-background/95 backdrop-blur-md shadow-sm"
+      className="border-b border-gray-200 dark:!border-gray-800 sticky top-0 z-[70] transition-all duration-300 relative bg-white dark:!bg-black shadow-sm"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         <div
@@ -118,13 +118,13 @@ export default function Navbar() {
             <div className="hidden md:flex items-center space-x-6">
               <Link
                 href="/"
-                className="text-foreground hover:text-[#FF344A] transition-colors duration-200 font-medium"
+                className="text-gray-900 dark:text-white hover:text-[#FF344A] transition-colors duration-200 font-medium"
               >
                 {t("nav.home")}
               </Link>
               <Link
                 href="/courses"
-                className="text-foreground hover:text-[#FF344A] transition-colors duration-200 font-medium"
+                className="text-gray-900 dark:text-white hover:text-[#FF344A] transition-colors duration-200 font-medium"
               >
                 {t("nav.courses")}
               </Link>
@@ -137,7 +137,7 @@ export default function Navbar() {
               variant="ghost"
               size="icon"
               onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-              className="hover:bg-accent transition-colors duration-200"
+              className="hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 text-gray-900 dark:text-white"
             >
               {theme === "light" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
               <span className="sr-only">Toggle theme</span>
@@ -146,7 +146,7 @@ export default function Navbar() {
             {session ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="hover:bg-accent transition-colors duration-200">
+                  <Button variant="ghost" className="hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 text-gray-900 dark:text-white">
                     <User className="h-4 w-4 mr-2" />
                     {session.user?.name || t("nav.dashboard")}
                   </Button>
@@ -188,123 +188,177 @@ export default function Navbar() {
           </div>
 
           {/* Mobile Menu Button */}
-          <div className="md:hidden flex items-center">
+          <div className="md:hidden flex items-center relative z-[80]">
             <Button
               variant="ghost"
               size="icon"
               onClick={toggleMobileMenu}
-              className="hover:bg-accent transition-colors duration-200 relative z-50"
+              className="hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-300 transform hover:scale-110 rounded-xl text-gray-900 dark:text-white"
               aria-expanded={isMobileMenuOpen}
               aria-label={isMobileMenuOpen ? "Close mobile menu" : "Open mobile menu"}
             >
-              {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              <div className="relative">
+                <Menu className={`h-6 w-6 transition-all duration-300 ${isMobileMenuOpen ? 'opacity-0 rotate-180' : 'opacity-100 rotate-0'}`} />
+                <X className={`h-6 w-6 absolute top-0 left-0 transition-all duration-300 ${isMobileMenuOpen ? 'opacity-100 rotate-0' : 'opacity-0 -rotate-180'}`} />
+              </div>
             </Button>
           </div>
         </div>
 
-        {/* Mobile Menu Dropdown */}
+        {/* Mobile Menu Backdrop */}
         {isMobileMenuOpen && (
           <div 
-            className="block md:hidden fixed top-20 left-4 right-4 z-[9999] bg-red-500 border-4 border-yellow-400 shadow-2xl min-h-[300px] rounded-lg"
-          >
-            <div className="px-4 py-6">
+            className="fixed inset-0 bg-black/20 dark:bg-black/40 z-[45] md:hidden"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+        )}
+
+        {/* Mobile Menu Dropdown */}
+        <div 
+          className={`block md:hidden fixed top-16 right-0 h-[calc(100vh-4rem)] w-80 max-w-[85vw] z-[50] bg-white dark:!bg-black border-l border-gray-200 dark:!border-gray-800 shadow-2xl transition-all duration-300 ease-in-out transform ${
+            isMobileMenuOpen 
+              ? 'opacity-100 translate-x-0' 
+              : 'opacity-0 translate-x-full pointer-events-none'
+          }`}
+        >
+            <div className="px-6 py-8 h-full flex flex-col">
+            {/* Mobile Menu Header */}
+            
             {/* Mobile Menu Content */}
-            <div className="space-y-6">
-              <div className="space-y-4">
+            <div className="flex-1 space-y-6">
+              {/* Navigation Links */}
+              <div className="space-y-2">
                 <Link
                   href="/"
-                  className="block text-lg font-medium text-foreground hover:text-[#FF344A] transition-colors duration-200 py-2"
+                  className={`group flex items-center text-lg font-medium text-gray-700 dark:text-gray-300 hover:text-[#FF344A] transition-all duration-300 py-3 px-4 rounded-xl hover:bg-gradient-to-r hover:from-[#FF344A]/5 hover:to-[#FF344A]/10 transform hover:scale-[1.02] ${
+                    isMobileMenuOpen ? 'animate-in slide-in-from-right-2 duration-300' : ''
+                  }`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
+                  <div className="w-2 h-2 bg-[#FF344A] rounded-full mr-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   {t("nav.home")}
                 </Link>
                 <Link
                   href="/courses"
-                  className="block text-lg font-medium text-foreground hover:text-[#FF344A] transition-colors duration-200 py-2"
+                  className={`group flex items-center text-lg font-medium text-gray-700 dark:text-gray-300 hover:text-[#FF344A] transition-all duration-300 py-3 px-4 rounded-xl hover:bg-gradient-to-r hover:from-[#FF344A]/5 hover:to-[#FF344A]/10 transform hover:scale-[1.02] ${
+                    isMobileMenuOpen ? 'animate-in slide-in-from-right-2 duration-300 delay-100' : ''
+                  }`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
+                  <div className="w-2 h-2 bg-[#FF344A] rounded-full mr-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   {t("nav.courses")}
                 </Link>
               </div>
 
-              <div className="space-y-4 pt-6 border-t border-border">
+              {/* Separator Line */}
+              <div className={`border-t border-gray-200 dark:!border-gray-800 ${
+                isMobileMenuOpen ? 'animate-in slide-in-from-right-2 duration-300 delay-200' : ''
+              }`}></div>
+
+              {/* User Section */}
+              {session ? (
+                <div className={`space-y-4 ${
+                  isMobileMenuOpen ? 'animate-in slide-in-from-right-2 duration-300 delay-300' : ''
+                }`}>
+                  {/* User Name */}
+                  <div className="px-4 py-4 bg-gradient-to-r from-[#FF344A]/10 to-[#FF344A]/5 dark:from-[#FF344A]/20 dark:to-[#FF344A]/10 rounded-xl border border-[#FF344A]/20">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-[#FF344A] rounded-full flex items-center justify-center">
+                        <User className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <span className="text-lg font-semibold text-gray-900 dark:text-white block">
+                          {session.user?.name || t("nav.dashboard")}
+                        </span>
+                        <span className="text-sm text-gray-500 dark:text-gray-400">Online</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* User Action Buttons */}
+                  <div className="space-y-2">
+                    <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 dark:hover:from-gray-800 dark:hover:to-gray-700 transition-all duration-300 transform hover:scale-[1.02] rounded-xl py-3 px-4 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                      >
+                        <Settings className="h-5 w-5 mr-3 text-gray-500" />
+                        <span className="text-base font-medium">{t("nav.dashboard")}</span>
+                      </Button>
+                    </Link>
+                    <Link href="/dashboard/profile" onClick={() => setIsMobileMenuOpen(false)}>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 dark:hover:from-gray-800 dark:hover:to-gray-700 transition-all duration-300 transform hover:scale-[1.02] rounded-xl py-3 px-4 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                      >
+                        <User className="h-5 w-5 mr-3 text-gray-500" />
+                        <span className="text-base font-medium">{t("nav.profile")}</span>
+                      </Button>
+                    </Link>
+                    <Button
+                      variant="ghost"
+                      onClick={() => {
+                        handleSignOut()
+                        setIsMobileMenuOpen(false)
+                      }}
+                      className="w-full justify-start hover:bg-gradient-to-r hover:from-red-50 hover:to-red-100 dark:hover:from-red-900/20 dark:hover:to-red-800/20 transition-all duration-300 transform hover:scale-[1.02] rounded-xl py-3 px-4 text-red-600 hover:text-red-700"
+                    >
+                      <LogOut className="h-5 w-5 mr-3" />
+                      <span className="text-base font-medium">{t("nav.logout")}</span>
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className={`space-y-4 ${
+                  isMobileMenuOpen ? 'animate-in slide-in-from-right-2 duration-300 delay-300' : ''
+                }`}>
+                  <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Button
+                      variant="outline"
+                      className="w-full border-2 border-[#FF344A] text-[#FF344A] hover:bg-[#FF344A] hover:text-white bg-transparent transition-all duration-300 transform hover:scale-105 rounded-xl py-4 text-lg font-semibold"
+                    >
+                      {t("nav.login")}
+                    </Button>
+                  </Link>
+                  <Link href="/register" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Button
+                      className="w-full bg-[#FF344A] hover:bg-[#E02A3C] text-white transition-all duration-300 transform hover:scale-105 rounded-xl py-4 text-lg font-semibold shadow-lg"
+                    >
+                      {t("nav.register")}
+                    </Button>
+                  </Link>
+                </div>
+              )}
+
+              {/* Theme Button - Bottom */}
+              <div className={`pt-6 border-t border-gray-200 dark:!border-gray-800 ${
+                isMobileMenuOpen ? 'animate-in slide-in-from-right-2 duration-300 delay-400' : ''
+              }`}>
                 <Button
                   variant="ghost"
-                  size="icon"
+                  size="lg"
                   onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-                  className="w-full justify-center hover:bg-accent transition-colors duration-200"
+                  className="w-full justify-center hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 dark:hover:from-gray-800 dark:hover:to-gray-700 transition-all duration-300 transform hover:scale-[1.02] rounded-xl py-4 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
                 >
-                  {theme === "light" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
-                  <span className="sr-only">Toggle theme</span>
+                  <div className="flex items-center space-x-3">
+                    {theme === "light" ? (
+                      <div className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center">
+                        <Moon className="h-4 w-4 text-white" />
+                      </div>
+                    ) : (
+                      <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center">
+                        <Sun className="h-4 w-4 text-white" />
+                      </div>
+                    )}
+                    <span className="text-base font-medium">
+                      {theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
+                    </span>
+                  </div>
                 </Button>
-
-                {/* Language Switcher - positioned after theme button */}
-               
-
-                {/* Mobile menu authentication buttons */}
-                {session ? (
-                  <div className="space-y-3">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          className="w-full justify-center hover:bg-accent transition-colors duration-200"
-                        >
-                          <User className="h-4 w-4 mr-2" />
-                          {session.user?.name || t("nav.dashboard")}
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-full">
-                        <DropdownMenuItem asChild>
-                          <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
-                            <Settings className="mr-2 h-4 w-4" />
-                            {t("nav.dashboard")}
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href="/dashboard/profile" onClick={() => setIsMobileMenuOpen(false)}>
-                            <User className="mr-2 h-4 w-4" />
-                            {t("nav.profile")}
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => {
-                          handleSignOut()
-                          setIsMobileMenuOpen(false)
-                        }}>
-                          <LogOut className="mr-2 h-4 w-4" />
-                          {t("nav.logout")}
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <Link href="/login" className="block">
-                      <Button
-                        variant="outline"
-                        className="w-full border-[#FF344A] text-[#FF344A] hover:bg-[#FF344A] hover:text-white bg-transparent transition-colors duration-200"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        {t("nav.login")}
-                      </Button>
-                    </Link>
-
-                    <Link href="/register" className="block">
-                      <Button
-                        className="w-full bg-[#FF344A] hover:bg-[#E02A3C] text-white transition-colors duration-200"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        {t("nav.register")}
-                      </Button>
-                    </Link>
-                  </div>
-                )}
               </div>
             </div>
-            </div>
           </div>
-        )}
+        </div>
       </div>
     </nav>
   )
