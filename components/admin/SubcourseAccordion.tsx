@@ -220,7 +220,7 @@ export default function SubcourseAccordion({
           <div key={subcourse._id} className="relative">
             {/* Drop zone indicator */}
             {dragOverId === subcourse._id && draggedId && draggedId !== subcourse._id && (
-              <div className="absolute -top-2 left-0 right-0 h-1 bg-blue-400 rounded-full z-10" />
+              <div className="absolute -top-2 left-0 right-0 h-1 bg-gray-400 rounded-full z-10" />
             )}
             
             <Card
@@ -231,9 +231,9 @@ export default function SubcourseAccordion({
               onDrop={(e) => handleDrop(e, subcourse._id)}
               className={cn(
                 "transition-all duration-200 group cursor-move",
-                isSelected && "ring-2 ring-blue-500 ring-offset-2",
+                isSelected && "ring-2 ring-gray-500 ring-offset-2",
                 draggedId === subcourse._id && "opacity-50",
-                dragOverId === subcourse._id && "ring-2 ring-blue-300 ring-offset-2 bg-blue-50 dark:bg-blue-900/20"
+                dragOverId === subcourse._id && "ring-2 ring-gray-300 ring-offset-2 bg-gray-50 dark:bg-gray-900/20"
               )}
             >
               <CardHeader className="pb-3 cursor-pointer" onClick={() => onToggleExpanded(subcourse._id)}>
@@ -332,7 +332,7 @@ export default function SubcourseAccordion({
                         className={cn(
                           "flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg cursor-move hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors",
                           draggedLessonId === lesson._id && "opacity-50",
-                          dragOverLessonId === lesson._id && "ring-2 ring-blue-300 ring-offset-2 bg-blue-50 dark:bg-blue-900/20"
+                          dragOverLessonId === lesson._id && "ring-2 ring-gray-300 ring-offset-2 bg-gray-50 dark:bg-gray-900/20"
                         )}
                       >
                         <div className="flex items-center gap-3">

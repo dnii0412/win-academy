@@ -5,14 +5,15 @@ import ScrollProgress from "@/components/scroll-progress"
 import AnimatedSection from "@/components/animated-section"
 import TestimonialCarousel from "@/components/testimonial-carousel"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import Link from "next/link"
 import { Course } from "@/types/course"
 import CourseImage from "@/components/course-image"
 import PerformanceOptimizer from "@/components/performance-optimizer"
 import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
-import { Play, ShoppingCart } from "lucide-react"
+import { Play, ShoppingCart, BookOpen } from "lucide-react"
 
 interface HomePageClientProps {
   featuredCourses: Course[]
@@ -209,8 +210,8 @@ export default function HomePageClient({ featuredCourses, session }: HomePageCli
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
             <AnimatedSection animation="slideLeft">
               <h1
-                className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4 leading-tight break-words"
-                dangerouslySetInnerHTML={{ __html: "Суралц. <span style='color: #E10600;'>Бүтээ.</span> Ажилд ор." }}
+                className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-foreground mb-4 leading-tight break-words"
+                dangerouslySetInnerHTML={{ __html: "Learn. <span style='color: #FF344A;'>Create.</span> Get Hired." }}
               />
 
               <p className="text-lg sm:text-xl text-muted-foreground mb-8 leading-relaxed break-words">
@@ -219,20 +220,20 @@ export default function HomePageClient({ featuredCourses, session }: HomePageCli
 
               <div className="mb-6 p-3 bg-muted rounded-lg inline-block">
                 <div className="flex items-center space-x-2">
-                  <span className="text-muted-foreground">Ажилд орсон сурагчид:</span>
+                  <span className="text-muted-foreground">Амжилттай төгссөн сурагчид:</span>
                   <AnimatedCounter end={120} suffix="+" />
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row gap-3 w-full">
                 <Link href="/courses" className="flex-1">
-                  <Button className="w-full bg-[#E10600] hover:bg-[#C70500] text-white text-sm sm:text-base px-4 sm:px-6 py-3 transition-all duration-300 hover:shadow-lg hover:scale-105">
+                  <Button className="w-full bg-[#FF344A] hover:bg-[#E02A3C] text-white text-sm sm:text-base px-4 sm:px-6 py-3 transition-all duration-300 hover:shadow-lg hover:scale-105">
                     Өнөөдөр суралцаж эхлээрэй
                   </Button>
                 </Link>
                 <Link href="/register" className="flex-1">
                   <Button
                     variant="outline"
-                    className="w-full border-[#E10600] text-[#E10600] hover:bg-[#E10600] hover:text-white text-sm sm:text-base px-4 sm:px-6 py-3 bg-transparent transition-all duration-300 hover:shadow-lg hover:scale-105"
+                    className="w-full border-[#FF344A] text-[#FF344A] hover:bg-[#FF344A] hover:text-white text-sm sm:text-base px-4 sm:px-6 py-3 bg-transparent transition-all duration-300 hover:shadow-lg hover:scale-105"
                   >
                     Бүртгүүлэх
                   </Button>
@@ -277,67 +278,99 @@ export default function HomePageClient({ featuredCourses, session }: HomePageCli
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {featuredCourses.map((course, index) => {
+            <div className={`flex justify-center ${
+              featuredCourses.length === 1 || featuredCourses.length === 2 ? 'w-full' : ''
+            }`}>
+              <div className={`grid gap-8 ${
+                featuredCourses.length === 1 
+                  ? 'grid-cols-1' 
+                  : featuredCourses.length === 2 
+                  ? 'grid-cols-1 md:grid-cols-2' 
+                  : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+              }`}>
+              {featuredCourses.slice(0, 3).map((course, index) => {
                 const hasAccess = courseAccess[course._id] || false
                 const isLoggedIn = !!clientSession?.user?.email
                 
                 return (
                   <AnimatedSection key={course._id} animation="fadeUp" className={`delay-${index * 100}`}>
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group">
-                      <div className="mb-4">
+                    <Card className="overflow-hidden hover:shadow-lg transition-shadow group h-full flex flex-col">
+                      <div className="relative">
                         <CourseImage
                           thumbnailUrl={course.thumbnailUrl}
                           title={course.title}
                           category={course.category}
-                          size="small"
-                          className="w-full h-32 rounded-lg"
+                          size="medium"
+                          className="w-full h-48"
                         />
-                      </div>
-                      <div className="text-center">
-                        <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                          {course.title}
-                        </h3>
-                        <p className="text-gray-500 dark:text-gray-400 text-sm mb-3 line-clamp-2">
-                          {course.description ? course.description.substring(0, 100) + '...' : 'No description available'}
-                        </p>
-                        <div className="text-lg font-bold text-[#E10600] mb-3">
-                          ₮{course.price.toLocaleString()}
-                        </div>
-                        
-                        {/* Conditional Button */}
-                        {hasAccess ? (
-                          <Link href={`/learn/${course._id}`} className="block">
-                            <Button className="w-full bg-green-600 hover:bg-green-700 text-white whitespace-normal leading-tight">
-                              <Play className="h-4 w-4 mr-2" />
-                              Үргэлжлүүлэх
-                            </Button>
-                          </Link>
-                        ) : isLoggedIn ? (
-                          <Link href={`/checkout/${course._id}`} className="block">
-                            <Button className="w-full bg-[#E10600] hover:bg-[#C70500] text-white whitespace-normal leading-tight">
-                              <ShoppingCart className="h-4 w-4 mr-2" />
-                              төлбөр төлөх ₮{course.price.toLocaleString()}
-                            </Button>
-                          </Link>
-                        ) : (
-                          <Link href={`/login?callbackUrl=${encodeURIComponent(`/checkout/${course._id}`)}`} className="block">
-                            <Button className="w-full bg-[#E10600] hover:bg-[#C70500] text-white whitespace-normal leading-tight">
-                              <ShoppingCart className="h-4 w-4 mr-2" />
-                              Нэвтрэх / төлбөр төлөх ₮{course.price.toLocaleString()}
-                            </Button>
-                          </Link>
+                        {hasAccess && (
+                          <Badge className="absolute top-3 right-3 bg-green-500 hover:bg-green-600 z-10">
+                            Худалдан авсан
+                          </Badge>
                         )}
                       </div>
-                    </div>
+
+                      <CardHeader className="pb-3 flex-1 flex flex-col">
+                        <CardTitle className="text-lg line-clamp-2">
+                          {course.title}
+                        </CardTitle>
+                        <CardDescription className="line-clamp-2 flex-1">
+                          {course.description ? course.description.substring(0, 120) + '...' : 'No description available'}
+                        </CardDescription>
+                      </CardHeader>
+
+                      <CardContent className="pt-0 flex flex-col flex-1">
+                        <div className="text-center mb-4">
+                          <span className="text-2xl font-bold text-[#FF344A]">
+                            ₮{course.price.toLocaleString()}
+                          </span>
+                        </div>
+
+                        <div className="space-y-3 mt-auto">
+                          <div className="w-full">
+                            <Link href={`/courses/${course._id}`} className="block">
+                              <Button variant="outline" className="w-full border-[#FF344A] text-[#FF344A] hover:bg-[#FF344A] hover:text-white whitespace-normal leading-tight">
+                                <BookOpen className="h-4 w-4 mr-2" />
+                                Дэлгэрэнгүй
+                              </Button>
+                            </Link>
+                          </div>
+                          <div className="w-full">
+                            {hasAccess ? (
+                              <Link href={`/learn/${course._id}`} className="block">
+                                <Button className="w-full bg-green-600 hover:bg-green-700 text-white whitespace-normal leading-tight">
+                                  <Play className="h-4 w-4 mr-2" />
+                                  Үргэлжлүүлэх
+                                </Button>
+                              </Link>
+                            ) : isLoggedIn ? (
+                              <Link href={`/checkout/${course._id}`} className="block">
+                                <Button className="w-full bg-[#FF344A] hover:bg-[#E02A3C] text-white whitespace-normal leading-tight">
+                                  <ShoppingCart className="h-4 w-4 mr-2" />
+                                  Худалдаж авах
+                                </Button>
+                              </Link>
+                            ) : (
+                              <Link href={`/login?callbackUrl=${encodeURIComponent(`/checkout/${course._id}`)}`} className="block">
+                                <Button className="w-full bg-[#FF344A] hover:bg-[#E02A3C] text-white whitespace-normal leading-tight">
+                                  <ShoppingCart className="h-4 w-4 mr-2" />
+                                  Нэвтрэх / Худалдаж авах
+                                </Button>
+                              </Link>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
                   </AnimatedSection>
                 )
               })}
+              </div>
             </div>
           )}
           <AnimatedSection className="text-center mt-12">
             <Link href="/courses">
-              <Button className="bg-[#E10600] hover:bg-[#C70500] text-white text-lg px-8 py-4 transition-all duration-300 hover:shadow-lg hover:scale-105">
+              <Button className="bg-[#FF344A] hover:bg-[#E02A3C] text-white text-lg px-8 py-4 transition-all duration-300 hover:shadow-lg hover:scale-105">
                 Бүх сургалтыг харах
               </Button>
             </Link>
@@ -352,7 +385,7 @@ export default function HomePageClient({ featuredCourses, session }: HomePageCli
             <h2 className="text-4xl font-bold text-foreground mb-4">Яагаад WIN Academy?</h2>
             <p className="text-xl text-muted-foreground">Монголын дижитал ирээдүйн төлөө бүтээгдсэн</p>
           </AnimatedSection>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {benefits.map((benefit, index) => (
               <AnimatedSection key={index} animation="fadeUp" className={`delay-${index * 200}`}>
                 <Card className="text-center p-8 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group h-full flex flex-col">
@@ -397,7 +430,7 @@ export default function HomePageClient({ featuredCourses, session }: HomePageCli
               </p>
               <div className="space-y-4">
                 <div className="flex items-start space-x-3 group">
-                  <span className="text-[#E10600] transition-transform duration-300 group-hover:scale-110 mt-1">📍</span>
+                  <span className="text-[#FF344A] transition-transform duration-300 group-hover:scale-110 mt-1">📍</span>
                   <div className="text-foreground">
                     <div className="font-medium">Хаяг</div>
                     <div className="text-sm text-muted-foreground">Pearl Tower B Corpus, 11-р давхар, 1101-р өрөө</div>
@@ -405,11 +438,11 @@ export default function HomePageClient({ featuredCourses, session }: HomePageCli
                   </div>
                 </div>
                 <div className="flex items-center space-x-3 group">
-                  <span className="text-[#E10600] transition-transform duration-300 group-hover:scale-110">📞</span>
-                  <span className="text-foreground">+976-11-123456</span>
+                  <span className="text-[#FF344A] transition-transform duration-300 group-hover:scale-110">📞</span>
+                  <span className="text-foreground">+976-9668-0707, +976-9016-6060</span>
                 </div>
                 <div className="flex items-center space-x-3 group">
-                  <span className="text-[#E10600] transition-transform duration-300 group-hover:scale-110">✉️</span>
+                  <span className="text-[#FF344A] transition-transform duration-300 group-hover:scale-110">✉️</span>
                   <span className="text-foreground">info@winacademy.mn</span>
                 </div>
               </div>

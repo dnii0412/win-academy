@@ -134,7 +134,8 @@ export default function ProfilePage() {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
         <div className="max-w-6xl mx-auto">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+            <h1 className="text-2xl font-bold text-gray-9
+            00 dark:text-white mb-4">
               Профайл олдсонгүй
             </h1>
             <p className="text-gray-600 dark:text-gray-400">
@@ -164,7 +165,7 @@ export default function ProfilePage() {
             <CardContent className="p-8">
               <div className="text-center">
                 {/* Profile Picture Placeholder */}
-                <div className="w-24 h-24 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <div className="w-24 h-24 bg-[#FF344A] rounded-full flex items-center justify-center mx-auto mb-6">
                   {profile.avatar ? (
                     <img
                       src={profile.avatar}

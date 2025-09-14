@@ -265,7 +265,7 @@ export default function AdminUsersPage() {
             {selectedUsers.length > 0 && (
               <Button
                 onClick={handleBulkAccessClick}
-                className="bg-blue-600 hover:bg-blue-700"
+                className="bg-gray-600 hover:bg-gray-700"
               >
                 <Users className="h-4 w-4 mr-2" />
                 Give Course Access ({selectedUsers.length})

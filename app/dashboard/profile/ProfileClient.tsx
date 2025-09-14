@@ -127,7 +127,7 @@ function ProfileClient({ initialProfile, initialStats }: ProfileClientProps) {
             <CardContent className="p-8">
               <div className="text-center">
                 {/* Profile Picture Placeholder */}
-                <div className="w-24 h-24 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <div className="w-24 h-24 bg-[#FF344A] rounded-full flex items-center justify-center mx-auto mb-6">
                   {profile.avatar ? (
                     <img 
                       src={profile.avatar} 
@@ -208,7 +208,7 @@ function ProfileClient({ initialProfile, initialStats }: ProfileClientProps) {
                 <Button
                   variant="outline"
                   onClick={() => setIsEditing(true)}
-                  className="border-[#E10600] text-[#E10600] hover:bg-[#E10600] hover:text-white transition-colors"
+                  className="border-[#FF344A] text-[#FF344A] hover:bg-[#FF344A] hover:text-white transition-colors"
                 >
                   <Edit className="h-4 w-4 mr-2" />
                   Засварлах
@@ -297,7 +297,7 @@ function ProfileClient({ initialProfile, initialStats }: ProfileClientProps) {
                     <Button
                       onClick={handleSaveChanges}
                       disabled={isLoading}
-                      className="bg-[#E10600] hover:bg-[#C70500] text-white px-6 py-2"
+                      className="bg-[#FF344A] hover:bg-[#E02A3C] text-white px-6 py-2"
                     >
                       {isLoading ? (
                         <>

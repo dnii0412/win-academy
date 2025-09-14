@@ -202,7 +202,7 @@ export default function AdminOrdersPage() {
               <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
                 {"Нийт захиалга"}
               </CardTitle>
-              <FileText className="h-4 w-4 text-blue-600" />
+              <FileText className="h-4 w-4 text-gray-600 dark:text-gray-400" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -263,7 +263,7 @@ export default function AdminOrdersPage() {
           <Button
             onClick={createSampleOrder}
             variant="outline"
-            className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
+            className="bg-gray-600 hover:bg-gray-700 text-white border-gray-600"
           >
             <FileText className="h-4 w-4 mr-2" />
             {"Жишээ захиалга"}

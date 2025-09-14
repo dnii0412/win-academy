@@ -1,5 +1,5 @@
 import type React from "react"
-import { Inter } from "next/font/google"
+import { Montserrat } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 import AuthSessionProvider from "@/components/session-provider"
 import { LanguageProvider } from "@/contexts/language-context"
@@ -9,10 +9,10 @@ import "./globals.css"
 import "./admin-hide.css"
 import type { Metadata } from 'next'
 
-const inter = Inter({
+const montserrat = Montserrat({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-inter",
+  variable: "--font-montserrat",
 })
 
 export const metadata: Metadata = {
@@ -103,13 +103,13 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${inter.variable} antialiased`} suppressHydrationWarning>
+    <html lang="en" className={`${montserrat.variable} antialiased`} suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://res.cloudinary.com" />
-        <meta name="theme-color" content="#E10600" />
-        <meta name="msapplication-TileColor" content="#E10600" />
+        <meta name="theme-color" content="#FF344A" />
+        <meta name="msapplication-TileColor" content="#FF344A" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
         <meta httpEquiv="Permissions-Policy" content="autoplay=*, encrypted-media=*, accelerometer=*, gyroscope=*, fullscreen=*" />
       </head>

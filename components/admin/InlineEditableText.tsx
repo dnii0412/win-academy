@@ -110,7 +110,7 @@ export default function InlineEditableText({
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             className={cn(
-              "min-h-[60px] w-full resize-none rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500",
+              "min-h-[60px] w-full resize-none rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500",
               className
             )}
             maxLength={maxLength}

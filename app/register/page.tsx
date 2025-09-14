@@ -267,25 +267,25 @@ export default function RegisterPage() {
               <input
                 type="checkbox"
                 name="agreeToTerms"
-                className="rounded border-border text-[#E10600] focus:ring-[#E10600] mt-1 bg-background"
+                className="rounded border-border text-[#FF344A] focus:ring-[#FF344A] mt-1 bg-background"
                 checked={formData.agreeToTerms}
                 onChange={handleInputChange}
                 required
               />
               <span className="ml-2 text-sm text-muted-foreground">
                 Би зөвшөөрч байна{" "}
-                <Link href="/terms" className="text-[#E10600] hover:underline">
+                <Link href="/terms" className="text-[#FF344A] hover:underline">
                   Үйлчилгээний нөхцөл
                 </Link>{" "}
                 ба{" "}
-                <Link href="/privacy" className="text-[#E10600] hover:underline">
+                <Link href="/privacy" className="text-[#FF344A] hover:underline">
                   Нууцлалын бодлого
                 </Link>
               </span>
               {errors.agreeToTerms && <p className="text-red-500 text-xs mt-1">{errors.agreeToTerms}</p>}
             </div>
 
-            <Button type="submit" className="w-full bg-[#E10600] hover:bg-[#C70500] text-white" disabled={isLoading}>
+            <Button type="submit" className="w-full bg-[#FF344A] hover:bg-[#E02A3C] text-white" disabled={isLoading}>
               {isLoading ? 'Бүртгэл үүсгэж байна...' : 'Бүртгэл үүсгэх'}
             </Button>
             {errors.general && <p className="text-red-500 text-center text-sm">{errors.general}</p>}
@@ -329,7 +329,7 @@ export default function RegisterPage() {
 
           <p className="text-center text-sm text-muted-foreground">
             Бүртгэл байгаа юу?{" "}
-            <Link href="/login" className="text-[#E10600] hover:underline font-medium">
+            <Link href="/login" className="text-[#FF344A] hover:underline font-medium">
               Нэвтрэх
             </Link>
           </p>

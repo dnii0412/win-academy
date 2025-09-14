@@ -36,7 +36,7 @@ export function Sidebar() {
       <div className="p-6 border-b border-border">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-[#E10600] rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-[#FF344A] rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">W</span>
             </div>
             <div>
@@ -66,7 +66,7 @@ export function Sidebar() {
                   className={cn(
                     "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                     isActive
-                      ? "bg-[#E10600] text-white"
+                      ? "bg-[#FF344A] text-white"
                       : "text-foreground hover:bg-accent hover:text-accent-foreground",
                   )}
                 >

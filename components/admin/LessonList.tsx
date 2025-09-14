@@ -72,7 +72,7 @@ export default function LessonList({
   const getTypeIcon = (type: string) => {
     switch (type) {
       case 'video':
-        return <Play className="w-4 h-4 text-blue-600" />
+        return <Play className="w-4 h-4 text-gray-600 dark:text-gray-400" />
       case 'article':
         return <FileText className="w-4 h-4 text-green-600" />
       case 'quiz':
@@ -129,7 +129,7 @@ export default function LessonList({
             className={cn(
               "flex items-center gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800",
               "hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors",
-              isSelected && "ring-2 ring-blue-500 ring-offset-2"
+              isSelected && "ring-2 ring-gray-500 ring-offset-2"
             )}
           >
             <ReorderHandle
@@ -145,7 +145,7 @@ export default function LessonList({
               type="checkbox"
               checked={isSelected}
               onChange={(e) => onSelectItem(lesson._id, 'lesson')}
-              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              className="w-4 h-4 text-gray-600 border-gray-300 rounded focus:ring-gray-500"
             />
 
             <div className="flex items-center gap-2">

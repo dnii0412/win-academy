@@ -33,7 +33,7 @@ export default function DashboardSidebar() {
             key={item.name}
             href={item.href}
             className={`flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${pathname === item.href
-              ? "bg-[#E10600] text-white"
+              ? "bg-[#FF344A] text-white"
               : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
               }`}
           >

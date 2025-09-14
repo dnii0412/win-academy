@@ -41,7 +41,7 @@ export default function Toast({ toast, onRemove }: ToastProps) {
       case "warning":
         return <AlertTriangle className="w-5 h-5 text-yellow-600" />
       case "info":
-        return <Info className="w-5 h-5 text-blue-600" />
+        return <Info className="w-5 h-5 text-gray-600 dark:text-gray-400" />
       default:
         return <Info className="w-5 h-5 text-gray-600" />
     }
@@ -56,7 +56,7 @@ export default function Toast({ toast, onRemove }: ToastProps) {
       case "warning":
         return "border-yellow-200 bg-yellow-50 text-yellow-800"
       case "info":
-        return "border-blue-200 bg-blue-50 text-blue-800"
+        return "border-gray-200 bg-gray-50 text-gray-800"
       default:
         return "border-gray-200 bg-gray-50 text-gray-800"
     }

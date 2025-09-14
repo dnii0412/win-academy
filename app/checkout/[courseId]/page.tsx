@@ -228,7 +228,7 @@ export default function CheckoutPage() {
                                                 </div>
                                                 <div className="ml-auto">
                                                     <div className="flex flex-col items-end">
-                                                        <span className="text-lg font-bold text-[#E10600]">
+                                                        <span className="text-lg font-bold text-[#FF344A]">
                                                             ₮{(course.price45Days || course.price).toLocaleString()}
                                                         </span>
                                                         {course.originalPrice45Days && course.originalPrice45Days > (course.price45Days || course.price) && (
@@ -250,7 +250,7 @@ export default function CheckoutPage() {
                                                 </div>
                                                 <div className="ml-auto">
                                                     <div className="flex flex-col items-end">
-                                                        <span className="text-lg font-bold text-[#E10600]">
+                                                        <span className="text-lg font-bold text-[#FF344A]">
                                                             ₮{(course.price90Days || course.price).toLocaleString()}
                                                         </span>
                                                         {course.originalPrice90Days && course.originalPrice90Days > (course.price90Days || course.price) && (
@@ -270,7 +270,7 @@ export default function CheckoutPage() {
                                 <div className="flex justify-between items-center">
                                     <span className="text-lg font-semibold">Нийт дүн</span>
                                     <div className="text-right">
-                                        <span className="text-2xl font-bold text-[#E10600]">
+                                        <span className="text-2xl font-bold text-[#FF344A]">
                                             ₮{getCurrentPrice().toLocaleString()}
                                         </span>
                                         {getOriginalPrice() > 0 && getOriginalPrice() > getCurrentPrice() && (

@@ -34,7 +34,7 @@ export default function AnimatedCounter({ end, duration = 2000, suffix = "" }: A
   }, [inView, end, duration])
 
   return (
-    <span ref={ref} className="font-bold text-2xl text-[#E10600]">
+    <span ref={ref} className="font-bold text-2xl text-[#FF344A]">
       {count}
       {suffix}
     </span>

@@ -175,7 +175,7 @@ export default function CourseForm({ isOpen, onClose, onSubmit, course, mode }: 
                     />
                     <div className="text-xs text-gray-600 mt-1">
                       <p>💡 45 хоногийн хандалтын үнэ</p>
-                      <p className="text-blue-600">🧪 Тест: Дор хаяж ₮50 MNT</p>
+                      <p className="text-gray-600 dark:text-gray-400">🧪 Тест: Дор хаяж ₮50 MNT</p>
                       {formData.price45Days && Number(formData.price45Days) >= 50 && (
                         <p className="mt-1 text-green-600 font-medium">
                           Урьдчилан харах: ₮{Number(formData.price45Days).toLocaleString()} MNT
@@ -208,7 +208,7 @@ export default function CourseForm({ isOpen, onClose, onSubmit, course, mode }: 
                     />
                     <div className="text-xs text-gray-600 mt-1">
                       <p>💡 90 хоногийн хандалтын үнэ</p>
-                      <p className="text-blue-600">🧪 Тест: Дор хаяж ₮50 MNT</p>
+                      <p className="text-gray-600 dark:text-gray-400">🧪 Тест: Дор хаяж ₮50 MNT</p>
                       {formData.price90Days && Number(formData.price90Days) >= 50 && (
                         <p className="mt-1 text-green-600 font-medium">
                           Урьдчилан харах: ₮{Number(formData.price90Days).toLocaleString()} MNT

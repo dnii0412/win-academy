@@ -64,10 +64,10 @@ export default function ConfirmDialog({
         }
       case "info":
         return {
-          icon: <Info className="w-6 h-6 text-blue-600" />,
+          icon: <Info className="w-6 h-6 text-gray-600 dark:text-gray-400" />,
           confirmVariant: "outline" as const,
           confirmText: confirmText || "Confirm",
-          className: "border-blue-200 bg-blue-50"
+          className: "border-gray-200 bg-gray-50"
         }
       default:
         return {

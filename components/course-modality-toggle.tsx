@@ -21,21 +21,21 @@ export function CourseModalityToggle({ onModalityChange, defaultModality = "all"
       <Button
         variant={activeModality === "all" ? "default" : "outline"}
         onClick={() => handleModalityChange("all")}
-        className={activeModality === "all" ? "bg-[#E10600] hover:bg-[#C70500]" : ""}
+        className={activeModality === "all" ? "bg-[#FF344A] hover:bg-[#E02A3C]" : ""}
       >
         Бүгд
       </Button>
       <Button
         variant={activeModality === "online" ? "default" : "outline"}
         onClick={() => handleModalityChange("online")}
-        className={activeModality === "online" ? "bg-[#E10600] hover:bg-[#C70500]" : ""}
+        className={activeModality === "online" ? "bg-[#FF344A] hover:bg-[#E02A3C]" : ""}
       >
         Онлайн
       </Button>
       <Button
         variant={activeModality === "onsite" ? "default" : "outline"}
         onClick={() => handleModalityChange("onsite")}
-        className={activeModality === "onsite" ? "bg-[#E10600] hover:bg-[#C70500]" : ""}
+        className={activeModality === "onsite" ? "bg-[#FF344A] hover:bg-[#E02A3C]" : ""}
       >
         Танхим
       </Button>

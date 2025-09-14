@@ -36,7 +36,7 @@ export default function StatusChip({
         return {
           label: 'Processing',
           variant: 'secondary' as const,
-          className: 'bg-blue-100 text-blue-800 border-blue-200'
+          className: 'bg-gray-100 text-gray-800 border-gray-200'
         }
       case 'ready':
         return {

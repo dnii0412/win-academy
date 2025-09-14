@@ -52,7 +52,7 @@ export default function DashboardClient({ enrolledCourses, user }: DashboardClie
 
       {/* Status Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+        <Card className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-300">
               Нийт сургалт
@@ -68,7 +68,7 @@ export default function DashboardClient({ enrolledCourses, user }: DashboardClie
         </Card>
 
 
-        <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+        <Card className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-300">
               Дууссан хичээл
@@ -85,7 +85,7 @@ export default function DashboardClient({ enrolledCourses, user }: DashboardClie
           </CardContent>
         </Card>
 
-        <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+        <Card className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-300">
               Дундаж үйл явц
@@ -125,7 +125,7 @@ export default function DashboardClient({ enrolledCourses, user }: DashboardClie
               Танд одоогоор худалдаж авсан сургалт байхгүй байна. Манай сургалтуудас худалдаж авахыг хүсэвэл энд дарна уу.
             </p>
             <Link href="/courses">
-              <span className="inline-block bg-[#E10600] hover:bg-[#C70500] text-white px-6 py-3 rounded-lg font-medium transition-colors cursor-pointer">
+              <span className="inline-block bg-[#FF344A] hover:bg-[#E02A3C] text-white px-6 py-3 rounded-lg font-medium transition-colors cursor-pointer">
                 Сургалтуудыг харах
               </span>
             </Link>
@@ -133,7 +133,7 @@ export default function DashboardClient({ enrolledCourses, user }: DashboardClie
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {enrolledCourses.map((course) => (
-              <Card key={course._id} className="overflow-hidden hover:shadow-lg transition-shadow group">
+              <Card key={course._id} className="overflow-hidden hover:shadow-lg transition-shadow group flex flex-col h-full">
                 <div className="relative">
                   <CourseImage
                     thumbnailUrl={course.thumbnailUrl}
@@ -146,32 +146,30 @@ export default function DashboardClient({ enrolledCourses, user }: DashboardClie
                   </Badge>
                 </div>
 
-                <CardHeader className="pb-3">
+                <CardHeader className="pb-3 flex-1 flex flex-col">
                   <CardTitle className="text-lg line-clamp-2">
                     {course.titleMn || course.title}
                   </CardTitle>
-                  <CardDescription className="line-clamp-2">
+                  <CardDescription className="line-clamp-2 flex-1">
                     {course.descriptionMn || course.description}
                   </CardDescription>
-                  
                 </CardHeader>
 
-                <CardContent className="pt-0">
-                  <div className="space-y-3">
+                <CardContent className="pt-0 flex-1 flex flex-col">
+                  <div className="space-y-3 flex-1 flex flex-col">
                     <div className="text-center">
-                      <span className="text-2xl font-bold text-[#E10600]">
+                      <span className="text-2xl font-bold text-[#FF344A]">
                         {course.progress || 0}%
                       </span>
                     </div>
 
-
-                    {/* Time Remaining Display */}
-                    <div className="text-center mb-3">
+                    {/* Time Remaining Display - Fixed height container */}
+                    <div className="text-center mb-3 h-12 flex items-center justify-center">
                       {course.timeRemaining ? (
                         <div className={`inline-flex items-center px-4 py-2 rounded-full text-base font-semibold border-2 ${
                           course.timeRemaining.expired 
                             ? 'bg-red-100 text-red-800 border-red-300 dark:bg-red-900 dark:text-red-200 dark:border-red-700' 
-                            : 'bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-900 dark:text-blue-200 dark:border-blue-700'
+                            : 'bg-red-100 text-red-800 border-red-300 dark:bg-red-900 dark:text-red-200 dark:border-red-700'
                         }`}>
                           <Clock className="h-5 w-5 mr-2" />
                           {course.timeRemaining.text}
@@ -184,7 +182,7 @@ export default function DashboardClient({ enrolledCourses, user }: DashboardClie
                       )}
                     </div>
 
-                    <div className="flex space-x-2">
+                    <div className="flex space-x-2 mt-auto">
                       <Link href={`/learn/${course._id}`} className="flex-1">
                         <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
                           <Play className="h-4 w-4 mr-2" />

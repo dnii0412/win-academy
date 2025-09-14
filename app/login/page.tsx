@@ -181,13 +181,13 @@ function LoginForm() {
                 <input
                   type="checkbox"
                   name="rememberMe"
-                  className="rounded border-border text-[#E10600] focus:ring-[#E10600] bg-background"
+                  className="rounded border-border text-[#FF344A] focus:ring-[#FF344A] bg-background"
                   checked={formData.rememberMe}
                   onChange={handleInputChange}
                 />
                 <span className="ml-2 text-sm text-muted-foreground">Намайг сана</span>
               </label>
-              <Link href="/forgot-password" className="text-sm text-[#E10600] hover:underline">
+              <Link href="/forgot-password" className="text-sm text-[#FF344A] hover:underline">
                 Нууц үгээ мартсан уу?
               </Link>
             </div>
@@ -197,7 +197,7 @@ function LoginForm() {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-[#E10600] hover:bg-[#C70500] text-white"
+              className="w-full bg-[#FF344A] hover:bg-[#E02A3C] text-white"
             >
               {isLoading ? "Уншиж байна..." : "Нэвтрэх"}
             </Button>
@@ -241,7 +241,7 @@ function LoginForm() {
 
           <p className="text-center text-sm text-muted-foreground">
             Бүртгэл байхгүй юу?{" "}
-            <Link href="/register" className="text-[#E10600] hover:underline font-medium">
+            <Link href="/register" className="text-[#FF344A] hover:underline font-medium">
               Бүртгүүлэх
             </Link>
           </p>

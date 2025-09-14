@@ -287,7 +287,7 @@ export default function BulkCourseAccessManager({
               <Button 
                 type="submit" 
                 disabled={isSubmitting || !bulkForm.courseId}
-                className="bg-blue-600 hover:bg-blue-700"
+                className="bg-gray-600 hover:bg-gray-700"
               >
                 {isSubmitting ? (
                   <>

@@ -73,7 +73,7 @@ export default function LessonsManagement() {
             <h1 className="text-2xl font-bold text-[#111111] mb-2">Lessons Management</h1>
             <p className="text-gray-600">Manage course lessons and content</p>
           </div>
-          <Button className="bg-[#E10600] hover:bg-[#C70500] text-white">
+          <Button className="bg-[#FF344A] hover:bg-[#E02A3C] text-white">
             <Plus className="w-4 h-4 mr-2" />
             Add Lesson
           </Button>

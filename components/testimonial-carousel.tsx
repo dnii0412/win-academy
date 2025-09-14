@@ -47,7 +47,7 @@ export default function TestimonialCarousel({ testimonials }: TestimonialCarouse
                   <p className="text-lg text-gray-600 mb-6 italic leading-relaxed">"{testimonial.content}"</p>
                   <div>
                     <p className="font-semibold text-[#111111] text-lg">{testimonial.name}</p>
-                    <p className="text-[#E10600] font-medium">{testimonial.role}</p>
+                    <p className="text-[#FF344A] font-medium">{testimonial.role}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -60,14 +60,14 @@ export default function TestimonialCarousel({ testimonials }: TestimonialCarouse
         onClick={goToPrevious}
         className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 bg-white shadow-lg rounded-full p-2 hover:bg-gray-50 transition-colors"
       >
-        <ChevronLeft className="w-6 h-6 text-[#E10600]" />
+        <ChevronLeft className="w-6 h-6 text-[#FF344A]" />
       </button>
 
       <button
         onClick={goToNext}
         className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 bg-white shadow-lg rounded-full p-2 hover:bg-gray-50 transition-colors"
       >
-        <ChevronRight className="w-6 h-6 text-[#E10600]" />
+        <ChevronRight className="w-6 h-6 text-[#FF344A]" />
       </button>
 
       <div className="flex justify-center mt-6 space-x-2">
@@ -76,7 +76,7 @@ export default function TestimonialCarousel({ testimonials }: TestimonialCarouse
             key={index}
             onClick={() => setCurrentIndex(index)}
             className={`w-3 h-3 rounded-full transition-colors ${
-              index === currentIndex ? "bg-[#E10600]" : "bg-gray-300"
+              index === currentIndex ? "bg-[#FF344A]" : "bg-gray-300"
             }`}
           />
         ))}

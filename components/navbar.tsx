@@ -8,7 +8,6 @@ import { Moon, Sun, Menu, X, User, LogOut, Settings } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
 import { useSession, signOut } from "next-auth/react"
 import Logo from "./logo"
-import LanguageSwitcher from "./language-switcher"
 import { useLanguage } from "@/contexts/language-context"
 import {
   DropdownMenu,
@@ -52,10 +51,9 @@ export default function Navbar() {
     }
   }, [])
 
-  // Debug mobile menu state changes
+  // Track mobile menu state changes
   useEffect(() => {
-    console.log("Mobile menu state changed to:", isMobileMenuOpen)
-    console.log("Navbar height:", navbarHeight)
+    // Mobile menu state tracking
   }, [isMobileMenuOpen, navbarHeight])
 
   // Close mobile menu when clicking outside or pressing Escape
@@ -87,9 +85,7 @@ export default function Navbar() {
   }, [isMobileMenuOpen])
 
   const toggleMobileMenu = () => {
-    console.log("Toggle mobile menu clicked, current state:", isMobileMenuOpen)
     setIsMobileMenuOpen(!isMobileMenuOpen)
-    console.log("New state will be:", !isMobileMenuOpen)
   }
 
   const handleSignOut = async () => {
@@ -116,19 +112,19 @@ export default function Navbar() {
         >
           {/* Left - Logo and Navigation Links */}
           <div className="flex items-center space-x-8">
-            <Logo size="md" showText={false} />
+            <Logo size="lg" showText={false} />
 
             {/* Navigation Links - closer to logo */}
             <div className="hidden md:flex items-center space-x-6">
               <Link
                 href="/"
-                className="text-foreground hover:text-[#E10600] transition-colors duration-200 font-medium"
+                className="text-foreground hover:text-[#FF344A] transition-colors duration-200 font-medium"
               >
                 {t("nav.home")}
               </Link>
               <Link
                 href="/courses"
-                className="text-foreground hover:text-[#E10600] transition-colors duration-200 font-medium"
+                className="text-foreground hover:text-[#FF344A] transition-colors duration-200 font-medium"
               >
                 {t("nav.courses")}
               </Link>
@@ -146,9 +142,6 @@ export default function Navbar() {
               {theme === "light" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
               <span className="sr-only">Toggle theme</span>
             </Button>
-
-            {/* Language Switcher - positioned immediately after theme button */}
-            
 
             {session ? (
               <DropdownMenu>
@@ -181,12 +174,12 @@ export default function Navbar() {
             ) : (
               <div className="flex items-center space-x-2">
                 <Link href="/login">
-                  <Button variant="outline" className="border-[#E10600] text-[#E10600] hover:bg-[#E10600] hover:text-white transition-colors duration-200">
+                  <Button variant="outline" className="border-[#FF344A] text-[#FF344A] hover:bg-[#FF344A] hover:text-white transition-colors duration-200">
                     {t("nav.login")}
                   </Button>
                 </Link>
                 <Link href="/register">
-                  <Button className="bg-[#E10600] hover:bg-[#C70500] text-white transition-colors duration-200">
+                  <Button className="bg-[#FF344A] hover:bg-[#E02A3C] text-white transition-colors duration-200">
                     {t("nav.register")}
                   </Button>
                 </Link>
@@ -195,12 +188,12 @@ export default function Navbar() {
           </div>
 
           {/* Mobile Menu Button */}
-          <div className="md:hidden">
+          <div className="md:hidden flex items-center">
             <Button
               variant="ghost"
               size="icon"
               onClick={toggleMobileMenu}
-              className="hover:bg-accent transition-colors duration-200"
+              className="hover:bg-accent transition-colors duration-200 relative z-50"
               aria-expanded={isMobileMenuOpen}
               aria-label={isMobileMenuOpen ? "Close mobile menu" : "Open mobile menu"}
             >
@@ -208,30 +201,26 @@ export default function Navbar() {
             </Button>
           </div>
         </div>
-      </div>
 
-      {/* Mobile Menu Dropdown */}
-      {isMobileMenuOpen && (
-        <div 
-          className="block md:hidden fixed left-0 right-0 z-[9999] bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-lg min-h-[200px]"
-          style={{ top: `${navbarHeight}px` }}
-        >
-          <div className="px-4 py-6">
+        {/* Mobile Menu Dropdown */}
+        {isMobileMenuOpen && (
+          <div 
+            className="block md:hidden fixed top-20 left-4 right-4 z-[9999] bg-red-500 border-4 border-yellow-400 shadow-2xl min-h-[300px] rounded-lg"
+          >
+            <div className="px-4 py-6">
             {/* Mobile Menu Content */}
             <div className="space-y-6">
-              {/* Debug: Menu is open */}
-              <div className="text-xs text-gray-500 mb-2">Mobile menu is open</div>
               <div className="space-y-4">
                 <Link
                   href="/"
-                  className="block text-lg font-medium text-foreground hover:text-[#E10600] transition-colors duration-200 py-2"
+                  className="block text-lg font-medium text-foreground hover:text-[#FF344A] transition-colors duration-200 py-2"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {t("nav.home")}
                 </Link>
                 <Link
                   href="/courses"
-                  className="block text-lg font-medium text-foreground hover:text-[#E10600] transition-colors duration-200 py-2"
+                  className="block text-lg font-medium text-foreground hover:text-[#FF344A] transition-colors duration-200 py-2"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {t("nav.courses")}
@@ -250,9 +239,7 @@ export default function Navbar() {
                 </Button>
 
                 {/* Language Switcher - positioned after theme button */}
-                <div className="flex justify-center">
-                  <LanguageSwitcher className="w-full justify-center" />
-                </div>
+               
 
                 {/* Mobile menu authentication buttons */}
                 {session ? (
@@ -296,7 +283,7 @@ export default function Navbar() {
                     <Link href="/login" className="block">
                       <Button
                         variant="outline"
-                        className="w-full border-[#E10600] text-[#E10600] hover:bg-[#E10600] hover:text-white bg-transparent transition-colors duration-200"
+                        className="w-full border-[#FF344A] text-[#FF344A] hover:bg-[#FF344A] hover:text-white bg-transparent transition-colors duration-200"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
                         {t("nav.login")}
@@ -305,7 +292,7 @@ export default function Navbar() {
 
                     <Link href="/register" className="block">
                       <Button
-                        className="w-full bg-[#E10600] hover:bg-[#C70500] text-white transition-colors duration-200"
+                        className="w-full bg-[#FF344A] hover:bg-[#E02A3C] text-white transition-colors duration-200"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
                         {t("nav.register")}
@@ -315,9 +302,10 @@ export default function Navbar() {
                 )}
               </div>
             </div>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </nav>
   )
 }

@@ -177,7 +177,7 @@ export function DiscussionPanel({ lessonId }: DiscussionPanelProps) {
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
       case "instructor":
-        return "bg-[#E10600] text-white"
+        return "bg-[#FF344A] text-white"
       case "admin":
         return "bg-purple-500 text-white"
       default:
@@ -211,7 +211,7 @@ export function DiscussionPanel({ lessonId }: DiscussionPanelProps) {
               variant="ghost"
               size="sm"
               onClick={() => jumpToTimestamp(comment.timestamp)}
-              className="text-xs text-[#E10600] hover:text-[#C70500] hover:bg-[#E10600]/10 p-1 h-auto"
+              className="text-xs text-[#FF344A] hover:text-[#E02A3C] hover:bg-[#FF344A]/10 p-1 h-auto"
             >
               {formatTimestamp(comment.timestamp)}
             </Button>
@@ -259,7 +259,7 @@ export function DiscussionPanel({ lessonId }: DiscussionPanelProps) {
                   size="sm"
                   onClick={() => addReply(comment.id)}
                   disabled={!replyContent.trim()}
-                  className="bg-[#E10600] hover:bg-[#C70500] text-white"
+                  className="bg-[#FF344A] hover:bg-[#E02A3C] text-white"
                 >
                   Reply
                 </Button>
@@ -317,7 +317,7 @@ export function DiscussionPanel({ lessonId }: DiscussionPanelProps) {
             <Button
               onClick={addComment}
               disabled={!newComment.trim()}
-              className="bg-[#E10600] hover:bg-[#C70500] text-white"
+              className="bg-[#FF344A] hover:bg-[#E02A3C] text-white"
               size="sm"
             >
               <Send className="w-3 h-3 mr-2" />

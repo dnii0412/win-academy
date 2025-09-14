@@ -29,7 +29,7 @@ export function LocationScheduleSection() {
             <CardContent className="p-6">
               <div className="space-y-6">
                 <div className="flex items-start space-x-3">
-                  <MapPin className="h-5 w-5 text-[#E10600] mt-1" />
+                  <MapPin className="h-5 w-5 text-[#FF344A] mt-1" />
                   <div>
                     <h3 className="font-semibold text-gray-900">Хаяг / Address</h3>
                     <p className="text-gray-600">
@@ -43,7 +43,7 @@ export function LocationScheduleSection() {
                 </div>
 
                 <div className="flex items-start space-x-3">
-                  <Clock className="h-5 w-5 text-[#E10600] mt-1" />
+                  <Clock className="h-5 w-5 text-[#FF344A] mt-1" />
                   <div>
                     <h3 className="font-semibold text-gray-900">Хичээлийн цаг / Class Hours</h3>
                     <p className="text-gray-600">
@@ -57,7 +57,7 @@ export function LocationScheduleSection() {
                 </div>
 
                 <div className="flex items-start space-x-3">
-                  <Calendar className="h-5 w-5 text-[#E10600] mt-1" />
+                  <Calendar className="h-5 w-5 text-[#FF344A] mt-1" />
                   <div>
                     <h3 className="font-semibold text-gray-900">Дараагийн ангилал / Next Cohort</h3>
                     <p className="text-gray-600">
@@ -69,7 +69,7 @@ export function LocationScheduleSection() {
                 </div>
 
                 <div className="flex items-start space-x-3">
-                  <Phone className="h-5 w-5 text-[#E10600] mt-1" />
+                  <Phone className="h-5 w-5 text-[#FF344A] mt-1" />
                   <div>
                     <h3 className="font-semibold text-gray-900">Холбоо барих / Contact</h3>
                     <p className="text-gray-600">
@@ -80,7 +80,7 @@ export function LocationScheduleSection() {
                   </div>
                 </div>
 
-                <Button className="w-full bg-[#E10600] hover:bg-[#C70500] text-white">
+                <Button className="w-full bg-[#FF344A] hover:bg-[#E02A3C] text-white">
                   Зам харуулах / Get Directions
                 </Button>
               </div>

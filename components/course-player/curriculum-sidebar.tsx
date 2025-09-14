@@ -142,7 +142,7 @@ export function CurriculumSidebar({ course, currentLessonId, onLessonSelect }: C
                     variant="ghost"
                     onClick={() => onLessonSelect(lesson)}
                     className={`w-full justify-start p-3 pl-6 h-auto text-left hover:bg-gray-50 ${
-                      lesson.id === currentLessonId ? "bg-[#E10600]/10 border-r-2 border-[#E10600]" : ""
+                      lesson.id === currentLessonId ? "bg-[#FF344A]/10 border-r-2 border-[#FF344A]" : ""
                     }`}
                   >
                     <div className="flex items-start gap-3 w-full">
@@ -150,7 +150,7 @@ export function CurriculumSidebar({ course, currentLessonId, onLessonSelect }: C
                       <div className="flex-1 min-w-0">
                         <h4
                           className={`font-medium text-sm ${
-                            lesson.id === currentLessonId ? "text-[#E10600]" : "text-gray-900"
+                            lesson.id === currentLessonId ? "text-[#FF344A]" : "text-gray-900"
                           }`}
                         >
                           {lesson.title}

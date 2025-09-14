@@ -39,7 +39,7 @@ export default function AdminSidebar() {
     <div className="w-64 bg-white border-r border-gray-200 min-h-screen">
       <div className="p-6">
         <Link href="/" className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-[#E10600] rounded flex items-center justify-center">
+          <div className="w-8 h-8 bg-[#FF344A] rounded flex items-center justify-center">
             <span className="text-white font-bold text-lg">W</span>
           </div>
           <span className="text-xl font-bold text-[#111111]">Win Academy</span>
@@ -53,7 +53,7 @@ export default function AdminSidebar() {
             key={item.name}
             href={item.href}
             className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-              pathname === item.href ? "bg-[#E10600] text-white" : "text-gray-700 hover:bg-gray-100"
+              pathname === item.href ? "bg-[#FF344A] text-white" : "text-gray-700 hover:bg-gray-100"
             }`}
           >
             <item.icon className="w-4 h-4" />

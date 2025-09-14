@@ -6,15 +6,16 @@ import { useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2, Lock, Play, BookOpen, Clock, CheckCircle, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, AlertCircle } from "lucide-react"
+import { Loader2, Lock, Play, BookOpen, ChevronLeft, ChevronRight, ChevronDown, AlertCircle } from "lucide-react"
 import { Course } from "@/types/course"
 
 // Helper functions for video URL handling
-function isYouTubeUrl(url: string): boolean {
+function isYouTubeUrl(url: string | undefined): boolean {
+  if (!url) return false
   return url.includes('youtube.com') || url.includes('youtu.be')
 }
 
-function isBunnyStreamUrl(url: string): boolean {
+function isBunnyStreamUrl(url: string | undefined): boolean {
   if (!url) return false
   
   // Check for various Bunny Stream URL patterns
@@ -29,16 +30,20 @@ function isBunnyStreamUrl(url: string): boolean {
   
   const isBunny = bunnyPatterns.some(pattern => url.toLowerCase().includes(pattern.toLowerCase()))
   
-  console.log('🔍 Bunny URL detection:', {
-    url,
-    isBunny,
-    patterns: bunnyPatterns
-  })
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('🔍 Bunny URL detection:', {
+      url,
+      isBunny,
+      patterns: bunnyPatterns
+    })
+  }
   
   return isBunny
 }
 
-function convertYouTubeToEmbed(url: string): string {
+function convertYouTubeToEmbed(url: string | undefined): string {
+  if (!url) return ''
+  
   let videoId = ''
   
   if (url.includes('youtube.com/watch?v=')) {
@@ -50,19 +55,45 @@ function convertYouTubeToEmbed(url: string): string {
   return `https://www.youtube.com/embed/${videoId}`
 }
 
-function optimizeBunnyStreamUrl(url: string, retryCount: number = 0): string {
-  console.log('🔧 Optimizing Bunny URL:', { url, retryCount })
+function optimizeBunnyStreamUrl(url: string | undefined, retryCount: number = 0): string {
+  if (!url) return ''
   
-  if (!url) return url
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('🔧 Optimizing Bunny URL:', { url, retryCount })
+  }
   
   // If it's already a Bunny Stream embed URL, optimize it
   if (url.includes('iframe.mediadelivery.net') || url.includes('bunnyinfra.net')) {
+    // Check if it's a play URL and convert to embed URL
+    if (url.includes('/play/')) {
+      const playMatch = url.match(/\/play\/(\d+)\/([^/?]+)/)
+      if (playMatch) {
+        const [, libraryId, videoId] = playMatch
+        const embedUrl = `https://iframe.mediadelivery.net/embed/${libraryId}/${videoId}`
+        const params = new URLSearchParams({
+          autoplay: 'false',
+          muted: 'false',
+          controls: 'true',
+          responsive: 'true',
+          fit: 'cover',
+          background: '000000',
+          width: '100%',
+          height: '100%',
+          retry: retryCount.toString()
+        })
+        const optimizedUrl = `${embedUrl}?${params.toString()}`
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('✅ Converted play URL to embed URL:', optimizedUrl)
+        }
+        return optimizedUrl
+      }
+    }
+    
     const baseUrl = url.split('?')[0] // Remove existing query params
     const params = new URLSearchParams({
       autoplay: 'false',
       muted: 'false',
       controls: 'true',
-      preload: 'metadata',
       responsive: 'true',
       fit: 'cover',
       background: '000000',
@@ -71,7 +102,9 @@ function optimizeBunnyStreamUrl(url: string, retryCount: number = 0): string {
       retry: retryCount.toString()
     })
     const optimizedUrl = `${baseUrl}?${params.toString()}`
-    console.log('✅ Optimized Bunny URL:', optimizedUrl)
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('✅ Optimized Bunny URL:', optimizedUrl)
+    }
     return optimizedUrl
   }
   
@@ -103,7 +136,6 @@ function optimizeBunnyStreamUrl(url: string, retryCount: number = 0): string {
         autoplay: 'false',
         muted: 'false',
         controls: 'true',
-        preload: 'metadata',
         responsive: 'true',
         fit: 'cover',
         background: '000000',
@@ -112,12 +144,16 @@ function optimizeBunnyStreamUrl(url: string, retryCount: number = 0): string {
         retry: retryCount.toString()
       })
       const optimizedUrl = `${embedUrl}?${params.toString()}`
-      console.log('✅ Converted to Bunny embed URL:', optimizedUrl)
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('✅ Converted to Bunny embed URL:', optimizedUrl)
+      }
       return optimizedUrl
     }
   }
   
-  console.log('⚠️ Could not optimize URL, returning as-is:', url)
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('⚠️ Could not optimize URL, returning as-is:', url)
+  }
   return url
 }
 
@@ -174,25 +210,55 @@ export default function LearnPageClient({
   const [videoRetryCount, setVideoRetryCount] = useState(0)
   const [useDirectVideo, setUseDirectVideo] = useState(false)
   const previousLessonsRef = useRef<Lesson[]>([])
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Handle video errors and retry mechanism
   const handleVideoError = () => {
-    console.error('Video playback error detected')
+    if (process.env.NODE_ENV !== 'production') {
+      console.error('Video playback error detected')
+    }
+    
+    const currentLesson = allLessons[currentLessonIndex]
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('🔍 Error handling debug:', {
+        currentLesson: currentLesson?.videoUrl,
+        useDirectVideo,
+        isYouTube: isYouTubeUrl(currentLesson?.videoUrl),
+        isBunny: isBunnyStreamUrl(currentLesson?.videoUrl),
+        videoRetryCount
+      })
+    }
     
     // Try direct video element as fallback for non-YouTube videos
-    const currentLesson = allLessons[currentLessonIndex]
     if (!useDirectVideo && currentLesson?.videoUrl && !isYouTubeUrl(currentLesson.videoUrl)) {
-      console.log('Trying direct video element as fallback for:', currentLesson.videoUrl)
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('🔄 Trying direct video element as fallback for:', currentLesson.videoUrl)
+      }
       setUseDirectVideo(true)
       setVideoError(null)
       return
     }
     
+    // For Bunny Stream videos, try converting play URL to embed URL
+    if (currentLesson?.videoUrl && isBunnyStreamUrl(currentLesson.videoUrl) && currentLesson.videoUrl.includes('/play/')) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('🔄 Converting Bunny play URL to embed URL:', currentLesson.videoUrl)
+      }
+      setVideoError(null)
+      return
+    }
+    
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('❌ Setting video error state')
+    }
     setVideoError('Video playback failed. Please try refreshing the page.')
     
     // Auto-retry after 3 seconds
     if (videoRetryCount < 3) {
       setTimeout(() => {
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('🔄 Auto-retrying video, attempt:', videoRetryCount + 1)
+        }
         setVideoRetryCount(prev => prev + 1)
         setVideoError(null)
       }, 3000)
@@ -207,11 +273,49 @@ export default function LearnPageClient({
 
   // Reset video error when lesson changes
   useEffect(() => {
-    console.log('Lesson changed to index:', currentLessonIndex)
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Lesson changed to index:', currentLessonIndex)
+    }
     setVideoError(null)
     setVideoRetryCount(0)
     setUseDirectVideo(false)
   }, [currentLessonIndex])
+
+  // Add timeout for Bunny iframe loading
+  useEffect(() => {
+    if (isLearning && allLessons.length > 0) {
+      const currentLesson = allLessons[currentLessonIndex]
+      if (currentLesson?.videoUrl && isBunnyStreamUrl(currentLesson.videoUrl)) {
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('🕐 Setting Bunny iframe timeout for:', currentLesson.videoUrl)
+        }
+        
+        // Clear any existing timeout
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current)
+        }
+        
+        timeoutRef.current = setTimeout(() => {
+          if (process.env.NODE_ENV !== 'production') {
+            console.error('⏰ Bunny iframe load timeout after 30 seconds')
+            console.log('🔍 Timeout debug:', {
+              videoUrl: currentLesson.videoUrl,
+              optimizedUrl: optimizeBunnyStreamUrl(currentLesson.videoUrl, videoRetryCount),
+              retryCount: videoRetryCount
+            })
+          }
+          handleVideoError()
+        }, 30000) // Increased to 30 seconds
+
+        return () => {
+          if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current)
+            timeoutRef.current = null
+          }
+        }
+      }
+    }
+  }, [currentLessonIndex, isLearning, allLessons, videoRetryCount])
 
   const recheckAccess = async () => {
     if (!session?.user?.email) return false
@@ -221,16 +325,20 @@ export default function LearnPageClient({
       const accessResponse = await fetch(`/api/courses/${courseId}/access`)
       if (accessResponse.ok) {
         const accessData = await accessResponse.json()
-        console.log('Access re-check result:', {
-          courseId,
-          hasAccess: accessData.hasAccess,
-          accessSource: accessData.accessSource,
-          accessDetails: accessData.accessDetails
-        })
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('Access re-check result:', {
+            courseId,
+            hasAccess: accessData.hasAccess,
+            accessSource: accessData.accessSource,
+            accessDetails: accessData.accessDetails
+          })
+        }
         return accessData.hasAccess
       }
     } catch (error) {
-      console.error('Error re-checking access:', error)
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('Error re-checking access:', error)
+      }
     } finally {
       setIsCheckingAccess(false)
     }
@@ -255,10 +363,14 @@ export default function LearnPageClient({
           if (allLessonsFromSubcourses.length > 0) {
             // Only reset to lesson 0 if we haven't started learning yet
             if (!isLearning) {
-              console.log('startCourse: Setting lesson index to 0 - starting fresh')
+              if (process.env.NODE_ENV !== 'production') {
+                console.log('startCourse: Setting lesson index to 0 - starting fresh')
+              }
               setCurrentLessonIndex(0)
             } else {
-              console.log('startCourse: Keeping current lesson index:', currentLessonIndex)
+              if (process.env.NODE_ENV !== 'production') {
+                console.log('startCourse: Keeping current lesson index:', currentLessonIndex)
+              }
             }
             setIsLearning(true)
           } else {
@@ -269,7 +381,9 @@ export default function LearnPageClient({
         }
       }
     } catch (error) {
-      console.error('Error fetching subcourses:', error)
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('Error fetching subcourses:', error)
+      }
       alert("Дэд сургалт ачаалахад алдаа гарлаа")
     }
   }
@@ -288,7 +402,9 @@ export default function LearnPageClient({
 
   // Initialize lessons when subcourses are available
   useEffect(() => {
-    console.log('useEffect triggered:', { hasAccess, subcoursesLength: subcourses.length, isLearning, currentLessonIndex })
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('useEffect triggered:', { hasAccess, subcoursesLength: subcourses.length, isLearning, currentLessonIndex })
+    }
     
     if (hasAccess && subcourses.length > 0) {
       const allLessonsFromSubcourses = subcourses.flatMap((subcourse: Subcourse) => subcourse.lessons)
@@ -296,22 +412,30 @@ export default function LearnPageClient({
       // Only update if lessons have actually changed
       if (allLessonsFromSubcourses.length !== previousLessonsRef.current.length || 
           allLessonsFromSubcourses.some((lesson, index) => lesson._id !== previousLessonsRef.current[index]?._id)) {
-        console.log('Lessons changed, updating allLessons')
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('Lessons changed, updating allLessons')
+        }
         setAllLessons(allLessonsFromSubcourses)
         previousLessonsRef.current = allLessonsFromSubcourses
         
         // Only reset lesson index if we're not already learning or if current index is invalid
         if (allLessonsFromSubcourses.length > 0) {
           if (!isLearning || currentLessonIndex >= allLessonsFromSubcourses.length) {
-            console.log('Auto-starting learning mode or resetting invalid index')
+            if (process.env.NODE_ENV !== 'production') {
+              console.log('Auto-starting learning mode or resetting invalid index')
+            }
             setCurrentLessonIndex(0)
             setIsLearning(true)
           } else {
-            console.log('Keeping current lesson index:', currentLessonIndex)
+            if (process.env.NODE_ENV !== 'production') {
+              console.log('Keeping current lesson index:', currentLessonIndex)
+            }
           }
         }
       } else {
-        console.log('Lessons unchanged, skipping update')
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('Lessons unchanged, skipping update')
+        }
       }
     }
   }, [hasAccess, subcourses, isLearning, currentLessonIndex])
@@ -319,7 +443,9 @@ export default function LearnPageClient({
   // Ensure currentLessonIndex is within bounds when allLessons changes
   useEffect(() => {
     if (allLessons.length > 0 && currentLessonIndex >= allLessons.length) {
-      console.log('Current lesson index out of bounds, resetting to 0')
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('Current lesson index out of bounds, resetting to 0')
+      }
       setCurrentLessonIndex(0)
     }
   }, [allLessons.length, currentLessonIndex])
@@ -339,7 +465,7 @@ export default function LearnPageClient({
             <div className="space-y-2">
               <Button 
                 onClick={() => router.push("/login")} 
-                className="w-full bg-[#E10600] hover:bg-[#C70500]"
+                className="w-full bg-[#FF344A] hover:bg-[#E02A3C]"
               >
                 Нэвтрэх
               </Button>
@@ -382,7 +508,7 @@ export default function LearnPageClient({
                 <p className="text-muted-foreground text-sm mb-3">
                   {course.descriptionMn || course.description}
                 </p>
-                <p className="text-2xl font-bold text-[#E10600]">
+                <p className="text-2xl font-bold text-[#FF344A]">
                   ₮{course.price.toLocaleString()} MNT
                 </p>
               </div>
@@ -391,7 +517,7 @@ export default function LearnPageClient({
             <div className="space-y-2">
               <Button 
                 onClick={() => router.push(`/checkout/${courseId}`)} 
-                className="w-full bg-[#E10600] hover:bg-[#C70500]"
+                className="w-full bg-[#FF344A] hover:bg-[#E02A3C]"
               >
                 Худалдаж авах
               </Button>
@@ -455,7 +581,7 @@ export default function LearnPageClient({
     // Check if currentLesson exists
     if (!currentLesson) {
       return (
-        <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <h2 className="text-2xl font-semibold mb-4">Хичээл олдсонгүй</h2>
             <p className="text-muted-foreground mb-4">Сонгосон хичээл байхгүй байна.</p>
@@ -468,24 +594,28 @@ export default function LearnPageClient({
     }
 
     // Debug logging
-    console.log('LearnPageClient render:', {
-      isLearning,
-      allLessonsLength: allLessons.length,
-      currentLessonIndex,
-      currentLesson: currentLesson ? 'exists' : 'undefined',
-      currentLessonId: currentLesson?._id,
-      videoUrl: currentLesson?.videoUrl,
-      videoStatus: currentLesson?.videoStatus
-    })
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('LearnPageClient render:', {
+        isLearning,
+        allLessonsLength: allLessons.length,
+        currentLessonIndex,
+        currentLesson: currentLesson ? 'exists' : 'undefined',
+        currentLessonId: currentLesson?._id,
+        videoUrl: currentLesson?.videoUrl,
+        videoStatus: currentLesson?.videoStatus
+      })
+    }
 
     // Create a safe reference to currentLesson
     const safeCurrentLesson = currentLesson
     
     // Final safety check
     if (!safeCurrentLesson) {
-      console.error('safeCurrentLesson is undefined, returning error state')
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('safeCurrentLesson is undefined, returning error state')
+      }
       return (
-        <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <h2 className="text-2xl font-semibold mb-4">Хичээл олдсонгүй</h2>
             <p className="text-muted-foreground mb-4">Сонгосон хичээл байхгүй байна.</p>
@@ -498,9 +628,9 @@ export default function LearnPageClient({
     }
     
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen">
         {/* Header */}
-        <div className="bg-card border-b border-border px-4 py-4">
+        <div className="border-b border-border px-4 py-4">
           <div className="max-w-6xl mx-auto flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Button 
@@ -521,38 +651,50 @@ export default function LearnPageClient({
         </div>
 
         {/* Lesson Content */}
-        <div className="max-w-6xl mx-auto px-4 py-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Video/Content Area */}
-            <div className="lg:col-span-2">
-              <Card className="overflow-hidden">
-                <CardContent className="p-0 bg-transparent">
+        {/* Full-bleed container */}
+        <div className="mx-[calc(50%-50vw)] w-screen py-4 md:py-6">
+          {/* Optional: center content to a larger cap if you don't want true edge-to-edge on ultrawide */}
+          <div className="mx-auto w-full max-w-7xl px-0 md:px-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Video/Content Area */}
+              <div className="md:col-span-2 bg-transparent rounded-none md:min-h-[600px]">
                   {safeCurrentLesson?.videoUrl ? (
                     <div 
-                      className="w-full relative" 
-                      style={{ 
-                        aspectRatio: '16/9',
-                        minHeight: '400px',
-                        backgroundColor: '#000'
+                      className="relative w-full aspect-video"
+                      ref={(el) => {
+                        if (el && process.env.NODE_ENV !== 'production') {
+                          console.log('📐 Video container dimensions:', {
+                            offsetWidth: el.offsetWidth,
+                            offsetHeight: el.offsetHeight,
+                            clientWidth: el.clientWidth,
+                            clientHeight: el.clientHeight,
+                            computedStyle: {
+                              paddingTop: getComputedStyle(el).paddingTop,
+                              position: getComputedStyle(el).position
+                            }
+                          })
+                        }
                       }}
                     >
                       {(() => {
                         const isYouTube = isYouTubeUrl(safeCurrentLesson.videoUrl)
                         const isBunny = isBunnyStreamUrl(safeCurrentLesson.videoUrl)
-                        console.log('🎬 Rendering video:', {
-                          videoUrl: safeCurrentLesson.videoUrl,
-                          isYouTube,
-                          isBunny,
-                          useDirectVideo,
-                          videoType: isYouTube ? 'YouTube' : isBunny ? 'Bunny Stream' : 'Other',
-                          embedUrl: isYouTube ? convertYouTubeToEmbed(safeCurrentLesson.videoUrl) : safeCurrentLesson.videoUrl,
-                          retryCount: videoRetryCount
-                        })
+                        if (process.env.NODE_ENV !== 'production') {
+                          console.log('🎬 Rendering video:', {
+                            videoUrl: safeCurrentLesson.videoUrl,
+                            isYouTube,
+                            isBunny,
+                            useDirectVideo,
+                            videoType: isYouTube ? 'YouTube' : isBunny ? 'Bunny Stream' : 'Other',
+                            embedUrl: isYouTube ? convertYouTubeToEmbed(safeCurrentLesson.videoUrl) : safeCurrentLesson.videoUrl,
+                            retryCount: videoRetryCount
+                          })
+                        }
                         return null
                       })()}
                       
                       {videoError ? (
-                        <div className="w-full h-full bg-muted flex items-center justify-center rounded-lg">
+                        <div className="absolute inset-0 bg-muted flex items-center justify-center rounded-lg" style={{ width: '100%', height: '100%' }}>
                           <div className="text-center p-6">
                             <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
                             <h3 className="text-lg font-medium mb-2">Video Playback Error</h3>
@@ -561,8 +703,14 @@ export default function LearnPageClient({
                               <Button onClick={retryVideo} variant="outline" size="sm">
                                 Try Again
                               </Button>
-                              {!isYouTubeUrl(safeCurrentLesson?.videoUrl || '') && !useDirectVideo && (
-                                <Button onClick={() => setUseDirectVideo(true)} variant="outline" size="sm">
+                              {!isYouTubeUrl(safeCurrentLesson?.videoUrl) && !useDirectVideo && (
+                                <Button onClick={() => {
+                                  if (process.env.NODE_ENV !== 'production') {
+                                    console.log('🔄 Manual direct video fallback triggered')
+                                  }
+                                  setUseDirectVideo(true)
+                                  setVideoError(null)
+                                }} variant="outline" size="sm">
                                   Use Direct Video
                                 </Button>
                               )}
@@ -570,16 +718,29 @@ export default function LearnPageClient({
                                 onClick={() => {
                                   const debugInfo = {
                                     url: safeCurrentLesson?.videoUrl,
-                                    isYouTube: isYouTubeUrl(safeCurrentLesson?.videoUrl || ''),
-                                    isBunny: isBunnyStreamUrl(safeCurrentLesson?.videoUrl || ''),
+                                    isYouTube: isYouTubeUrl(safeCurrentLesson?.videoUrl),
+                                    isBunny: isBunnyStreamUrl(safeCurrentLesson?.videoUrl),
                                     useDirectVideo,
                                     retryCount: videoRetryCount,
-                                    optimizedUrl: isBunnyStreamUrl(safeCurrentLesson?.videoUrl || '') ? 
-                                      optimizeBunnyStreamUrl(safeCurrentLesson?.videoUrl || '', videoRetryCount) : 
-                                      'N/A'
+                                    optimizedUrl: isBunnyStreamUrl(safeCurrentLesson?.videoUrl) ? 
+                                      optimizeBunnyStreamUrl(safeCurrentLesson?.videoUrl, videoRetryCount) : 
+                                      'N/A',
+                                    containerDimensions: {
+                                      width: document.querySelector('.aspect-video')?.clientWidth,
+                                      height: document.querySelector('.aspect-video')?.clientHeight
+                                    }
                                   }
-                                  console.log('🔍 Video Debug Info:', debugInfo)
-                                  alert(`Video Debug Info:\n\nURL: ${debugInfo.url}\nIs YouTube: ${debugInfo.isYouTube}\nIs Bunny: ${debugInfo.isBunny}\nUse Direct: ${debugInfo.useDirectVideo}\nRetry Count: ${debugInfo.retryCount}\nOptimized URL: ${debugInfo.optimizedUrl}`)
+                                  if (process.env.NODE_ENV !== 'production') {
+                                    console.log('🔍 Video Debug Info:', debugInfo)
+                                    
+                                    // Test the Bunny URL directly
+                                    if (debugInfo.isBunny && debugInfo.optimizedUrl !== 'N/A') {
+                                      console.log('🧪 Testing Bunny URL in new tab:', debugInfo.optimizedUrl)
+                                      window.open(debugInfo.optimizedUrl, '_blank')
+                                    }
+                                    
+                                    alert(`Video Debug Info:\n\nURL: ${debugInfo.url}\nIs YouTube: ${debugInfo.isYouTube}\nIs Bunny: ${debugInfo.isBunny}\nUse Direct: ${debugInfo.useDirectVideo}\nRetry Count: ${debugInfo.retryCount}\nOptimized URL: ${debugInfo.optimizedUrl}\nContainer: ${debugInfo.containerDimensions.width}x${debugInfo.containerDimensions.height}`)
+                                  }
                                 }} 
                                 variant="outline" 
                                 size="sm"
@@ -595,13 +756,10 @@ export default function LearnPageClient({
                       ) : useDirectVideo ? (
                         <video
                           src={safeCurrentLesson.videoUrl}
-                          className="w-full h-full rounded-lg"
+                          className="absolute inset-0 w-full h-full border-0 rounded-none"
                           controls
-                          preload="metadata"
+                          preload="auto"
                           style={{
-                            width: '100%',
-                            height: '100%',
-                            minHeight: '400px',
                             objectFit: 'contain'
                           }}
                           onError={handleVideoError}
@@ -609,18 +767,10 @@ export default function LearnPageClient({
                           Your browser does not support the video tag.
                         </video>
                       ) : isBunnyStreamUrl(safeCurrentLesson.videoUrl) ? (
-                        <div 
-                          className="w-full h-full relative" 
-                          style={{ 
-                            width: '100%', 
-                            height: '100%',
-                            minHeight: '400px',
-                            position: 'relative'
-                          }}
-                        >
+                        <>
                           <iframe
                             src={optimizeBunnyStreamUrl(safeCurrentLesson.videoUrl, videoRetryCount)}
-                            className="absolute inset-0 w-full h-full border-0 rounded-lg"
+                            className="absolute inset-0 w-full h-full border-0 rounded-none"
                             allowFullScreen
                             allow="autoplay; encrypted-media; accelerometer; gyroscope; fullscreen; picture-in-picture"
                             title={safeCurrentLesson?.titleMn || safeCurrentLesson?.title}
@@ -635,50 +785,61 @@ export default function LearnPageClient({
                               height: '100%',
                               border: 'none',
                               borderRadius: '8px',
-                              background: 'transparent',
-                              display: 'block',
-                              zIndex: 1,
-                              backgroundColor: 'transparent',
-                              overflow: 'hidden'
+                              background: 'transparent'
                             }}
-                            onError={() => {
-                              console.error('❌ Bunny iframe error')
+                            onError={(e) => {
+                              if (process.env.NODE_ENV !== 'production') {
+                                console.error('❌ Bunny iframe error:', e)
+                                console.error('❌ Bunny iframe src:', optimizeBunnyStreamUrl(safeCurrentLesson.videoUrl || '', videoRetryCount))
+                                console.error('❌ Original video URL:', safeCurrentLesson.videoUrl)
+                              }
                               handleVideoError()
                             }}
                             onLoad={() => {
-                              console.log('✅ Bunny iframe loaded successfully')
-                              console.log('🔍 Bunny iframe dimensions:', {
-                                iframe: {
-                                  offsetWidth: (document.querySelector('iframe[title*="' + (safeCurrentLesson?.titleMn || safeCurrentLesson?.title) + '"]') as HTMLElement)?.offsetWidth,
-                                  offsetHeight: (document.querySelector('iframe[title*="' + (safeCurrentLesson?.titleMn || safeCurrentLesson?.title) + '"]') as HTMLElement)?.offsetHeight
-                                },
-                                container: {
-                                  offsetWidth: (document.querySelector('iframe[title*="' + (safeCurrentLesson?.titleMn || safeCurrentLesson?.title) + '"]')?.parentElement as HTMLElement)?.offsetWidth,
-                                  offsetHeight: (document.querySelector('iframe[title*="' + (safeCurrentLesson?.titleMn || safeCurrentLesson?.title) + '"]')?.parentElement as HTMLElement)?.offsetHeight
+                              if (process.env.NODE_ENV !== 'production') {
+                                console.log('✅ Bunny iframe loaded successfully')
+                                
+                                // Clear the timeout since video loaded successfully
+                                if (timeoutRef.current) {
+                                  clearTimeout(timeoutRef.current)
+                                  timeoutRef.current = null
+                                  console.log('🕐 Cleared Bunny iframe timeout - video loaded successfully')
                                 }
-                              })
+                                
+                                setTimeout(() => {
+                                  const iframe = document.querySelector('iframe[title*="' + (safeCurrentLesson?.titleMn || safeCurrentLesson?.title) + '"]') as HTMLElement
+                                  const container = iframe?.parentElement as HTMLElement
+                                  const parentContainer = container?.parentElement as HTMLElement
+                                  
+                                  console.log('🔍 Bunny iframe dimensions:', {
+                                    iframe: {
+                                      offsetWidth: iframe?.offsetWidth,
+                                      offsetHeight: iframe?.offsetHeight,
+                                      clientWidth: iframe?.clientWidth,
+                                      clientHeight: iframe?.clientHeight
+                                    },
+                                    container: {
+                                      offsetWidth: container?.offsetWidth,
+                                      offsetHeight: container?.offsetHeight,
+                                      clientWidth: container?.clientWidth,
+                                      clientHeight: container?.clientHeight
+                                    },
+                                    parentContainer: {
+                                      offsetWidth: parentContainer?.offsetWidth,
+                                      offsetHeight: parentContainer?.offsetHeight,
+                                      clientWidth: parentContainer?.clientWidth,
+                                      clientHeight: parentContainer?.clientHeight
+                                    }
+                                  })
+                                }, 100)
+                              }
                             }}
                           />
-                          
-                          {/* Fallback message if iframe fails */}
-                          <div className="absolute inset-0 bg-black bg-opacity-75 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300">
-                            <div className="text-center text-white p-4">
-                              <p className="text-sm mb-2">If video doesn't load, try:</p>
-                              <Button 
-                                onClick={() => setUseDirectVideo(true)} 
-                                variant="outline" 
-                                size="sm"
-                                className="text-white border-white hover:bg-white hover:text-black"
-                              >
-                                Use Direct Video
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
+                        </>
                       ) : isYouTubeUrl(safeCurrentLesson.videoUrl) ? (
                         <iframe
                           src={convertYouTubeToEmbed(safeCurrentLesson.videoUrl)}
-                          className="w-full h-full rounded-lg"
+                          className="absolute inset-0 w-full h-full border-0 rounded-none"
                           allowFullScreen
                           allow="autoplay; encrypted-media; accelerometer; gyroscope; fullscreen"
                           title={safeCurrentLesson?.titleMn || safeCurrentLesson?.title}
@@ -687,7 +848,7 @@ export default function LearnPageClient({
                           onError={handleVideoError}
                         />
                       ) : (
-                        <div className="w-full h-full bg-muted flex items-center justify-center rounded-lg">
+                        <div className="absolute inset-0 bg-muted flex items-center justify-center rounded-lg">
                           <div className="text-center p-6">
                             <AlertCircle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
                             <h3 className="text-lg font-medium mb-2">Unsupported Video Format</h3>
@@ -717,7 +878,7 @@ export default function LearnPageClient({
                   
                   {/* Lesson Description - Now inside the same Card */}
                   {(safeCurrentLesson && (safeCurrentLesson.description || safeCurrentLesson.descriptionMn)) && (
-                    <div className="p-6 border-t">
+                    <div className="p-6 border-t border-border">
                       <h3 className="text-lg font-semibold mb-3">
                         Хичээлийн тайлбар
                       </h3>
@@ -726,12 +887,10 @@ export default function LearnPageClient({
                       </p>
                     </div>
                   )}
-                </CardContent>
-              </Card>
-            </div>
+              </div>
 
             {/* Subcourses and Lessons List */}
-            <div className="lg:col-span-1">
+            <div className="md:col-span-1 md:sticky md:top-4 md:self-start">
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
@@ -780,14 +939,14 @@ export default function LearnPageClient({
                                     }}
                                     className={`p-2 rounded cursor-pointer transition-colors ${
                                       globalIndex === currentLessonIndex
-                                        ? 'bg-[#E10600] text-white'
+                                        ? 'bg-[#FF344A] text-white'
                                         : 'bg-card hover:bg-muted'
                                     }`}
                                   >
                                     <div className="flex items-center gap-2">
                                       <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
                                         globalIndex === currentLessonIndex
-                                          ? 'bg-white text-[#E10600]'
+                                          ? 'bg-white text-[#FF344A]'
                                           : 'bg-muted-foreground/20 text-muted-foreground'
                                       }`}>
                                         {globalIndex + 1}
@@ -817,6 +976,7 @@ export default function LearnPageClient({
                 </CardContent>
               </Card>
             </div>
+            </div>
           </div>
         </div>
       </div>
@@ -824,19 +984,7 @@ export default function LearnPageClient({
   }
 
   // If user has access but no lessons loaded yet, show loading
-  if (hasAccess === true && allLessons.length === 0) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">
-            Хичээл ачаалаж байна...
-          </p>
-        </div>
-      </div>
-    )
-  }
-
+  
   // This should never be reached since we handle all cases above
   return null
 }

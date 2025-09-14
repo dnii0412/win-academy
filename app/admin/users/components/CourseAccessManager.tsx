@@ -238,7 +238,7 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
   const getAccessTypeBadge = (accessType: string) => {
     switch (accessType) {
       case 'admin_grant':
-        return <Badge variant="default" className="bg-blue-100 text-blue-800">Admin Grant</Badge>
+        return <Badge variant="default" className="bg-gray-100 text-gray-800">Admin Grant</Badge>
       case 'purchase':
         return <Badge variant="secondary" className="bg-purple-100 text-purple-800">Purchase</Badge>
       case 'enrollment':

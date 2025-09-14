@@ -105,7 +105,7 @@ export default function AdminDashboard() {
               <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
                 Нийт хэрэглэгчид
               </CardTitle>
-              <Users className="h-4 w-4 text-blue-600" />
+              <Users className="h-4 w-4 text-gray-600 dark:text-gray-400" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -194,7 +194,7 @@ export default function AdminDashboard() {
             <CardContent>
               <div className="grid grid-cols-1 gap-3">
                 <Link href="/admin/courses">
-                  <Button className="w-full h-20 flex-row space-x-3 bg-blue-600 hover:bg-blue-700">
+                  <Button className="w-full h-20 flex-row space-x-3 bg-gray-600 hover:bg-gray-700">
                     <Plus className="h-5 w-5" />
                     <span className="text-sm">
                       Сургалт нэмэх

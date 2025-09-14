@@ -48,7 +48,7 @@ export default function CohortsManagement() {
       case "Full":
         return "bg-red-100 text-red-800"
       case "Enrolling":
-        return "bg-blue-100 text-blue-800"
+        return "bg-gray-100 text-gray-800"
       default:
         return "bg-gray-100 text-gray-800"
     }
@@ -64,7 +64,7 @@ export default function CohortsManagement() {
             <h1 className="text-2xl font-bold text-[#111111] mb-2">Cohorts Management</h1>
             <p className="text-gray-600">Manage course cohorts and schedules</p>
           </div>
-          <Button className="bg-[#E10600] hover:bg-[#C70500] text-white">
+          <Button className="bg-[#FF344A] hover:bg-[#E02A3C] text-white">
             <Plus className="w-4 h-4 mr-2" />
             Create Cohort
           </Button>

@@ -114,7 +114,7 @@ export function PayWithQPay({ courseId, priceMnt, courseTitle, customerData, onP
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="text-center">
-            <div className="text-2xl font-bold text-[#E10600]">
+            <div className="text-2xl font-bold text-[#FF344A]">
               ₮{priceMnt.toLocaleString()}
             </div>
             <p className="text-sm text-muted-foreground">Mongolian Tugrik</p>
@@ -123,7 +123,7 @@ export function PayWithQPay({ courseId, priceMnt, courseTitle, customerData, onP
           <Button 
             disabled={loading} 
             onClick={startPayment} 
-            className="w-full bg-[#E10600] hover:bg-[#C70500] text-white"
+            className="w-full bg-[#FF344A] hover:bg-[#E02A3C] text-white"
             size="lg"
           >
             {loading ? (

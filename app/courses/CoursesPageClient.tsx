@@ -157,7 +157,7 @@ export default function CoursesPageClient({ courses }: CoursesPageClientProps) {
               {session ? (
                 // Logged in users - show Dashboard button only
                 <Link href="/dashboard">
-                  <Button className="bg-[#E10600] hover:bg-[#C70500] text-white">
+                  <Button className="bg-[#FF344A] hover:bg-[#E02A3C] text-white">
                     {isHydrated ? t("nav.dashboard") : "Dashboard"}
                   </Button>
                 </Link>
@@ -165,12 +165,12 @@ export default function CoursesPageClient({ courses }: CoursesPageClientProps) {
                 // Not logged in users - show Home and Register buttons
                 <>
                   <Link href="/">
-                    <Button variant="outline" className="border-[#E10600] text-[#E10600] hover:bg-[#E10600] hover:text-white">
+                    <Button variant="outline" className="border-[#FF344A] text-[#FF344A] hover:bg-[#FF344A] hover:text-white">
                       {isHydrated ? t("nav.home") : "Home"}
                     </Button>
                   </Link>
                   <Link href="/register">
-                    <Button className="bg-[#E10600] hover:bg-[#C70500] text-white">
+                    <Button className="bg-[#FF344A] hover:bg-[#E02A3C] text-white">
                       {isHydrated ? t("nav.register") : "Register"}
                     </Button>
                   </Link>
@@ -197,18 +197,18 @@ export default function CoursesPageClient({ courses }: CoursesPageClientProps) {
                   )}
                 </div>
 
-                <CardHeader className="pb-3">
+                <CardHeader className="pb-3 flex-1 flex flex-col">
                   <CardTitle className="text-lg line-clamp-2">
                     {course.titleMn || course.title}
                   </CardTitle>
-                  <CardDescription className="line-clamp-2">
+                  <CardDescription className="line-clamp-2 flex-1">
                     {(course.descriptionMn || course.description || '').substring(0, 120) + '...'}
                   </CardDescription>
                 </CardHeader>
 
-                <CardContent className="pt-0 flex flex-col flex-grow">
+                <CardContent className="pt-0 flex flex-col flex-1">
                   <div className="text-center mb-4">
-                    <span className="text-2xl font-bold text-[#E10600]">
+                    <span className="text-2xl font-bold text-[#FF344A]">
                       {formatPrice(course.price)}
                     </span>
                   </div>
@@ -216,7 +216,7 @@ export default function CoursesPageClient({ courses }: CoursesPageClientProps) {
                   <div className="space-y-3 mt-auto">
                       <div className="w-full">
                         <Link href={`/courses/${course._id}`} className="block">
-                          <Button variant="outline" className="w-full border-[#E10600] text-[#E10600] hover:bg-[#E10600] hover:text-white whitespace-normal leading-tight">
+                          <Button variant="outline" className="w-full border-[#FF344A] text-[#FF344A] hover:bg-[#FF344A] hover:text-white whitespace-normal leading-tight">
                             <BookOpen className="h-4 w-4 mr-2" />
                             {isHydrated ? t("common.details") : "Details"}
                           </Button>
@@ -232,14 +232,14 @@ export default function CoursesPageClient({ courses }: CoursesPageClientProps) {
                           </Link>
                         ) : session?.user ? (
                           <Link href={`/checkout/${course._id}`} className="block">
-                            <Button className="w-full bg-[#E10600] hover:bg-[#C70500] text-white whitespace-normal leading-tight">
+                            <Button className="w-full bg-[#FF344A] hover:bg-[#E02A3C] text-white whitespace-normal leading-tight">
                               <ShoppingCart className="h-4 w-4 mr-2" />
                               {isHydrated ? t("courseCard.enrollNow") : "Enroll Now"}
                             </Button>
                           </Link>
                         ) : (
                           <Link href={`/login?callbackUrl=${encodeURIComponent(`/checkout/${course._id}`)}`} className="block">
-                            <Button className="w-full bg-[#E10600] hover:bg-[#C70500] text-white whitespace-normal leading-tight">
+                            <Button className="w-full bg-[#FF344A] hover:bg-[#E02A3C] text-white whitespace-normal leading-tight">
                               <ShoppingCart className="h-4 w-4 mr-2" />
                               {isHydrated ? t("courseCard.enrollNow") : "Buy"}
                             </Button>

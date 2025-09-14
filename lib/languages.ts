@@ -25,7 +25,7 @@ export const translations = {
     // Home page
     home: {
       hero: {
-        title: "Learn. <span style='color: #E10600;'>Create.</span> Get Hired.",
+        title: "Learn. <span style='color: #FF344A;'>Create.</span> Get Hired.",
         subtitle: "Empower yourself with practical digital skills in marketing, design, and AI. Join Mongolia's premier academy for digital professionals.",
         motto: "Digital marketing, sales, graphic design, artificial intelligence's most innovative programs",
         studentsHired: "Students Hired:",
@@ -264,7 +264,7 @@ export const translations = {
     // Home page
     home: {
       hero: {
-        title: "Суралц. <span style='color: #E10600;'>Бүтээ.</span> Ажилд ор.",
+        title: "Суралц. <span style='color: #FF344A;'>Бүтээ.</span> Ажилд ор.",
         subtitle: "Маркетинг, дизайн, AI-ийн практик ур чадвараар өөрийгөө хөгжүүл. Монголын тэргүүлэгч дижитал мэргэжлийн академид нэгдээрэй.",
         motto: "Дижитал маркетинг, борлуулалт, график дизайн, хиймэл оюуны хамгийн шинэлэг хөтөлбөрүүд",
         studentsHired: "Ажилд орсон сурагчид:",

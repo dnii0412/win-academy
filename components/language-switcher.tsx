@@ -79,7 +79,7 @@ export default function LanguageSwitcher({
           >
             <span>{name}</span>
             {currentLanguage === code && (
-              <Check className="h-4 w-4 text-[#E10600]" />
+              <Check className="h-4 w-4 text-[#FF344A]" />
             )}
           </DropdownMenuItem>
         ))}

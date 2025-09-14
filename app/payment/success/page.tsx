@@ -171,7 +171,7 @@ function PaymentSuccessContent() {
                                     {courseId && (
                                         <Button
                                             onClick={() => router.push(`/learn/${courseId}`)}
-                                            className="w-full bg-[#E10600] hover:bg-[#C70500]"
+                                            className="w-full bg-[#FF344A] hover:bg-[#E02A3C]"
                                         >
                                             Start Learning Now
                                         </Button>
@@ -179,7 +179,7 @@ function PaymentSuccessContent() {
                                     <Button
                                         onClick={() => router.push("/dashboard")}
                                         variant={courseId ? "outline" : "default"}
-                                        className={courseId ? "w-full" : "w-full bg-[#E10600] hover:bg-[#C70500]"}
+                                        className={courseId ? "w-full" : "w-full bg-[#FF344A] hover:bg-[#E02A3C]"}
                                     >
                                         Go to Dashboard
                                     </Button>
@@ -189,7 +189,7 @@ function PaymentSuccessContent() {
                             {(paymentStatus?.status === "failed" || paymentStatus?.status === "cancelled") && (
                                 <Button
                                     onClick={() => router.push("/courses")}
-                                    className="w-full bg-[#E10600] hover:bg-[#C70500]"
+                                    className="w-full bg-[#FF344A] hover:bg-[#E02A3C]"
                                 >
                                     Try Again
                                 </Button>

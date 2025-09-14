@@ -168,7 +168,7 @@ export default function ProfileEditButton({ profile, onProfileUpdated }: Profile
             onClick={() => {
               setIsEditing(true)
             }}
-            className="bg-[#E10600] hover:bg-[#C70500] text-white px-6 py-2"
+            className="bg-[#FF344A] hover:bg-[#E02A3C] text-white px-6 py-2"
           >
             <Edit className="h-4 w-4 mr-2" />
             Засварлах
@@ -229,7 +229,7 @@ export default function ProfileEditButton({ profile, onProfileUpdated }: Profile
             handleSaveChanges()
           }}
           disabled={isLoading}
-          className="bg-[#E10600] hover:bg-[#C70500] text-white px-6 py-2"
+          className="bg-[#FF344A] hover:bg-[#E02A3C] text-white px-6 py-2"
         >
           {isLoading ? (
             <>

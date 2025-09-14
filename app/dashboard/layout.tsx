@@ -17,7 +17,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   if (status === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#E10600]"></div>
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#FF344A]"></div>
       </div>
     )
   }
@@ -34,7 +34,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </p>
           <a
             href="/login"
-            className="inline-block bg-[#E10600] hover:bg-[#C70500] text-white px-6 py-3 rounded-lg font-medium transition-colors"
+            className="inline-block bg-[#FF344A] hover:bg-[#E02A3C] text-white px-6 py-3 rounded-lg font-medium transition-colors"
           >
             Нэвтрэх
           </a>

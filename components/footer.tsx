@@ -28,10 +28,10 @@ export default function Footer() {
               Дижитал маркетинг, борлуулалт, график дизайн, хиймэл оюуны хамгийн шинэлэг хөтөлбөрүүд
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="text-gray-400 hover:text-[#E10600]">
+              <a href="#" className="text-gray-400 hover:text-[#FF344A]">
                 Facebook
               </a>
-              <a href="#" className="text-gray-400 hover:text-[#E10600]">
+              <a href="#" className="text-gray-400 hover:text-[#FF344A]">
                 Instagram
               </a>
             </div>
@@ -41,17 +41,17 @@ export default function Footer() {
             <h3 className="font-semibold mb-4">{t("nav.navigation")}</h3>
             <ul className="space-y-2 text-gray-400">
               <li>
-                <Link href="/" className="hover:text-[#E10600]">
+                <Link href="/" className="hover:text-[#FF344A]">
                   {t("nav.home")}
                 </Link>
               </li>
               <li>
-                <Link href="/courses" className="hover:text-[#E10600]">
+                <Link href="/courses" className="hover:text-[#FF344A]">
                   {t("nav.courses")}
                 </Link>
               </li>
               <li>
-                <Link href="/#contact" className="hover:text-[#E10600]">
+                <Link href="/#contact" className="hover:text-[#FF344A]">
                   {t("nav.contacts")}
                 </Link>
               </li>
@@ -67,7 +67,7 @@ export default function Footer() {
               href="https://xp-hazel-eta.vercel.app/"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#E10600] hover:text-[#C70500] transition-colors"
+              className="text-[#FF344A] hover:text-[#E02A3C] transition-colors"
             >
               Made by XP
             </a>

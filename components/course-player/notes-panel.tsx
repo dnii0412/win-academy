@@ -120,7 +120,7 @@ export function NotesPanel({ lessonId }: NotesPanelProps) {
         <Button
           onClick={addNote}
           disabled={!newNote.trim()}
-          className="w-full bg-[#E10600] hover:bg-[#C70500] text-white"
+          className="w-full bg-[#FF344A] hover:bg-[#E02A3C] text-white"
         >
           <Plus className="w-4 h-4 mr-2" />
           Add Note
@@ -147,7 +147,7 @@ export function NotesPanel({ lessonId }: NotesPanelProps) {
                     variant="ghost"
                     size="sm"
                     onClick={() => jumpToTimestamp(note.timestamp)}
-                    className="text-[#E10600] hover:text-[#C70500] hover:bg-[#E10600]/10 p-1 h-auto"
+                    className="text-[#FF344A] hover:text-[#E02A3C] hover:bg-[#FF344A]/10 p-1 h-auto"
                   >
                     <Clock className="w-3 h-3 mr-1" />
                     {formatTimestamp(note.timestamp)}
@@ -182,7 +182,7 @@ export function NotesPanel({ lessonId }: NotesPanelProps) {
                       rows={3}
                     />
                     <div className="flex gap-2">
-                      <Button size="sm" onClick={saveEdit} className="bg-[#E10600] hover:bg-[#C70500] text-white">
+                      <Button size="sm" onClick={saveEdit} className="bg-[#FF344A] hover:bg-[#E02A3C] text-white">
                         Save
                       </Button>
                       <Button size="sm" variant="outline" onClick={cancelEdit}>
