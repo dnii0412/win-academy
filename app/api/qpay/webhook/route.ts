@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import dbConnect from '@/lib/mongoose'
 import QPayInvoice from '@/lib/models/QPayInvoice'
 import CourseAccess from '@/lib/models/CourseAccess'
+import Course from '@/lib/models/Course'
 import { checkQPayPayment, QPayError } from '@/lib/qpay'
 
 interface QPayWebhookPayload {
@@ -41,7 +42,7 @@ export async function POST(request: NextRequest) {
     await dbConnect()
 
     // Find invoice in database
-    const invoice = await QPayInvoice.findByQPayInvoiceId(invoice_id)
+    const invoice = await QPayInvoice.findOne({ qpayInvoiceId: invoice_id })
     if (!invoice) {
       console.log('Webhook ignored - invoice not found:', { 
         correlationId, 
@@ -135,6 +136,23 @@ export async function POST(request: NextRequest) {
 
       // Grant course access to user
       try {
+        // First verify the course still exists
+        const course = await Course.findById(invoice.courseId)
+        if (!course) {
+          console.error('Cannot grant course access - course not found:', {
+            correlationId,
+            userId: invoice.userId,
+            courseId: invoice.courseId
+          })
+          // Don't fail the webhook, but log the issue
+          return NextResponse.json({ 
+            success: true, 
+            message: 'Payment processed but course access not granted - course not found',
+            invoice_id: invoice_id,
+            payment_id: actualPaymentId
+          })
+        }
+
         await CourseAccess.grantAccess(
           invoice.userId,
           invoice.courseId,

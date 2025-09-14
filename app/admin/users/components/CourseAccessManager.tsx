@@ -218,6 +218,35 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
     }
   }
 
+  const handleCleanupOrphaned = async () => {
+    if (!confirm("Are you sure you want to delete all course access records for deleted courses? This action cannot be undone.")) {
+      return
+    }
+
+    try {
+      const adminToken = localStorage.getItem("adminToken")
+      const response = await fetch("/api/admin/cleanup-orphaned-access", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${adminToken}`,
+        },
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        alert(`${data.deletedCount} orphaned course access records have been deleted.`)
+        // Refresh the data
+        fetchData()
+      } else {
+        const errorData = await response.json()
+        alert(`Error: ${errorData.error}`)
+      }
+    } catch (error) {
+      console.error("Failed to cleanup orphaned access:", error)
+      alert("Failed to cleanup orphaned access records")
+    }
+  }
+
   const getStatusBadge = (status: string, hasAccess: boolean) => {
     if (!hasAccess) {
       return <Badge variant="destructive" className="bg-red-100 text-red-800">Access Revoked</Badge>
@@ -285,12 +314,22 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
             </Button>
           </div>
 
-          {/* Grant Access Button */}
-          <div className="mb-6">
+          {/* Action Buttons */}
+          <div className="mb-6 flex gap-2">
             <Button onClick={() => setShowGrantForm(true)}>
               <Plus className="h-4 w-4 mr-2" />
               {"Курс хандалт олгох"}
             </Button>
+            {courseAccess.filter(access => !access.courseId).length > 0 && (
+              <Button 
+                variant="outline" 
+                onClick={handleCleanupOrphaned}
+                className="text-red-600 border-red-600 hover:bg-red-50"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                {"Cleanup Deleted Courses"}
+              </Button>
+            )}
           </div>
 
           {/* Current Course Access */}
@@ -314,22 +353,26 @@ export default function CourseAccessManager({ userId, userName, onClose }: Cours
                 {courseAccess.filter(access => !access.courseId).length > 0 && (
                   <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
                     <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                      ⚠️ {courseAccess.filter(access => !access.courseId).length} course access record(s) have missing course data and are hidden.
+                      ⚠️ {courseAccess.filter(access => !access.courseId).length} course access record(s) reference deleted courses and are shown below.
                     </p>
                   </div>
                 )}
                 {courseAccess
-                  .filter(access => access.courseId) // Filter out records with null courseId
                   .map((access) => (
                     <Card key={access._id}>
                       <CardHeader>
                         <div className="flex items-center justify-between">
                           <div>
                             <CardTitle className="text-lg">
-                              {access.courseId?.titleMn || access.courseId?.title || 'Course Not Found'}
+                              {access.courseId?.titleMn || access.courseId?.title || 'Course Deleted'}
+                              {!access.courseId && (
+                                <Badge variant="destructive" className="ml-2 bg-red-100 text-red-800">
+                                  Deleted Course
+                                </Badge>
+                              )}
                             </CardTitle>
                             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                              {access.courseId?.descriptionMn || access.courseId?.description || 'Course information unavailable'}
+                              {access.courseId?.descriptionMn || access.courseId?.description || 'This course has been deleted from the system'}
                             </p>
                           </div>
                           <div className="flex items-center space-x-2">
