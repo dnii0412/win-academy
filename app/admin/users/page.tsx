@@ -207,6 +207,62 @@ export default function AdminUsersPage() {
     fetchUsers() // Refresh users to show updated access
   }
 
+  const handleBulkDelete = async () => {
+    if (selectedUsers.length === 0) {
+      alert("Please select at least one user")
+      return
+    }
+
+    // Prevent deleting the current admin user
+    const currentUserEmail = localStorage.getItem("adminEmail")
+    const usersToDelete = users.filter(user => selectedUsers.includes(user._id))
+    const currentUserInSelection = usersToDelete.find(user => user.email === currentUserEmail)
+    
+    if (currentUserInSelection) {
+      alert("You cannot delete yourself!")
+      return
+    }
+
+    // Check if any admin users are selected
+    const adminUsersInSelection = usersToDelete.filter(user => user.role === "admin")
+    if (adminUsersInSelection.length > 0) {
+      alert("Cannot delete admin users. Please change their role first.")
+      return
+    }
+
+    // Confirm deletion
+    const confirmMessage = `Are you sure you want to delete ${selectedUsers.length} user(s)? This action cannot be undone.`
+    if (!confirm(confirmMessage)) {
+      return
+    }
+
+    try {
+      const adminToken = localStorage.getItem("adminToken")
+      const response = await fetch("/api/admin/users/bulk-delete", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${adminToken}`,
+        },
+        body: JSON.stringify({ userIds: selectedUsers }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        // Remove deleted users from local state
+        setUsers(prev => prev.filter(user => !selectedUsers.includes(user._id)))
+        setSelectedUsers([])
+        alert(`${data.deletedCount} user(s) deleted successfully!`)
+      } else {
+        const errorData = await response.json()
+        alert(`Error: ${errorData.message}`)
+      }
+    } catch (error) {
+      console.error("Failed to delete users:", error)
+      alert("Failed to delete users")
+    }
+  }
+
   const filteredUsers = users.filter(user =>
     user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -263,13 +319,22 @@ export default function AdminUsersPage() {
           </div>
           <div className="flex gap-2">
             {selectedUsers.length > 0 && (
-              <Button
-                onClick={handleBulkAccessClick}
-                className="bg-gray-600 hover:bg-gray-700"
-              >
-                <Users className="h-4 w-4 mr-2" />
-                Give Course Access ({selectedUsers.length})
-              </Button>
+              <>
+                <Button
+                  onClick={handleBulkAccessClick}
+                  className="bg-gray-600 hover:bg-gray-700"
+                >
+                  <Users className="h-4 w-4 mr-2" />
+                  Give Course Access ({selectedUsers.length})
+                </Button>
+                <Button
+                  onClick={handleBulkDelete}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Users ({selectedUsers.length})
+                </Button>
+              </>
             )}
             <Button
               onClick={() => setShowAddForm(true)}
