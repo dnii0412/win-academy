@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { 
+import {
   Search,
   FileText,
   DollarSign,
@@ -157,7 +157,7 @@ export default function AdminOrdersPage() {
 
       if (response.ok) {
         const data = await response.json()
-        setOrders(prev => prev.map(order => 
+        setOrders(prev => prev.map(order =>
           order._id === orderId ? data.order : order
         ))
         alert("Захиалгын төлөв шинэчлэгдлээ!"
@@ -240,7 +240,7 @@ export default function AdminOrdersPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                ${getTotalRevenue()}
+                ₮{getTotalRevenue()}
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400">
                 {"Нийт орлого"}
@@ -305,7 +305,7 @@ export default function AdminOrdersPage() {
                   </div>
                   <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
                     <DollarSign className="h-4 w-4 mr-2" />
-                    <span>${order.amount}</span>
+                    <span>₮{order.amount}</span>
                   </div>
                   <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
                     <Calendar className="h-4 w-4 mr-2" />

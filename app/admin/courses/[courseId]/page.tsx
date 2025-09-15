@@ -6,12 +6,12 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { 
-  ArrowLeft, 
-  Plus, 
-  Edit, 
-  Search, 
-  BookOpen, 
+import {
+  ArrowLeft,
+  Plus,
+  Edit,
+  Search,
+  BookOpen,
   Clock,
   Users,
   DollarSign,
@@ -47,7 +47,7 @@ export default function CourseTreePage() {
   const params = useParams()
   const router = useRouter()
   const searchParams = useSearchParams()
-  
+
   const [course, setCourse] = useState<Course | null>(null)
   const [subcourses, setSubcourses] = useState<Subcourse[]>([])
   const [lessons, setLessons] = useState<Lesson[]>([])
@@ -85,7 +85,7 @@ export default function CourseTreePage() {
   useEffect(() => {
     if (courseId) {
       fetchCourseData()
-      
+
       // Auto-expand subcourse if specified in URL
       const openSubcourse = searchParams.get('open')
       if (openSubcourse) {
@@ -159,34 +159,34 @@ export default function CourseTreePage() {
   }
 
   const filteredSubcourses = subcourses.filter(subcourse => {
-    const matchesSearch = 
+    const matchesSearch =
       subcourse.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       subcourse.titleMn.toLowerCase().includes(searchTerm.toLowerCase()) ||
       subcourse.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
       subcourse.descriptionMn.toLowerCase().includes(searchTerm.toLowerCase())
-    
+
     return matchesSearch
   })
 
   const filteredLessons = lessons.filter(lesson => {
-    const matchesSearch = 
+    const matchesSearch =
       lesson.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       lesson.titleMn.toLowerCase().includes(searchTerm.toLowerCase())
-    
+
     return matchesSearch
   })
 
   const handleToggleExpanded = (subcourseId: string) => {
-    setExpandedSubcourses(prev => 
-      prev.includes(subcourseId) 
+    setExpandedSubcourses(prev =>
+      prev.includes(subcourseId)
         ? prev.filter(id => id !== subcourseId)
         : [...prev, subcourseId]
     )
   }
 
   const handleSelectItem = (itemId: string, type: 'subcourse' | 'lesson') => {
-    setSelectedItems(prev => 
-      prev.includes(itemId) 
+    setSelectedItems(prev =>
+      prev.includes(itemId)
         ? prev.filter(id => id !== itemId)
         : [...prev, itemId]
     )
@@ -250,7 +250,7 @@ export default function CourseTreePage() {
 
     console.log('Confirm delete called:', confirmAction)
     setIsDeleting(true)
-    
+
     try {
       const adminToken = localStorage.getItem("adminToken")
       if (!adminToken) {
@@ -261,7 +261,7 @@ export default function CourseTreePage() {
       if (confirmAction.type === 'delete-subcourse') {
         const subcourse = confirmAction.item as Subcourse
         console.log('Deleting subcourse:', subcourse._id)
-        
+
         // Delete subcourse via API
         const response = await fetch(`/api/admin/courses/${courseId}/subcourses/${subcourse._id}`, {
           method: "DELETE",
@@ -281,7 +281,7 @@ export default function CourseTreePage() {
       } else if (confirmAction.type === 'delete-lesson') {
         const lesson = confirmAction.item as Lesson
         console.log('Deleting lesson:', lesson._id)
-        
+
         // Delete lesson via API
         const response = await fetch(`/api/admin/courses/${courseId}/lessons/${lesson._id}`, {
           method: "DELETE",
@@ -314,10 +314,10 @@ export default function CourseTreePage() {
   const handleReorderSubcourses = async (subcourseIds: string[]) => {
     try {
       // Update local state immediately for instant UI feedback
-      const reorderedSubcourses = subcourseIds.map(id => 
+      const reorderedSubcourses = subcourseIds.map(id =>
         subcourses.find(s => s._id === id)
       ).filter(Boolean) as Subcourse[]
-      
+
       setSubcourses(reorderedSubcourses)
 
       const adminToken = localStorage.getItem("adminToken")
@@ -478,14 +478,14 @@ export default function CourseTreePage() {
 
   const handleLessonSubmit = async (lessonData: any) => {
     console.log('📚 handleLessonSubmit called with data:', lessonData)
-    
+
     try {
       const adminToken = localStorage.getItem("adminToken")
       console.log('🔐 Admin token check in handleLessonSubmit:', {
         hasToken: !!adminToken,
         tokenLength: adminToken?.length
       })
-      
+
       if (!adminToken) {
         console.log('❌ No admin token found, redirecting to login')
         router.push("/admin/login")
@@ -515,7 +515,7 @@ export default function CourseTreePage() {
           ...lessonData,
           subcourseId: selectedSubcourseForLesson
         }
-        
+
         console.log('🚀 Making lesson creation API call:', {
           url: `/api/admin/courses/${courseId}/lessons`,
           method: 'POST',
@@ -524,7 +524,7 @@ export default function CourseTreePage() {
           videoUrl: requestData.videoUrl,
           hasVideoUrl: !!requestData.videoUrl
         })
-        
+
         const response = await fetch(`/api/admin/courses/${courseId}/lessons`, {
           method: "POST",
           headers: {
@@ -533,7 +533,7 @@ export default function CourseTreePage() {
           },
           body: JSON.stringify(requestData),
         })
-        
+
         console.log('📡 Lesson creation API response:', {
           status: response.status,
           statusText: response.statusText,
@@ -550,7 +550,7 @@ export default function CourseTreePage() {
             statusText: response.statusText,
             errorData
           })
-          
+
           let errorMessage = "Failed to create lesson"
           if (response.status === 401) {
             errorMessage = "Authentication failed. Please log in again."
@@ -559,7 +559,7 @@ export default function CourseTreePage() {
           } else if (errorData.error) {
             errorMessage = errorData.error
           }
-          
+
           addToast("error", "Creation failed", errorMessage)
         }
       }
@@ -670,7 +670,7 @@ export default function CourseTreePage() {
               <p className="text-gray-600 dark:text-gray-400 mb-4 max-w-3xl">
                 {course.descriptionMn || course.description}
               </p>
-              
+
               {/* Course Stats */}
               <div className="flex items-center gap-6 text-sm text-gray-600 dark:text-gray-400">
                 <div className="flex items-center gap-2">
@@ -689,7 +689,7 @@ export default function CourseTreePage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <DollarSign className="w-4 h-4" />
-                  <span>${course.price}</span>
+                  <span>₮{course.price}</span>
                 </div>
               </div>
             </div>
@@ -744,8 +744,8 @@ export default function CourseTreePage() {
           isDragging={isDragging}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
-          onToggleLessonStatus={() => {}}
-          onToggleSubcourseStatus={() => {}}
+          onToggleLessonStatus={() => { }}
+          onToggleSubcourseStatus={() => { }}
         />
       </div>
 
@@ -766,7 +766,7 @@ export default function CourseTreePage() {
         onConfirm={handleConfirmDelete}
         isLoading={isDeleting}
         title={
-          confirmAction?.type === 'delete-subcourse' 
+          confirmAction?.type === 'delete-subcourse'
             ? ("Дэд сургалт устгах")
             : ("Хичээл устгах")
         }
@@ -774,8 +774,8 @@ export default function CourseTreePage() {
           confirmAction && confirmAction.type === 'delete-subcourse'
             ? `"${(confirmAction.item as Subcourse).titleMn || (confirmAction.item as Subcourse).title || 'Untitled'}" дэд сургалтыг устгахдаа итгэлтэй байна уу?`
             : confirmAction && confirmAction.type === 'delete-lesson'
-            ? `"${(confirmAction.item as Lesson).titleMn || (confirmAction.item as Lesson).title || 'Untitled'}" хичээлийг устгахдаа итгэлтэй байна уу?`
-            : "Are you sure you want to delete this item?"
+              ? `"${(confirmAction.item as Lesson).titleMn || (confirmAction.item as Lesson).title || 'Untitled'}" хичээлийг устгахдаа итгэлтэй байна уу?`
+              : "Are you sure you want to delete this item?"
         }
         variant="danger"
         confirmText={"Устгах"}
