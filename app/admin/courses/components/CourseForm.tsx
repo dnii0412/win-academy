@@ -17,9 +17,10 @@ interface CourseFormProps {
   onSubmit: (courseData: any) => void
   course?: any
   mode: "create" | "edit"
+  addToast?: (type: 'success' | 'error' | 'warning' | 'info', title: string, message?: string) => void
 }
 
-export default function CourseForm({ isOpen, onClose, onSubmit, course, mode }: CourseFormProps) {
+export default function CourseForm({ isOpen, onClose, onSubmit, course, mode, addToast }: CourseFormProps) {
   const [formData, setFormData] = useState({
     title: course?.title || "",
     titleMn: course?.titleMn || "",
@@ -52,17 +53,29 @@ export default function CourseForm({ isOpen, onClose, onSubmit, course, mode }: 
 
     // Client-side validation - only check Mongolian fields since English fields are hidden
     if (!formData.titleMn.trim() || !formData.descriptionMn.trim()) {
-      alert("Бүх талбарыг бөглөнө үү!")
+      if (addToast) {
+        addToast('error', 'Validation Error', 'Бүх талбарыг бөглөнө үү!')
+      } else {
+        alert("Бүх талбарыг бөглөнө үү!")
+      }
       return
     }
 
     if (!formData.price45Days || formData.price45Days === "" || Number(formData.price45Days) < 50) {
-      alert("45 хоногийн үнэ дор хаяж ₮50 байх ёстой! (Тест бүтээгдэхүүн)")
+      if (addToast) {
+        addToast('error', 'Validation Error', '45 хоногийн үнэ дор хаяж ₮50 байх ёстой! (Тест бүтээгдэхүүн)')
+      } else {
+        alert("45 хоногийн үнэ дор хаяж ₮50 байх ёстой! (Тест бүтээгдэхүүн)")
+      }
       return
     }
 
     if (!formData.price90Days || formData.price90Days === "" || Number(formData.price90Days) < 50) {
-      alert("90 хоногийн үнэ дор хаяж ₮50 байх ёстой! (Тест бүтээгдэхүүн)")
+      if (addToast) {
+        addToast('error', 'Validation Error', '90 хоногийн үнэ дор хаяж ₮50 байх ёстой! (Тест бүтээгдэхүүн)')
+      } else {
+        alert("90 хоногийн үнэ дор хаяж ₮50 байх ёстой! (Тест бүтээгдэхүүн)")
+      }
       return
     }
 

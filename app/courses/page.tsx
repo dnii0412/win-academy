@@ -20,12 +20,10 @@ const CoursesPageClient = dynamicImport(() => import("@/app/courses/CoursesPageC
           <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-96 mx-auto animate-pulse"></div>
         </div>
 
-        {/* Search and Filters Skeleton */}
-        <div className="mb-8 space-y-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded-lg flex-1 animate-pulse"></div>
-            <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded-lg w-32 animate-pulse"></div>
-            <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded-lg w-32 animate-pulse"></div>
+        {/* Search Skeleton */}
+        <div className="mb-8">
+          <div className="max-w-md mx-auto">
+            <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse"></div>
           </div>
         </div>
 

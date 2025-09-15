@@ -817,6 +817,7 @@ export default function CourseTreePage() {
         mode={editingLesson ? "edit" : "create"}
         courseId={courseId}
         subcourseId={selectedSubcourseForLesson}
+        addToast={addToast}
       />
     </div>
   )

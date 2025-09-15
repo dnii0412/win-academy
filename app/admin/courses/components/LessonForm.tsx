@@ -16,9 +16,10 @@ interface LessonFormProps {
   mode: "create" | "edit"
   courseId: string
   subcourseId: string
+  addToast?: (type: 'success' | 'error' | 'warning' | 'info', title: string, message?: string) => void
 }
 
-export default function LessonForm({ isOpen, onClose, onSubmit, lesson, mode, courseId, subcourseId }: LessonFormProps) {
+export default function LessonForm({ isOpen, onClose, onSubmit, lesson, mode, courseId, subcourseId, addToast }: LessonFormProps) {
   const [formData, setFormData] = useState({
     title: "",
     titleMn: "",
@@ -65,12 +66,20 @@ export default function LessonForm({ isOpen, onClose, onSubmit, lesson, mode, co
     if (isSubmitting) return
 
     if (!formData.videoUrl.trim()) {
-      alert('Please enter a Bunny video link')
+      if (addToast) {
+        addToast('error', 'Validation Error', 'Please enter a Bunny video link')
+      } else {
+        alert('Please enter a Bunny video link')
+      }
       return
     }
 
     if (!formData.titleMn.trim()) {
-      alert('Please enter a lesson title in Mongolian')
+      if (addToast) {
+        addToast('error', 'Validation Error', 'Please enter a lesson title in Mongolian')
+      } else {
+        alert('Please enter a lesson title in Mongolian')
+      }
       return
     }
 
@@ -106,7 +115,11 @@ export default function LessonForm({ isOpen, onClose, onSubmit, lesson, mode, co
       onClose()
     } catch (error) {
       console.error('❌ Submit failed:', error)
-      alert('Failed to submit lesson')
+      if (addToast) {
+        addToast('error', 'Submission Failed', 'Failed to submit lesson')
+      } else {
+        alert('Failed to submit lesson')
+      }
     } finally {
       setIsSubmitting(false)
     }

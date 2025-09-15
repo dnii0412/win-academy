@@ -20,6 +20,7 @@ import {
 import Link from "next/link"
 import CourseForm from "./components/CourseForm"
 import CourseImage from "@/components/course-image"
+import { Toast, ToastContainer } from "@/components/admin/Toast"
 
 interface Course {
   _id: string
@@ -60,6 +61,22 @@ export default function AdminCoursesPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingCourse, setEditingCourse] = useState<Course | null>(null)
+  const [toasts, setToasts] = useState<Toast[]>([])
+
+  const addToast = (type: Toast['type'], title: string, message?: string) => {
+    const newToast: Toast = {
+      id: Date.now().toString(),
+      type,
+      title,
+      message,
+      duration: 5000
+    }
+    setToasts(prev => [...prev, newToast])
+  }
+
+  const removeToast = (id: string) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id))
+  }
 
   useEffect(() => {
     fetchCourses()
@@ -101,15 +118,14 @@ export default function AdminCoursesPage() {
         const data = await response.json()
         setCourses(prev => [data.course, ...prev])
         setShowAddForm(false)
-        // Show success message
-        alert("Сургалт амжилттай үүслээ!")
+        addToast("success", "Success", "Сургалт амжилттай үүслээ!")
       } else {
         const errorData = await response.json()
-        alert(`Алдаа: ${errorData.message}`)
+        addToast("error", "Error", `Алдаа: ${errorData.message}`)
       }
     } catch (error) {
       console.error("Failed to create course:", error)
-      alert("Сургалт үүсгэхэд алдаа гарлаа")
+      addToast("error", "Error", "Сургалт үүсгэхэд алдаа гарлаа")
     }
   }
 
@@ -131,15 +147,14 @@ export default function AdminCoursesPage() {
           course._id === editingCourse?._id ? data.course : course
         ))
         setEditingCourse(null)
-        // Show success message
-        alert("Сургалт амжилттай шинэчлэгдлээ!")
+        addToast("success", "Success", "Сургалт амжилттай шинэчлэгдлээ!")
       } else {
         const errorData = await response.json()
-        alert(`Алдаа: ${errorData.message}`)
+        addToast("error", "Error", `Алдаа: ${errorData.message}`)
       }
     } catch (error) {
       console.error("Failed to update course:", error)
-      alert("Сургалт шинэчлэхэд алдаа гарлаа")
+      addToast("error", "Error", "Сургалт шинэчлэхэд алдаа гарлаа")
     }
   }
 
@@ -159,15 +174,14 @@ export default function AdminCoursesPage() {
 
       if (response.ok) {
         setCourses(prev => prev.filter(course => course._id !== courseId))
-        // Show success message
-        alert("Сургалт амжилттай устгагдлаа!")
+        addToast("success", "Success", "Сургалт амжилттай устгагдлаа!")
       } else {
         const errorData = await response.json()
-        alert(`Алдаа: ${errorData.message}`)
+        addToast("error", "Error", `Алдаа: ${errorData.message}`)
       }
     } catch (error) {
       console.error("Failed to delete course:", error)
-      alert("Сургалт устгахад алдаа гарлаа")
+      addToast("error", "Error", "Сургалт устгахад алдаа гарлаа")
     }
   }
 
@@ -311,12 +325,16 @@ export default function AdminCoursesPage() {
         )}
       </div>
 
+      {/* Toast Container */}
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
+
       {/* Course Form Modal */}
       <CourseForm
         isOpen={showAddForm}
         onClose={() => setShowAddForm(false)}
         onSubmit={handleCreateCourse}
         mode="create"
+        addToast={addToast}
       />
 
       {/* Edit Course Form Modal */}
@@ -326,6 +344,7 @@ export default function AdminCoursesPage() {
         onSubmit={handleEditCourse}
         course={editingCourse}
         mode="edit"
+        addToast={addToast}
       />
     </div>
   )
