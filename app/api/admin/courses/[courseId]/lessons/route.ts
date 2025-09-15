@@ -152,10 +152,10 @@ export async function POST(
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)/g, '')
     
-    // Check if slug already exists and make it unique
+    // Check if slug already exists within this course and make it unique
     let counter = 1
     let uniqueSlug = slug
-    while (await Lesson.findOne({ slug: uniqueSlug })) {
+    while (await Lesson.findOne({ slug: uniqueSlug, courseId })) {
       uniqueSlug = `${slug}-${counter}`
       counter++
     }

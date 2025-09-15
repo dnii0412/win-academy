@@ -35,15 +35,34 @@ export async function PUT(
       return NextResponse.json({ error: "Course not found" }, { status: 404 })
     }
 
+    // Generate unique slug if title is being updated
+    let updateData: any = {
+      title: body.title,
+      titleMn: body.titleMn,
+      description: body.description || "",
+      descriptionMn: body.descriptionMn || "",
+      thumbnailUrl: body.thumbnailUrl
+    }
+
+    // Only update slug if title is being changed
+    if (body.title) {
+      let slug = body.title.toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '')
+      
+      // Ensure slug is unique within this course (excluding current subcourse)
+      let counter = 1
+      let uniqueSlug = slug
+      while (await Subcourse.findOne({ slug: uniqueSlug, courseId, _id: { $ne: subcourseId } })) {
+        uniqueSlug = `${slug}-${counter}`
+        counter++
+      }
+      updateData.slug = uniqueSlug
+    }
+
     const subcourse = await Subcourse.findOneAndUpdate(
       { _id: subcourseId, courseId },
-      {
-        title: body.title,
-        titleMn: body.titleMn,
-        description: body.description || "",
-        descriptionMn: body.descriptionMn || "",
-        thumbnailUrl: body.thumbnailUrl
-      },
+      updateData,
       { new: true, runValidators: true }
     )
 

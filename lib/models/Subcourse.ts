@@ -19,7 +19,6 @@ const subcourseSchema = new mongoose.Schema({
   slug: {
     type: String,
     required: true,
-    unique: true,
     trim: true
   },
   description: {
@@ -54,14 +53,14 @@ const subcourseSchema = new mongoose.Schema({
 subcourseSchema.index({ courseId: 1, order: 1 })
 
 // Pre-save middleware to ensure slug uniqueness within course
-subcourseSchema.pre('save', async function(next) {
+subcourseSchema.pre('save', async function (next) {
   if (this.isModified('slug')) {
     const existingSubcourse = await mongoose.models.Subcourse.findOne({
       slug: this.slug,
       courseId: this.courseId,
       _id: { $ne: this._id }
     })
-    
+
     if (existingSubcourse) {
       const error = new Error('Slug must be unique within the course')
       return next(error)
@@ -71,7 +70,7 @@ subcourseSchema.pre('save', async function(next) {
 })
 
 // Pre-delete middleware to cascade delete all lessons in this subcourse
-subcourseSchema.pre('deleteOne', { document: true, query: false }, async function(next) {
+subcourseSchema.pre('deleteOne', { document: true, query: false }, async function (next) {
   try {
     const subcourseId = this._id.toString()
     const courseId = this.courseId.toString()
