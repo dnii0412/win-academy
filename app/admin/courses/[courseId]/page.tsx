@@ -27,7 +27,6 @@ import StatusChip from "@/components/admin/StatusChip"
 import SubcourseForm from "../components/SubcourseForm"
 import CourseForm from "../components/CourseForm"
 import LessonForm from "../components/LessonForm"
-import AuthDebugger from "@/components/admin/AuthDebugger"
 import { Course, Lesson } from "@/types/course"
 
 interface Subcourse {
@@ -699,10 +698,6 @@ export default function CourseTreePage() {
         </div>
       </div>
 
-      {/* Auth Debugger - Temporary for debugging */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <AuthDebugger />
-      </div>
 
       {/* Search and Filters */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
