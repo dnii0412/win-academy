@@ -32,6 +32,11 @@ export default function CoursesPageClient({ courses }: CoursesPageClientProps) {
     setIsHydrated(true)
   }, [])
 
+  // Initialize filtered courses immediately
+  useEffect(() => {
+    setFilteredCourses(courses)
+  }, [courses])
+
   useEffect(() => {
     filterCourses()
   }, [courses, searchTerm, selectedCategory, selectedLevel])
