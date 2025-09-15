@@ -95,10 +95,10 @@ export default function CoursesPageClient({ courses }: CoursesPageClientProps) {
 
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-[#111111] dark:text-white mb-4">
-            {isHydrated ? t("courses.title") : "All Courses"}
+            {t("courses.title")}
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            {isHydrated ? t("courses.subtitle") : "Discover our comprehensive digital skills training programs"}
+            {t("courses.subtitle")}
           </p>
         </div>
 
@@ -214,44 +214,44 @@ export default function CoursesPageClient({ courses }: CoursesPageClientProps) {
                   </div>
 
                   <div className="space-y-3 mt-auto">
-                      <div className="w-full">
-                        <Link href={`/courses/${course._id}`} className="block">
-                          <Button variant="outline" className="w-full border-[#FF344A] text-[#FF344A] hover:bg-[#FF344A] hover:text-white whitespace-normal leading-tight">
-                            <BookOpen className="h-4 w-4 mr-2" />
-                            {isHydrated ? t("common.details") : "Details"}
+                    <div className="w-full">
+                      <Link href={`/courses/${course._id}`} className="block">
+                        <Button variant="outline" className="w-full border-[#FF344A] text-[#FF344A] hover:bg-[#FF344A] hover:text-white whitespace-normal leading-tight">
+                          <BookOpen className="h-4 w-4 mr-2" />
+                          {isHydrated ? t("common.details") : "Details"}
+                        </Button>
+                      </Link>
+                    </div>
+                    <div className="w-full">
+                      {course.isEnrolled ? (
+                        <Link href={`/learn/${course._id}`} className="block">
+                          <Button className="w-full bg-green-600 hover:bg-green-700 text-white whitespace-normal leading-tight">
+                            <Play className="h-4 w-4 mr-2" />
+                            {isHydrated ? t("courseCard.continue") : "Continue"}
                           </Button>
                         </Link>
-                      </div>
-                      <div className="w-full">
-                        {course.isEnrolled ? (
-                          <Link href={`/learn/${course._id}`} className="block">
-                            <Button className="w-full bg-green-600 hover:bg-green-700 text-white whitespace-normal leading-tight">
-                              <Play className="h-4 w-4 mr-2" />
-                              {isHydrated ? t("courseCard.continue") : "Continue"}
-                            </Button>
-                          </Link>
-                        ) : session?.user ? (
-                          <Link href={`/checkout/${course._id}`} className="block">
-                            <Button className="w-full bg-[#FF344A] hover:bg-[#E02A3C] text-white whitespace-normal leading-tight">
-                              <ShoppingCart className="h-4 w-4 mr-2" />
-                              {isHydrated ? t("courseCard.enrollNow") : "Enroll Now"}
-                            </Button>
-                          </Link>
-                        ) : (
-                          <Link href={`/login?callbackUrl=${encodeURIComponent(`/checkout/${course._id}`)}`} className="block">
-                            <Button className="w-full bg-[#FF344A] hover:bg-[#E02A3C] text-white whitespace-normal leading-tight">
-                              <ShoppingCart className="h-4 w-4 mr-2" />
-                              {isHydrated ? t("courseCard.enrollNow") : "Buy"}
-                            </Button>
-                          </Link>
-                        )}
-                      </div>
+                      ) : session?.user ? (
+                        <Link href={`/checkout/${course._id}`} className="block">
+                          <Button className="w-full bg-[#FF344A] hover:bg-[#E02A3C] text-white whitespace-normal leading-tight">
+                            <ShoppingCart className="h-4 w-4 mr-2" />
+                            {t("courseCard.enrollNow")}
+                          </Button>
+                        </Link>
+                      ) : (
+                        <Link href={`/login?callbackUrl=${encodeURIComponent(`/checkout/${course._id}`)}`} className="block">
+                          <Button className="w-full bg-[#FF344A] hover:bg-[#E02A3C] text-white whitespace-normal leading-tight">
+                            <ShoppingCart className="h-4 w-4 mr-2" />
+                            {isHydrated ? t("courseCard.enrollNow") : "Buy"}
+                          </Button>
+                        </Link>
+                      )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
             ))}
           </div>
-        )} 
+        )}
       </div>
     </div>
   )

@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react"
+import { createContext, useContext, ReactNode } from "react"
 import { Language, translations, languages } from "@/lib/languages"
 
 interface LanguageContextType {
@@ -13,31 +13,18 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined)
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [currentLanguage, setCurrentLanguage] = useState<Language>("mn")
-  const [isHydrated, setIsHydrated] = useState(false)
-
-  // Initialize language from localStorage after hydration
-  useEffect(() => {
-    const savedLanguage = localStorage.getItem("language") as Language
-    if (savedLanguage && languages[savedLanguage]) {
-      setCurrentLanguage(savedLanguage)
-    } else {
-      // Default to Mongolian if no saved language
-      setCurrentLanguage("mn")
-    }
-    setIsHydrated(true)
-  }, [])
+  // Always use Mongolian - no language switching
+  const currentLanguage: Language = "mn"
 
   const setLanguage = (language: Language) => {
-    setCurrentLanguage(language)
-    localStorage.setItem("language", language)
+    // No-op since we always use Mongolian
+    console.log("Language switching is disabled - always using Mongolian")
   }
 
   const t = (key: string): string => {
-    // During SSR and before hydration, use Mongolian to prevent flash of English
-    const language = isHydrated ? currentLanguage : "mn"
+    // Always use Mongolian translations
     const keys = key.split(".")
-    let value: any = translations[language]
+    let value: any = translations["mn"]
 
     for (const k of keys) {
       if (value && typeof value === "object" && k in value) {
