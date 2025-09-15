@@ -83,6 +83,15 @@ export async function DELETE(
 
     await dbConnect()
 
+    // First, delete all lessons in this subcourse
+    const deletedLessons = await Lesson.deleteMany({
+      courseId,
+      subcourseId
+    })
+
+    console.log(`Deleted ${deletedLessons.deletedCount} lessons from subcourse ${subcourseId}`)
+
+    // Then delete the subcourse
     const subcourse = await Subcourse.findOneAndDelete({
       _id: subcourseId,
       courseId
@@ -92,7 +101,10 @@ export async function DELETE(
       return NextResponse.json({ error: "Subcourse not found" }, { status: 404 })
     }
 
-    return NextResponse.json({ message: "Subcourse deleted successfully" })
+    return NextResponse.json({ 
+      message: "Subcourse and all its lessons deleted successfully",
+      deletedLessons: deletedLessons.deletedCount
+    })
 
   } catch (error) {
     console.error("Error deleting subcourse:", error)

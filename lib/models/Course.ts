@@ -265,4 +265,41 @@ courseSchema.pre('save', function(next) {
   next()
 })
 
+// Pre-delete middleware to cascade delete related data
+courseSchema.pre('deleteOne', { document: true, query: false }, async function(next) {
+  try {
+    const courseId = this._id.toString()
+    console.log(`Starting cascade deletion for course: ${courseId}`)
+
+    // Import models dynamically to avoid circular dependencies
+    const Lesson = mongoose.models.Lesson || (await import('./Lesson')).default
+    const Subcourse = mongoose.models.Subcourse || (await import('./Subcourse')).default
+    const CourseAccess = mongoose.models.CourseAccess || (await import('./CourseAccess')).default
+    const Order = mongoose.models.Order || (await import('./Order')).default
+
+    // Delete all lessons in this course
+    const deletedLessons = await Lesson.deleteMany({ courseId })
+    console.log(`Deleted ${deletedLessons.deletedCount} lessons`)
+
+    // Delete all subcourses in this course
+    const deletedSubcourses = await Subcourse.deleteMany({ courseId })
+    console.log(`Deleted ${deletedSubcourses.deletedCount} subcourses`)
+
+    // Delete all course access records for this course
+    const deletedCourseAccess = await CourseAccess.deleteMany({ courseId })
+    console.log(`Deleted ${deletedCourseAccess.deletedCount} course access records`)
+
+    // Delete all orders for this course
+    const deletedOrders = await Order.deleteMany({ courseId })
+    console.log(`Deleted ${deletedOrders.deletedCount} orders`)
+
+    console.log(`Cascade deletion completed for course: ${courseId}`)
+    next()
+  } catch (error) {
+    console.error('Error in course pre-delete hook:', error)
+    // Don't fail the deletion if cleanup fails
+    next()
+  }
+})
+
 export default mongoose.models.Course || mongoose.model('Course', courseSchema)
