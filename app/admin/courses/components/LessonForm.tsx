@@ -61,16 +61,21 @@ export default function LessonForm({ isOpen, onClose, onSubmit, lesson, mode, co
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (isSubmitting) return
-    
+
     if (!formData.videoUrl.trim()) {
       alert('Please enter a Bunny video link')
       return
     }
-    
+
+    if (!formData.titleMn.trim()) {
+      alert('Please enter a lesson title in Mongolian')
+      return
+    }
+
     setIsSubmitting(true)
-    
+
     try {
       // Prepare lesson data - auto-fill English fields with Mongolian content
       const lessonData = {
@@ -82,12 +87,20 @@ export default function LessonForm({ isOpen, onClose, onSubmit, lesson, mode, co
         content: "",
         contentMn: ""
       }
-      
+
       console.log('📝 Submitting lesson data with Bunny video link:', lessonData)
       console.log('🔍 Video URL check:', {
         videoUrl: lessonData.videoUrl,
         hasVideoUrl: !!lessonData.videoUrl,
         videoUrlLength: lessonData.videoUrl?.length
+      })
+      console.log('🔍 Title validation:', {
+        title: lessonData.title,
+        titleMn: lessonData.titleMn,
+        hasTitle: !!lessonData.title,
+        hasTitleMn: !!lessonData.titleMn,
+        titleLength: lessonData.title?.length,
+        titleMnLength: lessonData.titleMn?.length
       })
       onSubmit(lessonData)
       onClose()
@@ -144,7 +157,7 @@ export default function LessonForm({ isOpen, onClose, onSubmit, lesson, mode, co
             {/* Bunny Video Link */}
             <div className="space-y-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
               <h3 className="text-lg font-medium">Bunny Video Link</h3>
-              
+
               <div>
                 <Label htmlFor="videoUrl">Bunny Video URL</Label>
                 <div className="mt-2">
@@ -166,15 +179,15 @@ export default function LessonForm({ isOpen, onClose, onSubmit, lesson, mode, co
 
             {/* Submit Buttons */}
             <div className="flex justify-end gap-3 pt-4">
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="outline"
                 onClick={onClose}
                 disabled={isSubmitting}
               >
                 Цуцлах
               </Button>
-              <Button 
+              <Button
                 type="submit"
                 disabled={isSubmitting}
               >

@@ -52,7 +52,7 @@ export async function POST(
 ) {
   try {
     console.log('📚 Lesson creation API called')
-    
+
     // Verify admin token
     const authHeader = request.headers.get("authorization")
     console.log('🔐 Lesson API - Auth header received:', {
@@ -60,13 +60,13 @@ export async function POST(
       headerValue: authHeader ? `${authHeader.substring(0, 20)}...` : 'MISSING',
       startsWithBearer: authHeader?.startsWith('Bearer ')
     })
-    
+
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       console.log('❌ Lesson API - No admin token found in Authorization header')
-      return NextResponse.json({ 
+      return NextResponse.json({
         Success: false,
         Message: "Authentication has been denied for this request.",
-        StatusCode: 401 
+        StatusCode: 401
       }, { status: 401 })
     }
 
@@ -76,7 +76,7 @@ export async function POST(
       tokenStart: token.substring(0, 20) + '...',
       tokenEnd: '...' + token.substring(token.length - 10)
     })
-    
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET || "your-secret-key") as any
     console.log('✅ Lesson API - Token verified successfully:', {
       userId: decoded.userId,
@@ -86,10 +86,10 @@ export async function POST(
 
     if (decoded.role !== "admin") {
       console.log('❌ Lesson API - Invalid admin token or user role:', { role: decoded.role })
-      return NextResponse.json({ 
+      return NextResponse.json({
         Success: false,
         Message: "Authentication has been denied for this request.",
-        StatusCode: 403 
+        StatusCode: 403
       }, { status: 403 })
     }
 
@@ -107,7 +107,7 @@ export async function POST(
       videoUrl: body.videoUrl,
       hasVideoUrl: !!body.videoUrl
     })
-    
+
     console.log('🔍 Detailed videoUrl analysis:', {
       videoUrl: body.videoUrl,
       videoUrlType: typeof body.videoUrl,
@@ -119,8 +119,20 @@ export async function POST(
     })
 
     // Validate required fields
-    if (!body.title || !body.titleMn || !body.subcourseId) {
-      return NextResponse.json({ error: "Title and subcourseId are required" }, { status: 400 })
+    if (!body.title && !body.titleMn) {
+      return NextResponse.json({
+        Success: false,
+        Message: "At least one title (English or Mongolian) is required",
+        StatusCode: 400
+      }, { status: 400 })
+    }
+
+    if (!body.subcourseId) {
+      return NextResponse.json({
+        Success: false,
+        Message: "Subcourse ID is required",
+        StatusCode: 400
+      }, { status: 400 })
     }
 
     // Connect to database
@@ -133,10 +145,10 @@ export async function POST(
     const course = await Course.findById(courseId)
     if (!course) {
       console.log('❌ Course not found:', courseId)
-      return NextResponse.json({ 
+      return NextResponse.json({
         Success: false,
         Message: "Course not found",
-        StatusCode: 404 
+        StatusCode: 404
       }, { status: 404 })
     }
     console.log('✅ Course found:', course.title)
@@ -148,10 +160,15 @@ export async function POST(
     }
 
     // Generate unique slug from title
-    let slug = body.title.toLowerCase()
+    let slug = (body.title || body.titleMn || 'lesson').toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)/g, '')
-    
+
+    // Ensure slug is not empty
+    if (!slug) {
+      slug = 'lesson'
+    }
+
     // Check if slug already exists within this course and make it unique
     let counter = 1
     let uniqueSlug = slug
@@ -159,6 +176,12 @@ export async function POST(
       uniqueSlug = `${slug}-${counter}`
       counter++
     }
+
+    console.log('🔗 Generated slug:', {
+      originalTitle: body.title,
+      titleMn: body.titleMn,
+      generatedSlug: uniqueSlug
+    })
 
     // Get the next order number for this subcourse
     const lastLesson = await Lesson.findOne({ subcourseId: body.subcourseId })
@@ -205,7 +228,7 @@ export async function POST(
       videoUrlType: typeof lesson.videoUrl,
       videoUrlLength: lesson.videoUrl?.length
     })
-    
+
     // Verify the lesson was saved correctly by fetching it back
     const savedLesson = await Lesson.findById(lesson._id)
     console.log('🔍 Verification - fetched lesson from DB:', {
@@ -233,35 +256,35 @@ export async function POST(
       name: error.name,
       stack: error.stack
     })
-    
+
     // Handle duplicate key errors specifically
     if (error.code === 11000) {
-      return NextResponse.json({ 
+      return NextResponse.json({
         Success: false,
         Message: "Duplicate lesson title or slug. Please use a different title.",
         StatusCode: 400
       }, { status: 400 })
     }
-    
+
     // Handle validation errors
     if (error.name === 'ValidationError') {
-      return NextResponse.json({ 
+      return NextResponse.json({
         Success: false,
         Message: "Validation error: " + error.message,
         StatusCode: 400
       }, { status: 400 })
     }
-    
+
     // Handle database connection errors
     if (error.name === 'MongoError' || error.name === 'MongooseError') {
-      return NextResponse.json({ 
+      return NextResponse.json({
         Success: false,
         Message: "Database error: " + error.message,
         StatusCode: 500
       }, { status: 500 })
     }
-    
-    return NextResponse.json({ 
+
+    return NextResponse.json({
       Success: false,
       Message: "Internal server error: " + (error.message || "Unknown error"),
       StatusCode: 500
