@@ -14,6 +14,7 @@ import PerformanceOptimizer from "@/components/performance-optimizer"
 import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
 import { Play, ShoppingCart, BookOpen } from "lucide-react"
+import { useLanguage } from "@/contexts/language-context"
 
 interface HomePageClientProps {
   featuredCourses: Course[]
@@ -22,13 +23,14 @@ interface HomePageClientProps {
 
 export default function HomePageClient({ featuredCourses, session }: HomePageClientProps) {
   const { data: clientSession } = useSession()
+  const { t } = useLanguage()
   const [courseAccess, setCourseAccess] = useState<Record<string, boolean>>({})
   const [isCheckingAccess, setIsCheckingAccess] = useState(false)
 
   // Check course access for all featured courses
   const checkCourseAccess = async (courseId: string) => {
     if (!clientSession?.user?.email) return false
-    
+
     try {
       const response = await fetch(`/api/courses/${courseId}/access`)
       if (response.ok) {
@@ -45,19 +47,19 @@ export default function HomePageClient({ featuredCourses, session }: HomePageCli
   useEffect(() => {
     const checkAllCourseAccess = async () => {
       if (!clientSession?.user?.email) return
-      
+
       setIsCheckingAccess(true)
       const accessPromises = featuredCourses.map(async (course) => {
         const hasAccess = await checkCourseAccess(course._id)
         return { courseId: course._id, hasAccess }
       })
-      
+
       const results = await Promise.all(accessPromises)
       const accessMap = results.reduce((acc, { courseId, hasAccess }) => {
         acc[courseId] = hasAccess
         return acc
       }, {} as Record<string, boolean>)
-      
+
       setCourseAccess(accessMap)
       setIsCheckingAccess(false)
     }
@@ -204,49 +206,67 @@ export default function HomePageClient({ featuredCourses, session }: HomePageCli
 
       {/* Hero Section */}
       <section className="bg-background min-h-[70vh] sm:min-h-[80vh] lg:h-[90vh] flex items-center relative overflow-hidden pt-8 pb-8">
+        {/* Background image with blur effect for mobile and tablet */}
+        <div className="absolute inset-0 lg:hidden">
+          <img
+            src="/images/student-learning.jpeg"
+            alt="Students learning digital skills at WIN Academy"
+            className="w-full h-full object-cover"
+            loading="eager"
+            fetchPriority="high"
+          />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+        </div>
+
+        {/* Original gradient overlays */}
         <div className="absolute inset-0 bg-gradient-to-br from-red-50/30 to-transparent animate-pulse dark:from-red-950/20" />
         <div className="absolute inset-0 dark:bg-black/40" />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative w-full overflow-x-hidden">
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative w-full overflow-x-hidden z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
             <AnimatedSection animation="slideLeft">
-              <h1
-                className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-foreground mb-4 leading-tight break-words"
-                dangerouslySetInnerHTML={{ __html: "Learn. <span style='color: #FF344A;'>Create.</span> Get Hired." }}
-              />
+              {/* Text content with enhanced visibility on mobile/tablet */}
+              <div className="lg:bg-transparent bg-white/90 dark:bg-black/80 backdrop-blur-sm rounded-xl p-6 lg:p-0 lg:backdrop-blur-none lg:bg-transparent">
+                <h1
+                  className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-foreground mb-4 leading-tight break-words"
+                  dangerouslySetInnerHTML={{ __html: t("home.hero.title") }}
+                />
 
-              <p className="text-lg sm:text-xl text-muted-foreground mb-8 leading-relaxed break-words">
-                Дижитал маркетинг, борлуулалт, график дизайн, хиймэл оюуны хамгийн шинэлэг хөтөлбөрүүд
-              </p>
+                <p className="text-lg sm:text-xl text-muted-foreground mb-8 leading-relaxed break-words">
+                  {t("home.hero.motto")}
+                </p>
 
-              <div className="mb-6 p-3 bg-muted rounded-lg inline-block">
-                <div className="flex items-center space-x-2">
-                  <span className="text-muted-foreground">Амжилттай төгссөн сурагчид:</span>
-                  <AnimatedCounter end={120} suffix="+" />
+                <div className="mb-6 p-3 bg-muted rounded-lg inline-block">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-muted-foreground">{t("home.hero.studentsHired")}</span>
+                    <AnimatedCounter end={120} suffix="+" />
+                  </div>
                 </div>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-3 w-full">
-                <Link href="/courses" className="flex-1">
-                  <Button className="w-full bg-[#FF344A] hover:bg-[#E02A3C] text-white text-sm sm:text-base px-4 sm:px-6 py-3 transition-all duration-300 hover:shadow-lg hover:scale-105">
-                    Өнөөдөр суралцаж эхлээрэй
-                  </Button>
-                </Link>
-                <Link href="/register" className="flex-1">
-                  <Button
-                    variant="outline"
-                    className="w-full border-[#FF344A] text-[#FF344A] hover:bg-[#FF344A] hover:text-white text-sm sm:text-base px-4 sm:px-6 py-3 bg-transparent transition-all duration-300 hover:shadow-lg hover:scale-105"
-                  >
-                    Бүртгүүлэх
-                  </Button>
-                </Link>
+                <div className="flex flex-col sm:flex-row gap-3 w-full">
+                  <Link href="/courses" className="flex-1">
+                    <Button className="w-full bg-[#FF344A] hover:bg-[#E02A3C] text-white text-sm sm:text-base px-4 sm:px-6 py-3 transition-all duration-300 hover:shadow-lg hover:scale-105">
+                      {t("home.hero.startLearning")}
+                    </Button>
+                  </Link>
+                  <Link href="/register" className="flex-1">
+                    <Button
+                      variant="outline"
+                      className="w-full border-[#FF344A] text-[#FF344A] hover:bg-[#FF344A] hover:text-white text-sm sm:text-base px-4 sm:px-6 py-3 bg-transparent transition-all duration-300 hover:shadow-lg hover:scale-105"
+                    >
+                      {t("nav.register")}
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </AnimatedSection>
             <AnimatedSection animation="slideRight">
               <div className="relative mt-8 lg:mt-0">
+                {/* Desktop image - hidden on mobile/tablet */}
                 <img
                   src="/images/student-learning.jpeg"
                   alt="Students learning digital skills at WIN Academy - Digital marketing, web design, and AI programming courses"
                   title="WIN Academy Students Learning Digital Skills"
-                  className="w-full h-auto max-h-[40vh] sm:max-h-[50vh] lg:max-h-[60vh] object-cover rounded-lg shadow-2xl"
+                  className="hidden lg:block w-full h-auto max-h-[60vh] object-cover rounded-lg shadow-2xl"
                   width="800"
                   height="600"
                   loading="eager"
@@ -278,93 +298,91 @@ export default function HomePageClient({ featuredCourses, session }: HomePageCli
               </p>
             </div>
           ) : (
-            <div className={`flex justify-center ${
-              featuredCourses.length === 1 || featuredCourses.length === 2 ? 'w-full' : ''
-            }`}>
-              <div className={`grid gap-8 ${
-                featuredCourses.length === 1 
-                  ? 'grid-cols-1' 
-                  : featuredCourses.length === 2 
-                  ? 'grid-cols-1 md:grid-cols-2' 
-                  : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+            <div className={`flex justify-center ${featuredCourses.length === 1 || featuredCourses.length === 2 ? 'w-full' : ''
               }`}>
-              {featuredCourses.slice(0, 3).map((course, index) => {
-                const hasAccess = courseAccess[course._id] || false
-                const isLoggedIn = !!clientSession?.user?.email
-                
-                return (
-                  <AnimatedSection key={course._id} animation="fadeUp" className={`delay-${index * 100}`}>
-                    <Card className="overflow-hidden hover:shadow-lg transition-shadow group h-full flex flex-col">
-                      <div className="relative">
-                        <CourseImage
-                          thumbnailUrl={course.thumbnailUrl}
-                          title={course.title}
-                          category={course.category}
-                          size="medium"
-                          className="w-full h-48"
-                        />
-                        {hasAccess && (
-                          <Badge className="absolute top-3 right-3 bg-green-500 hover:bg-green-600 z-10">
-                            Худалдан авсан
-                          </Badge>
-                        )}
-                      </div>
+              <div className={`grid gap-8 ${featuredCourses.length === 1
+                ? 'grid-cols-1'
+                : featuredCourses.length === 2
+                  ? 'grid-cols-1 md:grid-cols-2'
+                  : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+                }`}>
+                {featuredCourses.slice(0, 3).map((course, index) => {
+                  const hasAccess = courseAccess[course._id] || false
+                  const isLoggedIn = !!clientSession?.user?.email
 
-                      <CardHeader className="pb-3 flex-1 flex flex-col">
-                        <CardTitle className="text-lg line-clamp-2">
-                          {course.title}
-                        </CardTitle>
-                        <CardDescription className="line-clamp-2 flex-1">
-                          {course.description ? course.description.substring(0, 120) + '...' : 'No description available'}
-                        </CardDescription>
-                      </CardHeader>
-
-                      <CardContent className="pt-0 flex flex-col flex-1">
-                        <div className="text-center mb-4">
-                          <span className="text-2xl font-bold text-[#FF344A]">
-                            ₮{course.price.toLocaleString()}
-                          </span>
+                  return (
+                    <AnimatedSection key={course._id} animation="fadeUp" className={`delay-${index * 100}`}>
+                      <Card className="overflow-hidden hover:shadow-lg transition-shadow group h-full flex flex-col">
+                        <div className="relative">
+                          <CourseImage
+                            thumbnailUrl={course.thumbnailUrl}
+                            title={course.title}
+                            category={course.category}
+                            size="medium"
+                            className="w-full h-48"
+                          />
+                          {hasAccess && (
+                            <Badge className="absolute top-3 right-3 bg-green-500 hover:bg-green-600 z-10">
+                              Худалдан авсан
+                            </Badge>
+                          )}
                         </div>
 
-                        <div className="space-y-3 mt-auto">
-                          <div className="w-full">
-                            <Link href={`/courses/${course._id}`} className="block">
-                              <Button variant="outline" className="w-full border-[#FF344A] text-[#FF344A] hover:bg-[#FF344A] hover:text-white whitespace-normal leading-tight">
-                                <BookOpen className="h-4 w-4 mr-2" />
-                                Дэлгэрэнгүй
-                              </Button>
-                            </Link>
+                        <CardHeader className="pb-3 flex-1 flex flex-col">
+                          <CardTitle className="text-lg line-clamp-2">
+                            {course.title}
+                          </CardTitle>
+                          <CardDescription className="line-clamp-2 flex-1">
+                            {course.description ? course.description.substring(0, 120) + '...' : 'No description available'}
+                          </CardDescription>
+                        </CardHeader>
+
+                        <CardContent className="pt-0 flex flex-col flex-1">
+                          <div className="text-center mb-4">
+                            <span className="text-2xl font-bold text-[#FF344A]">
+                              ₮{course.price.toLocaleString()}
+                            </span>
                           </div>
-                          <div className="w-full">
-                            {hasAccess ? (
-                              <Link href={`/learn/${course._id}`} className="block">
-                                <Button className="w-full bg-green-600 hover:bg-green-700 text-white whitespace-normal leading-tight">
-                                  <Play className="h-4 w-4 mr-2" />
-                                  Үргэлжлүүлэх
+
+                          <div className="space-y-3 mt-auto">
+                            <div className="w-full">
+                              <Link href={`/courses/${course._id}`} className="block">
+                                <Button variant="outline" className="w-full border-[#FF344A] text-[#FF344A] hover:bg-[#FF344A] hover:text-white whitespace-normal leading-tight">
+                                  <BookOpen className="h-4 w-4 mr-2" />
+                                  Дэлгэрэнгүй
                                 </Button>
                               </Link>
-                            ) : isLoggedIn ? (
-                              <Link href={`/checkout/${course._id}`} className="block">
-                                <Button className="w-full bg-[#FF344A] hover:bg-[#E02A3C] text-white whitespace-normal leading-tight">
-                                  <ShoppingCart className="h-4 w-4 mr-2" />
-                                  Худалдаж авах
-                                </Button>
-                              </Link>
-                            ) : (
-                              <Link href={`/login?callbackUrl=${encodeURIComponent(`/checkout/${course._id}`)}`} className="block">
-                                <Button className="w-full bg-[#FF344A] hover:bg-[#E02A3C] text-white whitespace-normal leading-tight">
-                                  <ShoppingCart className="h-4 w-4 mr-2" />
-                                  Нэвтрэх / Худалдаж авах
-                                </Button>
-                              </Link>
-                            )}
+                            </div>
+                            <div className="w-full">
+                              {hasAccess ? (
+                                <Link href={`/learn/${course._id}`} className="block">
+                                  <Button className="w-full bg-green-600 hover:bg-green-700 text-white whitespace-normal leading-tight">
+                                    <Play className="h-4 w-4 mr-2" />
+                                    Үргэлжлүүлэх
+                                  </Button>
+                                </Link>
+                              ) : isLoggedIn ? (
+                                <Link href={`/checkout/${course._id}`} className="block">
+                                  <Button className="w-full bg-[#FF344A] hover:bg-[#E02A3C] text-white whitespace-normal leading-tight">
+                                    <ShoppingCart className="h-4 w-4 mr-2" />
+                                    Худалдаж авах
+                                  </Button>
+                                </Link>
+                              ) : (
+                                <Link href={`/login?callbackUrl=${encodeURIComponent(`/checkout/${course._id}`)}`} className="block">
+                                  <Button className="w-full bg-[#FF344A] hover:bg-[#E02A3C] text-white whitespace-normal leading-tight">
+                                    <ShoppingCart className="h-4 w-4 mr-2" />
+                                    Нэвтрэх / Худалдаж авах
+                                  </Button>
+                                </Link>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </AnimatedSection>
-                )
-              })}
+                        </CardContent>
+                      </Card>
+                    </AnimatedSection>
+                  )
+                })}
               </div>
             </div>
           )}

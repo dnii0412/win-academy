@@ -35,15 +35,34 @@ export async function PUT(
       return NextResponse.json({ error: "Course not found" }, { status: 404 })
     }
 
+    // Generate unique slug if title is being updated
+    let updateData: any = {
+      title: body.title,
+      titleMn: body.titleMn,
+      description: body.description || "",
+      descriptionMn: body.descriptionMn || "",
+      thumbnailUrl: body.thumbnailUrl
+    }
+
+    // Only update slug if title is being changed
+    if (body.title) {
+      let slug = body.title.toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '')
+      
+      // Ensure slug is unique within this course (excluding current subcourse)
+      let counter = 1
+      let uniqueSlug = slug
+      while (await Subcourse.findOne({ slug: uniqueSlug, courseId, _id: { $ne: subcourseId } })) {
+        uniqueSlug = `${slug}-${counter}`
+        counter++
+      }
+      updateData.slug = uniqueSlug
+    }
+
     const subcourse = await Subcourse.findOneAndUpdate(
       { _id: subcourseId, courseId },
-      {
-        title: body.title,
-        titleMn: body.titleMn,
-        description: body.description || "",
-        descriptionMn: body.descriptionMn || "",
-        thumbnailUrl: body.thumbnailUrl
-      },
+      updateData,
       { new: true, runValidators: true }
     )
 
@@ -83,6 +102,15 @@ export async function DELETE(
 
     await dbConnect()
 
+    // First, delete all lessons in this subcourse
+    const deletedLessons = await Lesson.deleteMany({
+      courseId,
+      subcourseId
+    })
+
+    console.log(`Deleted ${deletedLessons.deletedCount} lessons from subcourse ${subcourseId}`)
+
+    // Then delete the subcourse
     const subcourse = await Subcourse.findOneAndDelete({
       _id: subcourseId,
       courseId
@@ -92,7 +120,10 @@ export async function DELETE(
       return NextResponse.json({ error: "Subcourse not found" }, { status: 404 })
     }
 
-    return NextResponse.json({ message: "Subcourse deleted successfully" })
+    return NextResponse.json({ 
+      message: "Subcourse and all its lessons deleted successfully",
+      deletedLessons: deletedLessons.deletedCount
+    })
 
   } catch (error) {
     console.error("Error deleting subcourse:", error)

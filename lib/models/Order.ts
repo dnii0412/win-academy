@@ -117,7 +117,7 @@ orderSchema.index({ 'qpay.invoiceId': 1 })
 
 // Virtual for formatted amount
 orderSchema.virtual('formattedAmount').get(function () {
-  return `$${this.amount.toFixed(2)}`
+  return `₮${this.amount.toFixed(2)}`
 })
 
 // Pre-save middleware to update updatedAt

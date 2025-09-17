@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import jwt from "jsonwebtoken"
 import dbConnect from "@/lib/mongoose"
 import Course from "@/lib/models/Course"
+import Lesson from "@/lib/models/Lesson"
+import Subcourse from "@/lib/models/Subcourse"
 
 export async function GET(
   request: NextRequest,
@@ -182,14 +184,45 @@ export async function DELETE(
     // Connect to database
     await dbConnect()
 
-    // Delete course
-    const deletedCourse = await Course.findByIdAndDelete(courseId)
-
-    if (!deletedCourse) {
+    // Verify course exists before starting cascade deletion
+    const course = await Course.findById(courseId)
+    if (!course) {
       return NextResponse.json({ error: "Course not found" }, { status: 404 })
     }
 
-    return NextResponse.json({ message: "Course deleted successfully" })
+    // Start cascade deletion
+    console.log(`Starting cascade deletion for course: ${courseId}`)
+
+    // 1. Delete all lessons in this course
+    const deletedLessons = await Lesson.deleteMany({ courseId })
+    console.log(`Deleted ${deletedLessons.deletedCount} lessons`)
+
+    // 2. Delete all subcourses in this course
+    const deletedSubcourses = await Subcourse.deleteMany({ courseId })
+    console.log(`Deleted ${deletedSubcourses.deletedCount} subcourses`)
+
+    // 3. Delete all course access records for this course
+    const CourseAccess = (await import('@/lib/models/CourseAccess')).default
+    const deletedCourseAccess = await CourseAccess.deleteMany({ courseId })
+    console.log(`Deleted ${deletedCourseAccess.deletedCount} course access records`)
+
+    // 4. Delete all orders for this course
+    const Order = (await import('@/lib/models/Order')).default
+    const deletedOrders = await Order.deleteMany({ courseId })
+    console.log(`Deleted ${deletedOrders.deletedCount} orders`)
+
+    // 5. Finally, delete the course itself
+    const deletedCourse = await Course.findByIdAndDelete(courseId)
+
+    return NextResponse.json({ 
+      message: "Course and all related data deleted successfully",
+      deletedData: {
+        lessons: deletedLessons.deletedCount,
+        subcourses: deletedSubcourses.deletedCount,
+        courseAccess: deletedCourseAccess.deletedCount,
+        orders: deletedOrders.deletedCount
+      }
+    })
   } catch (error) {
     console.error("Error deleting course:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })

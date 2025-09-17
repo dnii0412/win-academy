@@ -8,9 +8,46 @@ import dynamicImport from "next/dynamic"
 import type { Metadata } from 'next'
 
 export const dynamic = 'force-dynamic'
+export const revalidate = 300 // Revalidate every 5 minutes
 
 const CoursesPageClient = dynamicImport(() => import("@/app/courses/CoursesPageClient"), {
-  loading: () => <div>Loading...</div>
+  loading: () => (
+    <div className="min-h-screen bg-background">
+      <div className="max-w-6xl mx-auto p-8">
+        {/* Header Skeleton */}
+        <div className="text-center mb-12">
+          <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded-lg w-64 mx-auto mb-4 animate-pulse"></div>
+          <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-96 mx-auto animate-pulse"></div>
+        </div>
+
+        {/* Search Skeleton */}
+        <div className="mb-8">
+          <div className="max-w-md mx-auto">
+            <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse"></div>
+          </div>
+        </div>
+
+        {/* Course Cards Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden animate-pulse">
+              <div className="h-48 bg-gray-200 dark:bg-gray-700"></div>
+              <div className="p-6">
+                <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded mb-3"></div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-4 w-3/4"></div>
+                <div className="flex justify-between items-center mb-4">
+                  <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
+                  <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-16"></div>
+                </div>
+                <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
 })
 
 export const metadata: Metadata = {
@@ -51,9 +88,9 @@ export const metadata: Metadata = {
 async function getCoursesWithEnrollment(): Promise<Course[]> {
   try {
     await dbConnect()
-    
-    // Fetch all courses from database
-    const courses = await CourseModel.find({ 
+
+    // Fetch all courses from database with optimized query
+    const courses = await CourseModel.find({
       status: { $ne: 'archived' }
     }).select({
       _id: 1,
@@ -79,26 +116,30 @@ async function getCoursesWithEnrollment(): Promise<Course[]> {
       totalLessons: 1,
       createdAt: 1,
       status: 1
-    }).sort({ featured: -1, createdAt: -1 }).lean()
+    }).sort({ featured: -1, createdAt: -1 }).lean().limit(50) // Limit to 50 courses for better performance
 
     const courseIds = courses.map(course => (course._id as any).toString())
-    
-    // Get enrollment counts for all courses
-    const enrollmentCounts = await getMultipleCourseEnrollmentCounts(courseIds)
-    
-    // Get session to check user enrollment status
-    const session = await auth()
+
+    // Get enrollment counts for all courses (parallel execution)
+    const [enrollmentCounts, session] = await Promise.all([
+      getMultipleCourseEnrollmentCounts(courseIds),
+      auth()
+    ])
+
+    // Get user enrollment status if session exists
     let userEnrolledCourses: string[] = []
-    
     if (session?.user?.email) {
-      // Find user by email
-      const user = await User.findOne({ email: session.user.email })
-      if (user) {
-        // Get user's enrolled course IDs
-        userEnrolledCourses = await getUserEnrolledCourses(user._id.toString())
+      try {
+        const user = await User.findOne({ email: session.user.email }).select('_id').lean() as any
+        if (user && user._id) {
+          userEnrolledCourses = await getUserEnrolledCourses(user._id.toString())
+        }
+      } catch (userError) {
+        console.warn('Error fetching user enrollment:', userError)
+        // Continue without user enrollment data
       }
     }
-    
+
     // Add enrollment data to courses
     const coursesWithEnrollment = courses.map(course => {
       const courseId = (course._id as any).toString()
@@ -109,9 +150,9 @@ async function getCoursesWithEnrollment(): Promise<Course[]> {
         isEnrolled: userEnrolledCourses.includes(courseId)
       }
     })
-    
+
     return coursesWithEnrollment as unknown as Course[]
-    
+
   } catch (error) {
     console.error('Error fetching courses:', error)
     return []

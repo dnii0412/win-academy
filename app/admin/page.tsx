@@ -5,10 +5,10 @@ import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { 
-  Users, 
-  BookOpen, 
-  TrendingUp, 
+import {
+  Users,
+  BookOpen,
+  TrendingUp,
   Plus,
   LogOut,
   Settings,
@@ -145,7 +145,7 @@ export default function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                ${stats?.weeklyIncome || 0}
+                ₮{stats?.weeklyIncome || 0}
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400">
                 Долоо хоногийн орлого
@@ -176,10 +176,10 @@ export default function AdminDashboard() {
                     </Badge>
                   </div>
                 )) || (
-                  <p className="text-gray-500 dark:text-gray-400 text-center py-4">
-                    Хэрэглэгч байхгүй
-                  </p>
-                )}
+                    <p className="text-gray-500 dark:text-gray-400 text-center py-4">
+                      Хэрэглэгч байхгүй
+                    </p>
+                  )}
               </div>
             </CardContent>
           </Card>

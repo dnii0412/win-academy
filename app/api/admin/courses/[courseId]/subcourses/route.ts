@@ -81,10 +81,18 @@ export async function POST(
       return NextResponse.json({ error: "Course not found" }, { status: 404 })
     }
 
-    // Generate slug from title
-    const slug = body.title.toLowerCase()
+    // Generate unique slug from title
+    let slug = body.title.toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)/g, '')
+
+    // Ensure slug is unique within this course
+    let counter = 1
+    let uniqueSlug = slug
+    while (await Subcourse.findOne({ slug: uniqueSlug, courseId })) {
+      uniqueSlug = `${slug}-${counter}`
+      counter++
+    }
 
     // Get the next order number
     const lastSubcourse = await Subcourse.findOne({ courseId })
@@ -98,7 +106,7 @@ export async function POST(
       titleMn: body.titleMn,
       description: body.description || "",
       descriptionMn: body.descriptionMn || "",
-      slug,
+      slug: uniqueSlug,
       thumbnailUrl: body.thumbnailUrl,
       order: nextOrder
     })
@@ -117,7 +125,7 @@ export async function POST(
       stack: error instanceof Error ? error.stack : undefined,
       body: body
     })
-    return NextResponse.json({ 
+    return NextResponse.json({
       error: "Internal server error",
       details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 })

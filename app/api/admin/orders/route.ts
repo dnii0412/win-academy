@@ -30,14 +30,14 @@ export async function GET(
       .sort({ createdAt: -1 })
       .limit(100) // Limit to prevent performance issues
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       orders,
       total: orders.length
     })
 
   } catch (error) {
     console.error("Error fetching orders:", error)
-    return NextResponse.json({ 
+    return NextResponse.json({
       error: "Internal server error",
       details: error instanceof Error ? error.message : "Unknown error"
     }, { status: 500 })
@@ -65,7 +65,7 @@ export async function POST(
 
     // Validate required fields
     if (!body.courseId || !body.userId || !body.amount) {
-      return NextResponse.json({ 
+      return NextResponse.json({
         error: "Missing required fields",
         required: ["courseId", "userId", "amount"]
       }, { status: 400 })
@@ -95,7 +95,7 @@ export async function POST(
       userName: user.fullName || `${user.firstName} ${user.lastName}`.trim(),
       userEmail: user.email,
       amount: body.amount,
-      currency: body.currency || 'USD',
+      currency: body.currency || 'MNT',
       paymentMethod: body.paymentMethod || 'manual',
       paymentProvider: body.paymentProvider,
       transactionId: body.transactionId,
@@ -112,7 +112,7 @@ export async function POST(
 
   } catch (error) {
     console.error("Error creating order:", error)
-    return NextResponse.json({ 
+    return NextResponse.json({
       error: "Internal server error",
       details: error instanceof Error ? error.message : "Unknown error"
     }, { status: 500 })
