@@ -209,13 +209,68 @@ export default function LearnPageClient({
   const [videoError, setVideoError] = useState<string | null>(null)
   const [videoRetryCount, setVideoRetryCount] = useState(0)
   const [useDirectVideo, setUseDirectVideo] = useState(false)
+  const [isOnline, setIsOnline] = useState(true)
   const previousLessonsRef = useRef<Lesson[]>([])
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const networkCheckRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  // Network connectivity monitoring
+  useEffect(() => {
+    const handleOnline = () => {
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('🌐 Network back online')
+      }
+      setIsOnline(true)
+      // Retry video if there was an error
+      if (videoError) {
+        setVideoError(null)
+        setVideoRetryCount(0)
+      }
+    }
+
+    const handleOffline = () => {
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('🌐 Network offline')
+      }
+      setIsOnline(false)
+    }
+
+    // Check network connectivity periodically
+    const checkNetwork = async () => {
+      try {
+        const response = await fetch('/api/health', { 
+          method: 'HEAD',
+          cache: 'no-cache',
+          signal: AbortSignal.timeout(5000)
+        })
+        setIsOnline(response.ok)
+      } catch (error) {
+        setIsOnline(false)
+      }
+    }
+
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
+    
+    // Check network every 30 seconds
+    networkCheckRef.current = setInterval(checkNetwork, 30000)
+    
+    // Initial check
+    checkNetwork()
+
+    return () => {
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+      if (networkCheckRef.current) {
+        clearInterval(networkCheckRef.current)
+      }
+    }
+  }, [videoError])
 
   // Handle video errors and retry mechanism
-  const handleVideoError = () => {
+  const handleVideoError = (error?: any) => {
     if (process.env.NODE_ENV !== 'production') {
-      console.error('Video playback error detected')
+      console.error('Video playback error detected:', error)
     }
     
     const currentLesson = allLessons[currentLessonIndex]
@@ -225,7 +280,8 @@ export default function LearnPageClient({
         useDirectVideo,
         isYouTube: isYouTubeUrl(currentLesson?.videoUrl),
         isBunny: isBunnyStreamUrl(currentLesson?.videoUrl),
-        videoRetryCount
+        videoRetryCount,
+        error: error?.message || error
       })
     }
     
@@ -239,11 +295,22 @@ export default function LearnPageClient({
       return
     }
     
-    // For Bunny Stream videos, try converting play URL to embed URL
-    if (currentLesson?.videoUrl && isBunnyStreamUrl(currentLesson.videoUrl) && currentLesson.videoUrl.includes('/play/')) {
+    // For Bunny Stream videos, try different URL formats
+    if (currentLesson?.videoUrl && isBunnyStreamUrl(currentLesson.videoUrl)) {
       if (process.env.NODE_ENV !== 'production') {
-        console.log('🔄 Converting Bunny play URL to embed URL:', currentLesson.videoUrl)
+        console.log('🔄 Retrying Bunny Stream with different URL format:', currentLesson.videoUrl)
       }
+      setVideoRetryCount(prev => prev + 1)
+      setVideoError(null)
+      return
+    }
+    
+    // For direct video URLs, try different formats
+    if (currentLesson?.videoUrl && !isYouTubeUrl(currentLesson.videoUrl) && !isBunnyStreamUrl(currentLesson.videoUrl)) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('🔄 Retrying direct video with different format:', currentLesson.videoUrl)
+      }
+      setVideoRetryCount(prev => prev + 1)
       setVideoError(null)
       return
     }
@@ -253,15 +320,16 @@ export default function LearnPageClient({
     }
     setVideoError('Video playback failed. Please try refreshing the page.')
     
-    // Auto-retry after 3 seconds
-    if (videoRetryCount < 3) {
+    // Auto-retry after 2 seconds with exponential backoff
+    if (videoRetryCount < 5) {
+      const retryDelay = Math.min(2000 * Math.pow(2, videoRetryCount), 10000) // Max 10 seconds
       setTimeout(() => {
         if (process.env.NODE_ENV !== 'production') {
-          console.log('🔄 Auto-retrying video, attempt:', videoRetryCount + 1)
+          console.log('🔄 Auto-retrying video, attempt:', videoRetryCount + 1, 'delay:', retryDelay)
         }
         setVideoRetryCount(prev => prev + 1)
         setVideoError(null)
-      }, 3000)
+      }, retryDelay)
     }
   }
 
@@ -759,11 +827,49 @@ export default function LearnPageClient({
                           className="absolute inset-0 w-full h-full border-0 rounded-none"
                           controls
                           preload="auto"
+                          crossOrigin="anonymous"
+                          playsInline
                           style={{
                             objectFit: 'contain'
                           }}
-                          onError={handleVideoError}
+                          onError={(e) => handleVideoError(e)}
+                          onLoadStart={() => {
+                            if (process.env.NODE_ENV !== 'production') {
+                              console.log('🎬 Video load started')
+                            }
+                          }}
+                          onCanPlay={() => {
+                            if (process.env.NODE_ENV !== 'production') {
+                              console.log('✅ Video can play')
+                            }
+                            setVideoError(null)
+                          }}
+                          onStalled={(e) => {
+                            if (process.env.NODE_ENV !== 'production') {
+                              console.warn('⚠️ Video stalled, attempting recovery')
+                            }
+                            // Try to recover from stall
+                            setTimeout(() => {
+                              const video = e.currentTarget
+                              if (video && video.readyState < 3) {
+                                video.load()
+                              }
+                            }, 1000)
+                          }}
+                          onSuspend={() => {
+                            if (process.env.NODE_ENV !== 'production') {
+                              console.warn('⚠️ Video suspended')
+                            }
+                          }}
+                          onWaiting={() => {
+                            if (process.env.NODE_ENV !== 'production') {
+                              console.warn('⏳ Video waiting for data')
+                            }
+                          }}
                         >
+                          <source src={safeCurrentLesson.videoUrl} type="video/mp4" />
+                          <source src={safeCurrentLesson.videoUrl} type="video/webm" />
+                          <source src={safeCurrentLesson.videoUrl} type="video/ogg" />
                           Your browser does not support the video tag.
                         </video>
                       ) : isBunnyStreamUrl(safeCurrentLesson.videoUrl) ? (
@@ -774,7 +880,7 @@ export default function LearnPageClient({
                             allowFullScreen
                             allow="autoplay; encrypted-media; accelerometer; gyroscope; fullscreen; picture-in-picture"
                             title={safeCurrentLesson?.titleMn || safeCurrentLesson?.title}
-                            loading="lazy"
+                            loading="eager"
                             referrerPolicy="no-referrer-when-downgrade"
                             sandbox="allow-scripts allow-same-origin allow-presentation allow-forms allow-popups"
                             style={{
