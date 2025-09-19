@@ -58,8 +58,6 @@ async function getCourseData(courseId: string) {
       .sort({ order: 1 })
       .lean()
 
-    console.log('Server: Found subcourses for course', courseId, ':', subcourses.length)
-    console.log('Server: Subcourses data:', subcourses)
 
     // Fetch lessons for each subcourse
     const subcoursesWithLessons = await Promise.all(

@@ -16,14 +16,12 @@ export async function getQPayAccessToken(): Promise<string> {
   const correlationId = generateCorrelationId()
   
   if (inMemoryToken && !expSoon()) {
-    console.log('qpay.token.cached', { correlationId, expiresAt: inMemoryToken.expires_at })
     return inMemoryToken.access_token
   }
 
   // Try refresh first
   if (inMemoryToken?.refresh_token) {
     try {
-      console.log('qpay.token.refresh.request', { correlationId })
       const refreshed = await qpayFetch('/v2/auth/refresh', {
         method: 'POST',
         body: JSON.stringify({ refresh_token: inMemoryToken.refresh_token }),

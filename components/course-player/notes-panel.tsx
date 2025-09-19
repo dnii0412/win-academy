@@ -95,7 +95,6 @@ export function NotesPanel({ lessonId }: NotesPanelProps) {
 
   const jumpToTimestamp = (timestamp: number) => {
     // In a real implementation, this would seek the video to the timestamp
-    console.log("[v0] Jumping to timestamp:", timestamp)
   }
 
   return (

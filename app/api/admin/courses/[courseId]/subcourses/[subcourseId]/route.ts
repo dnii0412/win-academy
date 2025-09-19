@@ -4,6 +4,7 @@ import dbConnect from "@/lib/mongoose"
 import Subcourse from "@/lib/models/Subcourse"
 import Course from "@/lib/models/Course"
 import Lesson from "@/lib/models/Lesson"
+import mongoose from "mongoose"
 
 export async function PUT(
   request: NextRequest,
@@ -50,7 +51,7 @@ export async function PUT(
       let slug = body.title.toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/(^-|-$)/g, '')
-      
+
       // Ensure slug is unique within this course (excluding current subcourse)
       let counter = 1
       let uniqueSlug = slug
@@ -105,23 +106,22 @@ export async function DELETE(
 
     // First, delete all lessons in this subcourse
     const deletedLessons = await Lesson.deleteMany({
-      courseId,
-      subcourseId
+      courseId: new mongoose.Types.ObjectId(courseId),
+      subcourseId: new mongoose.Types.ObjectId(subcourseId)
     })
 
-    console.log(`Deleted ${deletedLessons.deletedCount} lessons from subcourse ${subcourseId}`)
 
     // Then delete the subcourse
     const subcourse = await Subcourse.findOneAndDelete({
-      _id: subcourseId,
-      courseId
+      _id: new mongoose.Types.ObjectId(subcourseId),
+      courseId: new mongoose.Types.ObjectId(courseId)
     })
 
     if (!subcourse) {
       return NextResponse.json({ error: "Subcourse not found" }, { status: 404 })
     }
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       message: "Subcourse and all its lessons deleted successfully",
       deletedLessons: deletedLessons.deletedCount
     })

@@ -25,16 +25,6 @@ export default function CourseImage({
 }: CourseImageProps) {
   const [imageError, setImageError] = useState(false)
 
-  // Debug logging (remove in production)
-  if (process.env.NODE_ENV === 'development') {
-    console.log('CourseImage Debug:', {
-      title,
-      thumbnailUrl,
-      hasUrl: !!thumbnailUrl,
-      size,
-      optimizedUrl: thumbnailUrl ? getCourseThumbnailUrl(thumbnailUrl, size) : 'No URL'
-    })
-  }
 
   // Get optimized image URL
   const optimizedUrl = thumbnailUrl ? getCourseThumbnailUrl(thumbnailUrl, size) : null

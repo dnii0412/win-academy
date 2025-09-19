@@ -171,7 +171,6 @@ export function DiscussionPanel({ lessonId }: DiscussionPanelProps) {
   }
 
   const jumpToTimestamp = (timestamp: number) => {
-    console.log("[v0] Jumping to timestamp:", timestamp)
   }
 
   const getRoleBadgeColor = (role: string) => {

@@ -69,12 +69,6 @@ export default function CourseOverviewClient({
   // State for managing subcourse dropdown toggles
   const [expandedSubcourses, setExpandedSubcourses] = useState<Set<string>>(new Set())
 
-  // Debug logging
-  console.log('CourseOverviewClient - hasAccess:', hasAccess)
-  console.log('CourseOverviewClient - subcourses:', subcourses)
-  console.log('CourseOverviewClient - subcourses length:', subcourses?.length)
-  console.log('CourseOverviewClient - course:', course)
-  console.log('CourseOverviewClient - course modules:', course?.modules)
 
   const formatPrice = (price: number) => {
     return `₮${price.toLocaleString()}`
