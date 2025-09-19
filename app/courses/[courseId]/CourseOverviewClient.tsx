@@ -113,6 +113,24 @@ export default function CourseOverviewClient({
     })
   }
 
+  // Handle subcourse click - redirect to learning page if user has access
+  const handleSubcourseClick = (subcourse: Subcourse) => {
+    if (!hasAccess) {
+      // If user doesn't have access, just toggle the subcourse expansion
+      toggleSubcourse(subcourse._id)
+      return
+    }
+
+    // If user has access, redirect to learning page
+    router.push(`/learn/${courseId}`)
+  }
+
+  // Handle subcourse header click - for expanding/collapsing
+  const handleSubcourseHeaderClick = (subcourse: Subcourse, event: React.MouseEvent) => {
+    event.stopPropagation()
+    toggleSubcourse(subcourse._id)
+  }
+
   if (error || !course) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -194,6 +212,28 @@ export default function CourseOverviewClient({
               <p className="text-muted-foreground leading-relaxed">
                 {course.descriptionMn || course.description}
               </p>
+
+              {/* Start Learning Button for users with access */}
+              {hasAccess ? (
+                <div className="pt-4">
+                  <Button
+                    onClick={() => router.push(`/learn/${courseId}`)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 text-lg"
+                  >
+                    <Play className="h-5 w-5 mr-2" />
+                    Start Learning
+                  </Button>
+                </div>
+              ) : (
+                <div className="pt-4 p-4 bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    <Lock className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+                    <p className="text-yellow-800 dark:text-yellow-200 font-medium">
+                      Purchase this course to access all videos and start learning
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Course Content */}
@@ -214,15 +254,16 @@ export default function CourseOverviewClient({
                       return (
                         <div key={subcourse._id} className="border border-border rounded-lg bg-card">
                           {/* Subcourse Header - Clickable */}
-                          <div
-                            className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/50 transition-colors"
-                            onClick={() => hasLessons && toggleSubcourse(subcourse._id)}
-                          >
-                            <div className="flex items-center space-x-3">
+                          <div className="flex items-center justify-between p-4">
+                            <div
+                              className={`flex items-center space-x-3 flex-1 cursor-pointer hover:bg-muted/50 transition-colors rounded-lg p-2 -m-2 ${hasAccess && hasLessons ? 'hover:bg-blue-50 dark:hover:bg-blue-950' : ''
+                                }`}
+                              onClick={() => hasLessons && handleSubcourseClick(subcourse)}
+                            >
                               <div className="w-8 h-8 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center text-sm font-semibold text-red-600 dark:text-red-200">
                                 {subcourseIndex + 1}
                               </div>
-                              <div>
+                              <div className="flex-1">
                                 <h3 className="font-semibold text-foreground">
                                   {subcourse.titleMn || subcourse.title}
                                 </h3>
@@ -231,15 +272,43 @@ export default function CourseOverviewClient({
                                     {subcourse.descriptionMn || subcourse.description}
                                   </p>
                                 )}
+                                {hasLessons && (
+                                  <p className={`text-sm mt-1 flex items-center ${hasAccess
+                                    ? 'text-blue-600 dark:text-blue-400'
+                                    : 'text-muted-foreground'
+                                    }`}>
+                                    {hasAccess ? (
+                                      <>
+                                        <Play className="h-3 w-3 mr-1" />
+                                        Click to watch videos
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Lock className="h-3 w-3 mr-1" />
+                                        Purchase to access videos
+                                      </>
+                                    )}
+                                  </p>
+                                )}
                               </div>
                             </div>
 
                             {/* Toggle Icon */}
                             {hasLessons && (
-                              <ChevronDown
-                                className={`w-5 h-5 text-muted-foreground transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''
-                                  }`}
-                              />
+                              <div
+                                className="flex items-center space-x-2 cursor-pointer hover:bg-muted/50 transition-colors rounded-lg p-2 -m-2"
+                                onClick={(e) => handleSubcourseHeaderClick(subcourse, e)}
+                              >
+                                {hasAccess ? (
+                                  <Play className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                ) : (
+                                  <Lock className="w-5 h-5 text-muted-foreground" />
+                                )}
+                                <ChevronDown
+                                  className={`w-5 h-5 text-muted-foreground transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''
+                                    }`}
+                                />
+                              </div>
                             )}
                           </div>
 
