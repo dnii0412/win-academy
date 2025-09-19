@@ -141,17 +141,17 @@ export function DiscussionPanel({ lessonId }: DiscussionPanelProps) {
         prev.map((comment) =>
           comment.id === parentId
             ? {
-                ...comment,
-                replies: comment.replies.map((reply) =>
-                  reply.id === commentId
-                    ? {
-                        ...reply,
-                        isLiked: !reply.isLiked,
-                        likes: reply.isLiked ? reply.likes - 1 : reply.likes + 1,
-                      }
-                    : reply,
-                ),
-              }
+              ...comment,
+              replies: comment.replies.map((reply) =>
+                reply.id === commentId
+                  ? {
+                    ...reply,
+                    isLiked: !reply.isLiked,
+                    likes: reply.isLiked ? reply.likes - 1 : reply.likes + 1,
+                  }
+                  : reply,
+              ),
+            }
             : comment,
         ),
       )
@@ -160,10 +160,10 @@ export function DiscussionPanel({ lessonId }: DiscussionPanelProps) {
         prev.map((comment) =>
           comment.id === commentId
             ? {
-                ...comment,
-                isLiked: !comment.isLiked,
-                likes: comment.isLiked ? comment.likes - 1 : comment.likes + 1,
-              }
+              ...comment,
+              isLiked: !comment.isLiked,
+              likes: comment.isLiked ? comment.likes - 1 : comment.likes + 1,
+            }
             : comment,
         ),
       )

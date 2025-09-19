@@ -5,13 +5,13 @@ import { BookOpen } from 'lucide-react'
 import { getCourseThumbnailUrl, getCourseFallbackImage } from '@/lib/image-utils'
 
 interface CourseImageProps {
-    thumbnailUrl?: string
-    title: string
-    category?: string
-    alt?: string
-    size?: 'small' | 'medium' | 'large'
-    className?: string
-    showFallbackIcon?: boolean
+  thumbnailUrl?: string
+  title: string
+  category?: string
+  alt?: string
+  size?: 'small' | 'medium' | 'large'
+  className?: string
+  showFallbackIcon?: boolean
 }
 
 export default function CourseImage({

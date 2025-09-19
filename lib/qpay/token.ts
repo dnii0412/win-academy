@@ -14,7 +14,7 @@ function generateCorrelationId(): string {
 
 export async function getQPayAccessToken(): Promise<string> {
   const correlationId = generateCorrelationId()
-  
+
   if (inMemoryToken && !expSoon()) {
     return inMemoryToken.access_token
   }
@@ -26,32 +26,27 @@ export async function getQPayAccessToken(): Promise<string> {
         method: 'POST',
         body: JSON.stringify({ refresh_token: inMemoryToken.refresh_token }),
       })
-      
+
       inMemoryToken = {
         access_token: refreshed.access_token,
         refresh_token: refreshed.refresh_token ?? inMemoryToken.refresh_token,
         expires_at: Date.now() + (refreshed.expires_in || 300) * 1000,
       }
-      
-      console.log('qpay.token.refresh.success', { 
-        correlationId, 
-        expiresIn: refreshed.expires_in,
-        expiresAt: inMemoryToken.expires_at 
-      })
+
       return inMemoryToken.access_token
     } catch (e: any) {
-      console.warn('qpay.token.refresh.failed', { 
-        correlationId, 
+      console.warn('qpay.token.refresh.failed', {
+        correlationId,
         error: e.message,
-        fallbackToNew: true 
+        fallbackToNew: true
       })
       // fall through to full token fetch
     }
   }
 
   // Fresh token - Try client credentials first, then username/password
-  console.log('qpay.token.request', { 
-    correlationId, 
+  console.log('qpay.token.request', {
+    correlationId,
     method: 'Basic Authentication',
     url: `${QPAY.baseUrl}/v2/auth/token`
   })
@@ -72,30 +67,30 @@ export async function getQPayAccessToken(): Promise<string> {
       refresh_token: authRes.refresh_token,
       expires_at: Date.now() + (authRes.expires_in || 300) * 1000,
     }
-    
-    console.log('qpay.token.success', { 
-      correlationId, 
+
+    console.log('qpay.token.success', {
+      correlationId,
       expiresIn: authRes.expires_in,
-      expiresAt: inMemoryToken.expires_at 
+      expiresAt: inMemoryToken.expires_at
     })
-    
+
     return inMemoryToken.access_token
   } catch (e: any) {
-    console.warn('qpay.token.client_credentials.failed', { 
-      correlationId, 
+    console.warn('qpay.token.client_credentials.failed', {
+      correlationId,
       error: e.message,
       status: e.status || 'unknown',
       fallbackToUsernamePassword: true
     })
-    
+
     // Fallback to username/password authentication
     try {
-      console.log('qpay.token.request', { 
-        correlationId, 
+      console.log('qpay.token.request', {
+        correlationId,
         method: 'Username/Password (fallback)',
         url: `${QPAY.baseUrl}/v2/auth/token`
       })
-      
+
       const authRes = await qpayFetch('/v2/auth/token', {
         method: 'POST',
         headers: {
@@ -113,18 +108,18 @@ export async function getQPayAccessToken(): Promise<string> {
         refresh_token: authRes.refresh_token,
         expires_at: Date.now() + (authRes.expires_in || 300) * 1000,
       }
-      
-      console.log('qpay.token.success', { 
-        correlationId, 
+
+      console.log('qpay.token.success', {
+        correlationId,
         method: 'Username/Password',
         expiresIn: authRes.expires_in,
-        expiresAt: inMemoryToken.expires_at 
+        expiresAt: inMemoryToken.expires_at
       })
-      
+
       return inMemoryToken.access_token
     } catch (e2: any) {
-      console.error('qpay.token.error', { 
-        correlationId, 
+      console.error('qpay.token.error', {
+        correlationId,
         error: e2.message,
         status: e2.status || 'unknown'
       })
