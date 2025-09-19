@@ -12,6 +12,7 @@ import {
   Star,
   Users,
   ChevronRight,
+  ChevronDown,
   Lock,
   BookOpen,
   User
@@ -65,6 +66,9 @@ export default function CourseOverviewClient({
   const router = useRouter()
   const { data: session, status } = useSession()
 
+  // State for managing subcourse dropdown toggles
+  const [expandedSubcourses, setExpandedSubcourses] = useState<Set<string>>(new Set())
+
   // Debug logging
   console.log('CourseOverviewClient - hasAccess:', hasAccess)
   console.log('CourseOverviewClient - subcourses:', subcourses)
@@ -100,6 +104,19 @@ export default function CourseOverviewClient({
       default:
         return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
     }
+  }
+
+  // Toggle subcourse expansion
+  const toggleSubcourse = (subcourseId: string) => {
+    setExpandedSubcourses(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(subcourseId)) {
+        newSet.delete(subcourseId)
+      } else {
+        newSet.add(subcourseId)
+      }
+      return newSet
+    })
   }
 
   if (error || !course) {
@@ -190,68 +207,100 @@ export default function CourseOverviewClient({
               <h2 className="text-2xl font-bold text-foreground">
                 Хичээлийн агуулга
               </h2>
-              
+
 
               {subcourses && subcourses.length > 0 ? (
                 <div className="space-y-4">
                   {subcourses
                     .sort((a, b) => (a.order || 0) - (b.order || 0))
-                    .map((subcourse, subcourseIndex) => (
-                      <div key={subcourse._id} className="border border-border rounded-lg p-4 bg-card">
-                        <div className="flex items-center space-x-3 mb-3">
-                          <div className="w-8 h-8 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center text-sm font-semibold text-red-600 dark:text-red-200">
-                            {subcourseIndex + 1}
-                          </div>
-                          <h3 className="font-semibold text-foreground">
-                            {subcourse.titleMn || subcourse.title}
-                          </h3>
-                        </div>
-                        {subcourse.description && (
-                          <p className="text-muted-foreground text-sm mb-3">
-                            {subcourse.descriptionMn || subcourse.description}
-                          </p>
-                        )}
+                    .map((subcourse, subcourseIndex) => {
+                      const isExpanded = expandedSubcourses.has(subcourse._id)
+                      const hasLessons = subcourse.lessons && subcourse.lessons.length > 0
 
-                        {subcourse.lessons && subcourse.lessons.length > 0 ? (
-                          <div className="space-y-2">
-                            {subcourse.lessons
-                              .sort((a, b) => a.order - b.order)
-                              .map((lesson, lessonIndex) => (
-                                <div key={lesson._id} className="flex items-center space-x-3 p-2 bg-muted rounded">
-                                  <div className="w-5 h-5 bg-muted-foreground/20 rounded-full flex items-center justify-center text-xs font-semibold text-muted-foreground">
-                                    {lessonIndex + 1}
-                                  </div>
-                                  <div className="flex-1">
-                                    <h4 className="font-medium text-sm text-foreground">
-                                      {lesson.titleMn || lesson.title}
-                                    </h4>
-                                    {lesson.description && (
-                                      <p className="text-xs text-muted-foreground mt-1">
-                                        {lesson.descriptionMn || lesson.description}
-                                      </p>
-                                    )}
-                                  </div>
-                                  <div className="flex items-center space-x-2 text-xs text-muted-foreground">
-                                    {lesson.duration > 0 && (
-                                      <span>{formatVideoDuration(lesson.duration)}</span>
-                                    )}
-                                    <Play className="w-3 h-3" />
-                                    {lesson.videoStatus === 'ready' && lesson.videoUrl && (
-                                      <span className="text-green-600">✓</span>
-                                    )}
-                                  </div>
-                                </div>
-                              ))}
+                      return (
+                        <div key={subcourse._id} className="border border-border rounded-lg bg-card">
+                          {/* Subcourse Header - Clickable */}
+                          <div
+                            className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/50 transition-colors"
+                            onClick={() => hasLessons && toggleSubcourse(subcourse._id)}
+                          >
+                            <div className="flex items-center space-x-3">
+                              <div className="w-8 h-8 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center text-sm font-semibold text-red-600 dark:text-red-200">
+                                {subcourseIndex + 1}
+                              </div>
+                              <div>
+                                <h3 className="font-semibold text-foreground">
+                                  {subcourse.titleMn || subcourse.title}
+                                </h3>
+                                {subcourse.description && (
+                                  <p className="text-muted-foreground text-sm mt-1">
+                                    {subcourse.descriptionMn || subcourse.description}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Toggle Icon */}
+                            {hasLessons && (
+                              <ChevronDown
+                                className={`w-5 h-5 text-muted-foreground transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''
+                                  }`}
+                              />
+                            )}
                           </div>
-                        ) : (
-                          <div className="text-center py-8 text-muted-foreground">
-                            <p className="text-sm">
-                              Энэ дэд хэсэгт одоогоор хичээл байхгүй байна
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    ))}
+
+                          {/* Lessons Section - Collapsible */}
+                          {hasLessons && (
+                            <div
+                              className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'
+                                }`}
+                            >
+                              <div className="px-4 pb-4 space-y-2">
+                                {subcourse.lessons
+                                  .sort((a, b) => a.order - b.order)
+                                  .map((lesson, lessonIndex) => (
+                                    <div key={lesson._id} className="flex items-center space-x-3 p-2 bg-muted rounded">
+                                      <div className="w-5 h-5 bg-muted-foreground/20 rounded-full flex items-center justify-center text-xs font-semibold text-muted-foreground">
+                                        {lessonIndex + 1}
+                                      </div>
+                                      <div className="flex-1">
+                                        <h4 className="font-medium text-sm text-foreground">
+                                          {lesson.titleMn || lesson.title}
+                                        </h4>
+                                        {lesson.description && (
+                                          <p className="text-xs text-muted-foreground mt-1">
+                                            {lesson.descriptionMn || lesson.description}
+                                          </p>
+                                        )}
+                                      </div>
+                                      <div className="flex items-center space-x-2 text-xs text-muted-foreground">
+                                        {lesson.duration > 0 && (
+                                          <span>{formatVideoDuration(lesson.duration)}</span>
+                                        )}
+                                        <Play className="w-3 h-3" />
+                                        {lesson.videoStatus === 'ready' && lesson.videoUrl && (
+                                          <span className="text-green-600">✓</span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* No Lessons Message */}
+                          {!hasLessons && (
+                            <div className="px-4 pb-4">
+                              <div className="text-center py-8 text-muted-foreground">
+                                <p className="text-sm">
+                                  Энэ дэд хэсэгт одоогоор хичээл байхгүй байна
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
                 </div>
               ) : (
                 <div className="border border-border rounded-lg p-12 text-center bg-card">

@@ -2,6 +2,7 @@ import { Course } from "@/types/course"
 import dbConnect from "@/lib/mongoose"
 import CourseModel from "@/lib/models/Course"
 import Subcourse from "@/lib/models/Subcourse"
+import Lesson from "@/lib/models/Lesson"
 import { auth } from "@/auth"
 import CourseAccess from "@/lib/models/CourseAccess"
 import User from "@/lib/models/User"
@@ -56,9 +57,34 @@ async function getCourseData(courseId: string) {
     const subcourses = await Subcourse.find({ courseId })
       .sort({ order: 1 })
       .lean()
-    
+
     console.log('Server: Found subcourses for course', courseId, ':', subcourses.length)
     console.log('Server: Subcourses data:', subcourses)
+
+    // Fetch lessons for each subcourse
+    const subcoursesWithLessons = await Promise.all(
+      subcourses.map(async (subcourse) => {
+        const lessons = await Lesson.find({
+          courseId,
+          subcourseId: subcourse._id
+        })
+          .sort({ order: 1 })
+          .lean()
+
+        return {
+          ...subcourse,
+          lessons: lessons.map(lesson => ({
+            ...lesson,
+            _id: (lesson._id as any).toString(),
+            subcourseId: (lesson.subcourseId as any).toString(),
+            courseId: (lesson.courseId as any).toString(),
+            videoUrl: lesson.videoUrl || (lesson.video?.videoId ? `https://iframe.mediadelivery.net/embed/486981/${lesson.video.videoId}` : null),
+            videoStatus: lesson.videoUrl ? 'ready' : (lesson.video?.status || 'processing'),
+            duration: lesson.video?.duration || lesson.durationSec || 0
+          }))
+        }
+      })
+    )
 
     // Get session to check access
     const session = await auth()
@@ -84,7 +110,7 @@ async function getCourseData(courseId: string) {
         ...course,
         _id: (course as any)._id.toString()
       } as unknown as Course : null,
-      subcourses: subcourses.map(subcourse => ({
+      subcourses: subcoursesWithLessons.map(subcourse => ({
         ...subcourse,
         _id: (subcourse._id as any).toString(),
         courseId: (subcourse as any).courseId.toString()

@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken"
 import dbConnect from "@/lib/mongoose"
 import Subcourse from "@/lib/models/Subcourse"
 import Course from "@/lib/models/Course"
+import Lesson from "@/lib/models/Lesson"
 
 export async function PUT(
   request: NextRequest,
