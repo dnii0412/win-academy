@@ -42,10 +42,6 @@ export function PayWithQPay({ courseId, priceMnt, courseTitle, customerData, onP
         body: JSON.stringify({ courseId, priceMnt, customerData }),
       })
       const json = await res.json()
-      console.log('Payment response:', json)
-      console.log('QR Text:', json.qr_text)
-      console.log('QR Image:', json.qr_image ? 'Present' : 'Missing')
-      console.log('URLs:', json.urls?.length || 0)
       if (!res.ok) throw new Error(json.error || 'Failed to create invoice')
       setData(json)
       setPaymentStatus('pending')
@@ -75,7 +71,6 @@ export function PayWithQPay({ courseId, priceMnt, courseTitle, customerData, onP
           }, 2000)
         }
       } catch (e) {
-        console.error('Status check failed:', e)
       }
     }, 3000) // Check every 3 seconds
 

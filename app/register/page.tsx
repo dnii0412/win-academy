@@ -129,7 +129,6 @@ export default function RegisterPage() {
         }
       }
     } catch (error) {
-      console.error('Registration error:', error)
       setErrors({ general: "Санаандгүй алдаа гарлаа. Дахин оролдоно уу." })
     } finally {
       setIsLoading(false)
@@ -142,7 +141,6 @@ export default function RegisterPage() {
         callbackUrl: "/dashboard",
       })
     } catch (error) {
-      console.error("Google sign-up error:", error)
       setErrors({ general: "Google-аар бүртгүүлэх амжилтгүй. Дахин оролдоно уу." })
     }
   }

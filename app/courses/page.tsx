@@ -135,7 +135,6 @@ async function getCoursesWithEnrollment(): Promise<Course[]> {
           userEnrolledCourses = await getUserEnrolledCourses(user._id.toString())
         }
       } catch (userError) {
-        console.warn('Error fetching user enrollment:', userError)
         // Continue without user enrollment data
       }
     }
@@ -154,7 +153,6 @@ async function getCoursesWithEnrollment(): Promise<Course[]> {
     return coursesWithEnrollment as unknown as Course[]
 
   } catch (error) {
-    console.error('Error fetching courses:', error)
     return []
   }
 }

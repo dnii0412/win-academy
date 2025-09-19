@@ -38,7 +38,6 @@ export default function HomePageClient({ featuredCourses, session }: HomePageCli
         return data.hasAccess
       }
     } catch (error) {
-      console.error('Error checking course access:', error)
     }
     return false
   }

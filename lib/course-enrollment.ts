@@ -16,7 +16,6 @@ export async function getCourseEnrollmentCount(courseId: string): Promise<number
     
     return count
   } catch (error) {
-    console.error('Error getting course enrollment count:', error)
     return 0
   }
 }
@@ -58,7 +57,6 @@ export async function getMultipleCourseEnrollmentCounts(courseIds: string[]): Pr
     
     return countMap
   } catch (error) {
-    console.error('Error getting multiple course enrollment counts:', error)
     return new Map()
   }
 }
@@ -79,7 +77,6 @@ export async function isUserEnrolled(userId: string, courseId: string): Promise<
     
     return !!access
   } catch (error) {
-    console.error('Error checking user enrollment:', error)
     return false
   }
 }
@@ -99,7 +96,6 @@ export async function getUserEnrolledCourses(userId: string): Promise<string[]> 
     
     return accesses.map(access => access.courseId.toString())
   } catch (error) {
-    console.error('Error getting user enrolled courses:', error)
     return []
   }
 }

@@ -78,7 +78,6 @@ async function getFeaturedCourses(): Promise<Course[]> {
       _id: (course._id as any).toString()
     })) as unknown as Course[]
     } catch (error) {
-      console.error('Error fetching featured courses:', error)
     return []
   }
 }

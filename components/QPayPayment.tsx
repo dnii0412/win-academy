@@ -126,7 +126,6 @@ export default function QPayPayment({
       }
 
     } catch (err) {
-      console.error('Payment check failed:', err)
       // Don't show error for status checks, just log it
     } finally {
       setIsChecking(false)

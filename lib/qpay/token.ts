@@ -35,21 +35,11 @@ export async function getQPayAccessToken(): Promise<string> {
 
       return inMemoryToken.access_token
     } catch (e: any) {
-      console.warn('qpay.token.refresh.failed', {
-        correlationId,
-        error: e.message,
-        fallbackToNew: true
-      })
       // fall through to full token fetch
     }
   }
 
   // Fresh token - Try client credentials first, then username/password
-  console.log('qpay.token.request', {
-    correlationId,
-    method: 'Basic Authentication',
-    url: `${QPAY.baseUrl}/v2/auth/token`
-  })
 
   try {
     // Try Basic Authentication first (production QPay)
@@ -68,28 +58,12 @@ export async function getQPayAccessToken(): Promise<string> {
       expires_at: Date.now() + (authRes.expires_in || 300) * 1000,
     }
 
-    console.log('qpay.token.success', {
-      correlationId,
-      expiresIn: authRes.expires_in,
-      expiresAt: inMemoryToken.expires_at
-    })
 
     return inMemoryToken.access_token
   } catch (e: any) {
-    console.warn('qpay.token.client_credentials.failed', {
-      correlationId,
-      error: e.message,
-      status: e.status || 'unknown',
-      fallbackToUsernamePassword: true
-    })
 
     // Fallback to username/password authentication
     try {
-      console.log('qpay.token.request', {
-        correlationId,
-        method: 'Username/Password (fallback)',
-        url: `${QPAY.baseUrl}/v2/auth/token`
-      })
 
       const authRes = await qpayFetch('/v2/auth/token', {
         method: 'POST',
@@ -109,20 +83,9 @@ export async function getQPayAccessToken(): Promise<string> {
         expires_at: Date.now() + (authRes.expires_in || 300) * 1000,
       }
 
-      console.log('qpay.token.success', {
-        correlationId,
-        method: 'Username/Password',
-        expiresIn: authRes.expires_in,
-        expiresAt: inMemoryToken.expires_at
-      })
 
       return inMemoryToken.access_token
     } catch (e2: any) {
-      console.error('qpay.token.error', {
-        correlationId,
-        error: e2.message,
-        status: e2.status || 'unknown'
-      })
       throw new Error(`QPay authentication failed: ${e2.message}`)
     }
   }

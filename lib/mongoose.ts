@@ -29,15 +29,12 @@ if (!cached) {
 // Connection event listeners setup
 function setupConnectionListeners() {
     mongoose.connection.on('connected', () => {
-        console.log('🟢 MongoDB connected')
     })
     
     mongoose.connection.on('disconnected', () => {
-        console.log('🔴 MongoDB disconnected')
     })
     
     mongoose.connection.on('error', (err) => {
-        console.error('❌ MongoDB connection error:', err)
     })
 }
 

@@ -165,29 +165,12 @@ QPayInvoiceSchema.statics.findActiveByUser = function(userId: string) {
 
 // Instance methods
 QPayInvoiceSchema.methods.markAsPaid = async function(paymentId: string) {
-  console.log('markAsPaid called:', {
-    invoiceId: this._id,
-    qpayInvoiceId: this.qpayInvoiceId,
-    currentStatus: this.status,
-    paymentId,
-    userId: this.userId,
-    courseId: this.courseId
-  })
-
   this.status = 'PAID'
   this.paymentId = paymentId
   this.paidAt = new Date()
   
-  console.log('Saving invoice with new status:', {
-    invoiceId: this._id,
-    newStatus: this.status,
-    paymentId: this.paymentId,
-    paidAt: this.paidAt
-  })
-  
   await this.save()
   
-  console.log('Invoice saved successfully, granting course access...')
   
   // Grant course access after marking as paid
   try {
@@ -208,19 +191,12 @@ QPayInvoiceSchema.methods.markAsPaid = async function(paymentId: string) {
       `QPay purchase - ${accessDuration} days access`,
       expiresAt.toISOString()
     )
-    console.log('Course access granted after payment:', {
       userId: this.userId,
       courseId: this.courseId,
       invoiceId: this._id,
       accessResult: accessResult?._id
     })
   } catch (accessError) {
-    console.error('Failed to grant course access after payment:', {
-      error: accessError instanceof Error ? accessError.message : 'Unknown error',
-      userId: this.userId,
-      courseId: this.courseId,
-      invoiceId: this._id
-    })
     // Don't throw error - payment is still valid, access can be granted manually
   }
   

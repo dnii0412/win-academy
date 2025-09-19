@@ -132,7 +132,6 @@ export default function VideoUpload({ onUploadComplete }: VideoUploadProps) {
       }
 
     } catch (error: any) {
-      console.error('Background upload failed:', error)
       toast({
         title: "Upload failed",
         description: error.message || "An error occurred during background upload",

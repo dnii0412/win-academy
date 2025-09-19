@@ -30,7 +30,6 @@ export async function checkCourseAccess(courseId: string, userId?: string): Prom
 
     return true
   } catch (error) {
-    console.error('Error checking course access:', error)
     return false
   }
 }
@@ -50,7 +49,6 @@ export async function grantCourseAccess(
     await CourseAccess.grantAccess(userId, courseId, orderId, accessType)
     return true
   } catch (error) {
-    console.error('Error granting course access:', error)
     return false
   }
 }
@@ -65,7 +63,6 @@ export async function revokeCourseAccess(userId: string, courseId: string): Prom
     await CourseAccess.revokeAccess(userId, courseId)
     return true
   } catch (error) {
-    console.error('Error revoking course access:', error)
     return false
   }
 }

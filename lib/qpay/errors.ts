@@ -158,5 +158,4 @@ export function handleQPayError(error: unknown, correlationId?: string): QPayErr
 
 export function logQPayError(error: QPayError, context?: string) {
   const logData = error.toLogData()
-  console.error(`qpay.error${context ? `.${context}` : ''}`, logData)
 }

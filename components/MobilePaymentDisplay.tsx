@@ -200,11 +200,9 @@ export function MobilePaymentDisplay({
   }, [])
 
   const handleBankAppClick = (url: string, appName: string) => {
-    console.log(`Opening ${appName} with URL:`, url)
     try {
       window.location.href = url
     } catch (error) {
-      console.error('Failed to open bank app:', error)
       // Fallback: try to open in new tab
       window.open(url, '_blank')
     }
@@ -216,7 +214,6 @@ export function MobilePaymentDisplay({
       setCopiedUrl(url)
       setTimeout(() => setCopiedUrl(null), 2000)
     } catch (err) {
-      console.error('Failed to copy URL:', err)
     }
   }
 

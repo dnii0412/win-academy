@@ -160,15 +160,12 @@ userSchema.pre('deleteOne', { document: true, query: false }, async function(nex
       // Delete all course access records for this user
       await CourseAccess.deleteMany({ userId: this._id.toString() })
       
-      console.log(`Cleaned up course access records for user: ${this._id}`)
     } catch (courseAccessError) {
-      console.warn(`Could not clean up course access records for user ${this._id}:`, courseAccessError instanceof Error ? courseAccessError.message : String(courseAccessError))
       // Continue with user deletion even if course access cleanup fails
     }
     
     next()
   } catch (error) {
-    console.error('Error in user pre-delete hook:', error)
     // Don't fail the deletion if cleanup fails
     next()
   }

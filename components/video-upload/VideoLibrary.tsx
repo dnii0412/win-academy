@@ -55,7 +55,6 @@ export default function VideoLibrary() {
         setVideos(data.data || [])
       }
     } catch (error) {
-      console.error('Failed to fetch videos:', error)
     } finally {
       setIsLoading(false)
     }
@@ -80,7 +79,6 @@ export default function VideoLibrary() {
         alert("Видео амжилттай устгагдлаа")
       }
     } catch (error) {
-      console.error('Failed to delete video:', error)
       alert("Видео устгахад алдаа гарлаа")
     }
   }
@@ -91,7 +89,6 @@ export default function VideoLibrary() {
       setCopiedId(videoId)
       setTimeout(() => setCopiedId(null), 2000)
     } catch (error) {
-      console.error('Failed to copy video ID:', error)
     }
   }
 
@@ -101,7 +98,6 @@ export default function VideoLibrary() {
       await navigator.clipboard.writeText(streamUrl)
       alert("Стрим URL хуулж авлаа")
     } catch (error) {
-      console.error('Failed to copy stream URL:', error)
     }
   }
 

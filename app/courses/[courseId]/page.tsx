@@ -117,7 +117,6 @@ async function getCourseData(courseId: string) {
       error: null
     }
   } catch (error) {
-    console.error('Error fetching course data:', error)
     return { course: null, subcourses: [], hasAccess: false, error: "Failed to load course information" }
   }
 }

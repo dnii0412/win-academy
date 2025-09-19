@@ -119,7 +119,6 @@ export async function getQpayToken(): Promise<string> {
     return tokenData.access_token
 
   } catch (error) {
-    console.error('❌ Failed to get QPay token:', error)
     throw error
   }
 }
@@ -174,7 +173,6 @@ export async function qpayFetch<T = any>(
 
     } catch (error) {
       lastError = error as Error
-      console.error(`❌ QPay API attempt ${attempt} failed:`, error)
       
       if (attempt === maxRetries) {
         break

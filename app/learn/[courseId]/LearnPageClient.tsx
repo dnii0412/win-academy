@@ -30,13 +30,6 @@ function isBunnyStreamUrl(url: string | undefined): boolean {
   
   const isBunny = bunnyPatterns.some(pattern => url.toLowerCase().includes(pattern.toLowerCase()))
   
-  if (process.env.NODE_ENV !== 'production') {
-    console.log('🔍 Bunny URL detection:', {
-      url,
-      isBunny,
-      patterns: bunnyPatterns
-    })
-  }
   
   return isBunny
 }

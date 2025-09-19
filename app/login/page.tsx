@@ -101,7 +101,6 @@ function LoginForm() {
         router.push(callbackUrl)
       }
     } catch (error) {
-      console.error("Login error:", error)
       setErrors({ general: "Санаандгүй алдаа гарлаа. Дахин оролдоно уу." })
     } finally {
       setIsLoading(false)
@@ -115,7 +114,6 @@ function LoginForm() {
         callbackUrl: callbackUrl,
       })
     } catch (error) {
-      console.error("Google sign-in error:", error)
       setIsLoading(false)
     }
   }

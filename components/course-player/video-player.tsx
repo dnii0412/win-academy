@@ -167,7 +167,6 @@ export function VideoPlayer({ videoUrl, title, onProgressUpdate, onComplete }: V
           await videoRef.current.requestPictureInPicture()
         }
       } catch (error) {
-        console.error("Picture-in-picture failed:", error)
       }
     }
   }

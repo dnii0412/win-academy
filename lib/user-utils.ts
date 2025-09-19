@@ -11,7 +11,6 @@ export async function getConsistentUserId(email: string): Promise<string | null>
     const user = await User.findOne({ email })
     return user ? user._id.toString() : null
   } catch (error) {
-    console.error('Error getting consistent user ID:', error)
     return null
   }
 }

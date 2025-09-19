@@ -57,7 +57,6 @@ export default function CheckoutPage() {
                     setError("Сургалт олдсонгүй")
                 }
             } catch (error) {
-                console.error('Error fetching course:', error)
                 setError("Сургалтын мэдээлэл ачаалахад алдаа гарлаа")
             }
         }
@@ -73,10 +72,6 @@ export default function CheckoutPage() {
                     firstName: session.user.name?.split(' ')[0] || "",
                     lastName: session.user.name?.split(' ').slice(1).join(' ') || "",
                 }))
-                console.log('User info populated:', {
-                    email: session.user.email,
-                    name: session.user.name
-                })
             }
         }
     }, [courseId, session, status, router])
@@ -113,7 +108,7 @@ export default function CheckoutPage() {
     // Calculate the current price based on selected duration
     const getCurrentPrice = () => {
         if (!course) return 0
-        return formData.accessDuration === "90" 
+        return formData.accessDuration === "90"
             ? (course.price90Days || course.price || 0)
             : (course.price45Days || course.price || 0)
     }
@@ -121,7 +116,7 @@ export default function CheckoutPage() {
     // Calculate the original price based on selected duration
     const getOriginalPrice = () => {
         if (!course) return 0
-        return formData.accessDuration === "90" 
+        return formData.accessDuration === "90"
             ? (course.originalPrice90Days || course.originalPrice || 0)
             : (course.originalPrice45Days || course.originalPrice || 0)
     }
@@ -140,13 +135,11 @@ export default function CheckoutPage() {
         try {
             // For QPay, we don't need to create a separate order
             // The PayWithQPay component handles the order creation and payment flow
-            console.log('Checkout form submitted, QPay component will handle the payment')
-            
+
             // The actual payment is handled by the PayWithQPay component
             // This form is mainly for collecting customer information and terms agreement
-            
+
         } catch (err) {
-            console.error('Checkout error:', err)
             const errorMessage = err instanceof Error ? err.message : "Төлбөр амжилтгүй боллоо"
             setError(`Төлбөрийн алдаа: ${errorMessage}`)
         } finally {
@@ -207,15 +200,15 @@ export default function CheckoutPage() {
                                 <div className="flex-1">
                                     <h3 className="font-semibold text-lg">{course.titleMn || course.title}</h3>
                                     <p className="text-gray-600 text-sm mt-1">{course.descriptionMn || course.description}</p>
-                                    
+
                                 </div>
                             </div>
 
                             {/* Access Duration Selection */}
                             <div className="border-t pt-4 mt-6">
                                 <h4 className="text-lg font-semibold mb-3">Хандалтын хугацаа сонгох</h4>
-                                <RadioGroup 
-                                    value={formData.accessDuration} 
+                                <RadioGroup
+                                    value={formData.accessDuration}
                                     onValueChange={handleAccessDurationChange}
                                     className="space-y-3"
                                 >
@@ -293,38 +286,32 @@ export default function CheckoutPage() {
                             accessDuration={formData.accessDuration}
                             onPaymentSuccess={async (invoiceId) => {
                                 if (isRedirecting) {
-                                    console.log('Already redirecting, ignoring duplicate payment success')
                                     return
                                 }
-                                
-                                console.log('Payment successful!', { invoiceId })
+
                                 setIsRedirecting(true)
-                                
+
                                 // Wait a moment for course access to be granted
                                 await new Promise(resolve => setTimeout(resolve, 2000))
-                                
+
                                 // Check if user has access to the course
                                 try {
                                     const accessResponse = await fetch(`/api/courses/${courseId}/access`)
                                     if (accessResponse.ok) {
                                         const accessData = await accessResponse.json()
-                                        console.log('Course access status:', accessData)
-                                        
+
                                         // Redirect to course learning page
                                         router.push(`/learn/${courseId}`)
                                     } else {
-                                        console.error('Course access not granted yet, redirecting anyway')
                                         // Redirect anyway as payment was successful
                                         router.push(`/learn/${courseId}`)
                                     }
                                 } catch (error) {
-                                    console.error('Error checking course access:', error)
                                     // Redirect anyway as payment was successful
                                     router.push(`/learn/${courseId}`)
                                 }
                             }}
                             onPaymentError={(error) => {
-                                console.error('Payment error:', error)
                                 setError(`Payment Error: ${error}`)
                             }}
                         />

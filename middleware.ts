@@ -24,7 +24,6 @@ export async function middleware(request: NextRequest) {
 
     return NextResponse.next()
   } catch (error) {
-    console.error("Middleware error:", error)
     
     // If there's an error with token validation, allow the request to proceed
     // The page-level authentication will handle it
